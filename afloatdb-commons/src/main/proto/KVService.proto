@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package io.afloatdb.kv.proto;
+
+option java_multiple_files = true;
+
+message TypedValue {
+    int32 type = 1;
+    bytes value = 2;
+}
+
+message PutRequest {
+    string key = 1;
+    TypedValue value = 2;
+    bool absent = 3;
+}
+
+message PutResponse {
+    TypedValue value = 1;
+}
+
+message SetRequest {
+    string key = 1;
+    TypedValue value = 2;
+}
+
+message SetResponse {
+}
+
+message GetRequest {
+    string key = 1;
+}
+
+message GetResponse {
+    TypedValue value = 1;
+}
+
+message ContainsRequest {
+    string key = 1;
+    TypedValue value = 2;
+}
+
+message ContainsResponse {
+    bool success = 1;
+}
+
+message DeleteRequest {
+    string key = 1;
+}
+
+message DeleteResponse {
+    bool success = 1;
+}
+
+message RemoveRequest {
+    string key = 1;
+    TypedValue value = 2;
+}
+
+message RemoveResponse {
+    bool success = 1;
+    TypedValue value = 2;
+}
+
+message ReplaceRequest {
+    string key = 1;
+    TypedValue oldValue = 2;
+    TypedValue newValue = 3;
+}
+
+message ReplaceResponse {
+    bool success = 1;
+}
+
+message SizeRequest {
+}
+
+message SizeResponse {
+    int32 size = 1;
+}
+
+message ClearRequest {
+}
+
+message ClearResponse {
+    int32 size = 1;
+}
+
+service KVService {
+    rpc put (PutRequest) returns (PutResponse);
+    rpc set (SetRequest) returns (SetResponse);
+    rpc get (GetRequest) returns (GetResponse);
+    rpc contains (ContainsRequest) returns (ContainsResponse);
+    rpc delete (DeleteRequest) returns (DeleteResponse);
+    rpc remove (RemoveRequest) returns (RemoveResponse);
+    rpc replace (ReplaceRequest) returns (ReplaceResponse);
+    rpc size (SizeRequest) returns (SizeResponse);
+    rpc clear (ClearRequest) returns (ClearResponse);
+}

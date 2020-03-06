@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+package io.afloatdb.management.proto;
+
+import "AfloatDBRaft.proto";
+
+option java_multiple_files = true;
+
+
+message ProtoRaftGroupMembers {
+    int64 logIndex = 1;
+    repeated io.afloatdb.raft.proto.ProtoRaftEndpoint member = 2;
+}
+
+message ProtoRaftGroupTerm {
+    int32 term = 1;
+    io.afloatdb.raft.proto.ProtoRaftEndpoint leaderEndpoint = 2;
+    io.afloatdb.raft.proto.ProtoRaftEndpoint votedEndpoint = 3;
+}
+
+enum ProtoRaftRole {
+    FOLLOWER = 0;
+    CANDIDATE = 1;
+    LEADER = 2;
+}
+
+enum ProtoRaftNodeReportReason {
+    STATUS_CHANGE = 0;
+    ROLE_CHANGE = 1;
+    GROUP_MEMBERS_CHANGE = 2;
+    TAKE_SNAPSHOT = 3;
+    INSTALL_SNAPSHOT = 4;
+    PERIODIC = 5;
+    API_CALL = 6;
+}
+
+enum ProtoRaftNodeStatus {
+    INITIAL = 0;
+    ACTIVE = 1;
+    UPDATING_RAFT_GROUP_MEMBER_LIST = 2;
+    TERMINATING_RAFT_GROUP = 3;
+    TERMINATED = 4;
+}
+
+message ProtoRaftLogStats {
+    int64 commitIndex = 1;
+    int64 lastLogOrSnapshotTerm = 2;
+    int64 lastLogOrSnapshotIndex = 3;
+    int64 snapshotTerm = 4;
+    int64 snapshotIndex = 5;
+    int32 takeSnapshotCount = 6;
+    int32 installSnapshotCount = 7;
+}
+
+message ProtoRaftNodeReport {
+    ProtoRaftNodeReportReason reason = 1;
+    string groupId = 2;
+    io.afloatdb.raft.proto.ProtoRaftEndpoint endpoint = 3;
+    ProtoRaftGroupMembers initialMembers = 4;
+    ProtoRaftGroupMembers committedMembers = 5;
+    ProtoRaftGroupMembers effectiveMembers = 6;
+    ProtoRaftRole role = 7;
+    ProtoRaftNodeStatus status = 8;
+    ProtoRaftGroupTerm term = 9;
+    ProtoRaftLogStats log = 10;
+}
+
+message RemoveEndpointRequest {
+    io.afloatdb.raft.proto.ProtoRaftEndpoint endpoint = 1;
+    int64 groupMembersCommitIndex = 2;
+}
+
+message RemoveEndpointResponse {
+    int64 groupMembersCommitIndex = 1;
+}
+
+message GetRaftNodeReportRequest {
+}
+
+message GetRaftNodeReportResponse {
+    ProtoRaftNodeReport report = 1;
+    map<string, string> endpointAddress = 2;
+}
+
+message AddRaftEndpointAddressRequest {
+    io.afloatdb.raft.proto.ProtoRaftEndpoint endpoint = 1;
+    string address = 2;
+}
+
+message AddRaftEndpointAddressResponse {
+}
+
+message AddRaftEndpointRequest {
+    io.afloatdb.raft.proto.ProtoRaftEndpoint endpoint = 1;
+    int64 groupMembersCommitIndex = 2;
+}
+
+message AddRaftEndpointResponse {
+    int64 groupMembersCommitIndex = 1;
+}
+
+service ManagementService {
+
+    rpc removeEndpoint (RemoveEndpointRequest) returns (RemoveEndpointResponse) {
+    }
+
+    rpc getReport (GetRaftNodeReportRequest) returns (GetRaftNodeReportResponse) {
+    }
+
+    rpc addRaftEndpointAddress (AddRaftEndpointAddressRequest) returns (AddRaftEndpointAddressResponse) {
+    }
+
+    rpc addRaftEndpoint (AddRaftEndpointRequest) returns (AddRaftEndpointResponse) {
+    }
+
+}

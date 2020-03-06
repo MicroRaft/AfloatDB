@@ -1,0 +1,204 @@
+syntax = "proto3";
+
+package io.afloatdb.raft.proto;
+
+import "KVService.proto";
+
+option java_multiple_files = true;
+
+message ProtoRaftEndpoint {
+    string id = 1;
+}
+
+message ProtoTerminateRaftGroupOp {
+}
+
+message ProtoUpdateRaftGroupMembersOp {
+    repeated ProtoRaftEndpoint groupMember = 1;
+    ProtoRaftEndpoint endpoint = 2;
+
+    enum ProtoMembershipChangeMode {
+        ADD = 0;
+        REMOVE = 1;
+    }
+
+    ProtoMembershipChangeMode mode = 3;
+}
+
+message ProtoStartNewTermOp {
+}
+
+message ProtoOperation {
+    oneof operation {
+        ProtoTerminateRaftGroupOp terminateRaftGroupOp = 1;
+        ProtoUpdateRaftGroupMembersOp updateRaftGroupMembersOp = 2;
+        ProtoStartNewTermOp startNewTermOp = 3;
+        io.afloatdb.kv.proto.PutRequest putRequest = 4;
+        io.afloatdb.kv.proto.SetRequest setRequest = 5;
+        io.afloatdb.kv.proto.GetRequest getRequest = 6;
+        io.afloatdb.kv.proto.ContainsRequest containsRequest = 7;
+        io.afloatdb.kv.proto.DeleteRequest deleteRequest = 8;
+        io.afloatdb.kv.proto.RemoveRequest removeRequest = 9;
+        io.afloatdb.kv.proto.ReplaceRequest replaceRequest = 10;
+        io.afloatdb.kv.proto.SizeRequest sizeRequest = 11;
+        io.afloatdb.kv.proto.ClearRequest clearRequest = 12;
+    }
+}
+
+message ProtoLogEntry {
+    int32 term = 1;
+    int64 index = 2;
+    ProtoOperation operation = 3;
+}
+
+message ProtoKVEntry {
+    string key = 1;
+    io.afloatdb.kv.proto.TypedValue value = 2;
+}
+
+message ProtoKVSnapshotChunkObject {
+    repeated ProtoKVEntry entry = 1;
+    //    bytes data = 1;
+}
+
+message ProtoKVSnapshotChunk {
+    int32 term = 1;
+    int64 index = 2;
+    ProtoKVSnapshotChunkObject operation = 3;
+    int32 snapshotChunkIndex = 4;
+    int32 snapshotChunkCount = 5;
+    int64 groupMembersLogIndex = 6;
+    repeated ProtoRaftEndpoint groupMember = 7;
+}
+
+message ProtoSnapshotEntry {
+    int32 term = 1;
+    int64 index = 2;
+    repeated ProtoKVSnapshotChunk snapshotChunk = 3;
+    int64 groupMembersLogIndex = 4;
+    repeated ProtoRaftEndpoint groupMember = 5;
+}
+
+message ProtoVoteRequest {
+    string groupId = 1;
+    ProtoRaftEndpoint sender = 2;
+    int32 term = 3;
+    int32 lastLogTerm = 4;
+    int64 lastLogIndex = 5;
+    bool sticky = 6;
+}
+
+message ProtoVoteResponse {
+    string groupId = 1;
+    ProtoRaftEndpoint sender = 2;
+    int32 term = 3;
+    bool granted = 4;
+}
+
+message ProtoAppendEntriesRequest {
+    string groupId = 1;
+    ProtoRaftEndpoint sender = 2;
+    int32 term = 3;
+    int32 prevLogTerm = 4;
+    int64 prevLogIndex = 5;
+    int64 commitIndex = 6;
+    repeated ProtoLogEntry entry = 7;
+    int64 queryRound = 8;
+}
+
+message ProtoAppendEntriesSuccessResponse {
+    string groupId = 1;
+    ProtoRaftEndpoint sender = 2;
+    int32 term = 3;
+    int64 lastLogIndex = 4;
+    int64 queryRound = 5;
+}
+
+message ProtoAppendEntriesFailureResponse {
+    string groupId = 1;
+    ProtoRaftEndpoint sender = 2;
+    int32 term = 3;
+    int64 expectedNextIndex = 4;
+    int64 queryRound = 5;
+}
+
+message ProtoInstallSnapshotRequest {
+    string groupId = 1;
+    ProtoRaftEndpoint sender = 2;
+    int32 term = 3;
+    bool senderLeader = 4;
+    int32 snapshotTerm = 5;
+    int64 snapshotIndex = 6;
+    int32 totalSnapshotChunkCount = 7;
+    repeated ProtoKVSnapshotChunk snapshotChunk = 8;
+    int64 groupMembersLogIndex = 9;
+    repeated ProtoRaftEndpoint groupMember = 10;
+    int64 queryRound = 11;
+}
+
+message ProtoInstallSnapshotResponse {
+    string groupId = 1;
+    ProtoRaftEndpoint sender = 2;
+    int32 term = 3;
+    int64 snapshotIndex = 4;
+    repeated int32 requestedSnapshotChunkIndices = 5;
+    int64 queryRound = 6;
+}
+
+message ProtoPreVoteRequest {
+    string groupId = 1;
+    ProtoRaftEndpoint sender = 2;
+    int32 term = 3;
+    int32 lastLogTerm = 4;
+    int64 lastLogIndex = 5;
+}
+
+message ProtoPreVoteResponse {
+    string groupId = 1;
+    ProtoRaftEndpoint sender = 2;
+    int32 term = 3;
+    bool granted = 4;
+}
+
+message ProtoTriggerLeaderElectionRequest {
+    string groupId = 1;
+    ProtoRaftEndpoint sender = 2;
+    int32 term = 3;
+    int32 lastLogTerm = 4;
+    int64 lastLogIndex = 5;
+}
+
+message ProtoRaftMessage {
+    oneof message {
+        ProtoVoteRequest voteRequest = 1;
+        ProtoVoteResponse voteResponse = 2;
+        ProtoAppendEntriesRequest appendEntriesRequest = 3;
+        ProtoAppendEntriesSuccessResponse appendEntriesSuccessResponse = 4;
+        ProtoAppendEntriesFailureResponse appendEntriesFailureResponse = 5;
+        ProtoInstallSnapshotRequest installSnapshotRequest = 6;
+        ProtoInstallSnapshotResponse installSnapshotResponse = 7;
+        ProtoPreVoteRequest preVoteRequest = 8;
+        ProtoPreVoteResponse preVoteResponse = 9;
+        ProtoTriggerLeaderElectionRequest triggerLeaderElectionRequest = 10;
+    }
+}
+
+message ProtoRaftResponse {
+    int32 status = 1;
+}
+
+message PingRequest {
+}
+
+message PingResponse {
+}
+
+service RaftMessageService {
+    rpc handle (stream ProtoRaftMessage) returns (ProtoRaftResponse) {
+    }
+
+    rpc ping (PingRequest) returns (PingResponse) {
+    }
+}
+
+
