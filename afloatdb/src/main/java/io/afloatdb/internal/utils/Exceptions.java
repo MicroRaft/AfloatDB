@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,41 +14,48 @@
  * limitations under the License.
  */
 
-package io.afloatdb.internal.rpc.impl;
+package io.afloatdb.internal.utils;
 
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.microraft.RaftEndpoint;
 import io.microraft.exception.CannotReplicateException;
 import io.microraft.exception.IndeterminateStateException;
 import io.microraft.exception.LaggingCommitIndexException;
 import io.microraft.exception.MismatchingRaftGroupMembersCommitIndexException;
 import io.microraft.exception.NotLeaderException;
+import io.microraft.exception.RaftException;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import static io.grpc.Status.DEADLINE_EXCEEDED;
 import static io.grpc.Status.FAILED_PRECONDITION;
-import static io.grpc.Status.UNAVAILABLE;
-import static io.grpc.Status.UNKNOWN;
+import static io.grpc.Status.INTERNAL;
+import static io.grpc.Status.INVALID_ARGUMENT;
+import static io.grpc.Status.RESOURCE_EXHAUSTED;
 
-final class RaftExceptionUtils {
+public final class Exceptions {
 
-    private RaftExceptionUtils() {
+    private Exceptions() {
     }
 
-    static StatusRuntimeException wrap(Throwable t) {
+    public static StatusRuntimeException wrap(Throwable t) {
+        if (t instanceof StatusRuntimeException) {
+            return (StatusRuntimeException) t;
+        }
+
         Status status;
-        if (t instanceof NotLeaderException || t instanceof MismatchingRaftGroupMembersCommitIndexException
-                || t instanceof LaggingCommitIndexException) {
+        if (t instanceof MismatchingRaftGroupMembersCommitIndexException) {
+            status = INVALID_ARGUMENT;
+        } else if (t instanceof NotLeaderException || t instanceof LaggingCommitIndexException) {
             status = FAILED_PRECONDITION;
         } else if (t instanceof CannotReplicateException) {
-            status = UNAVAILABLE;
+            status = RESOURCE_EXHAUSTED;
         } else if (t instanceof IndeterminateStateException) {
-            // TODO [basri] are we sure about this?
             status = DEADLINE_EXCEEDED;
         } else {
-            status = UNKNOWN;
+            status = INTERNAL;
         }
 
         return wrap(status, t);
@@ -56,7 +63,18 @@ final class RaftExceptionUtils {
 
     private static StatusRuntimeException wrap(Status status, Throwable t) {
         String stackTrace = getStackTraceString(t);
-        return status.withDescription(t.getMessage()).augmentDescription(stackTrace).withCause(t).asRuntimeException();
+        StringBuilder sb = new StringBuilder();
+        boolean isRaftException = t instanceof RaftException;
+        sb.append(isRaftException ? "RAFT" : "OTHER").append("\n");
+        sb.append(t.getClass().getSimpleName()).append("\n");
+        if (isRaftException) {
+            RaftEndpoint leader = ((RaftException) t).getLeader();
+            sb.append(leader != null ? leader.getId() : "").append("\n");
+        }
+
+        sb.append(t.getMessage());
+
+        return status.withDescription(sb.toString()).augmentDescription(stackTrace).withCause(t).asRuntimeException();
     }
 
     private static String getStackTraceString(Throwable e) {
@@ -64,6 +82,13 @@ final class RaftExceptionUtils {
         PrintWriter printWriter = new PrintWriter(writer);
         e.printStackTrace(printWriter);
         return writer.toString();
+    }
+
+    public static void runSilently(Runnable r) {
+        try {
+            r.run();
+        } catch (Throwable ignored) {
+        }
     }
 
 }

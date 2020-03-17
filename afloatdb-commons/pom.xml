@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>AfloatDB Protocol Buffers</name>
+    <name>AfloatDB Commons</name>
     <artifactId>afloatdb-commons</artifactId>
     <packaging>jar</packaging>
 

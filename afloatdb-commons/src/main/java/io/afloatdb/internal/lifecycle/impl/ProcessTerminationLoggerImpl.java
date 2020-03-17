@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,20 @@
 
 package io.afloatdb.internal.lifecycle.impl;
 
-import io.afloatdb.internal.lifecycle.ProcessTerminationReporter;
+import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Singleton
-public class ProcessTerminationReporterImpl
-        implements ProcessTerminationReporter {
+public class ProcessTerminationLoggerImpl
+        implements ProcessTerminationLogger {
 
     private final AtomicBoolean terminating;
 
     @Inject
-    public ProcessTerminationReporterImpl(AtomicBoolean terminating) {
+    public ProcessTerminationLoggerImpl(AtomicBoolean terminating) {
         this.terminating = terminating;
     }
 

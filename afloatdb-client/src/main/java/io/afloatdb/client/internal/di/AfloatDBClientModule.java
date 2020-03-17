@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,14 @@ package io.afloatdb.client.internal.di;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import io.afloatdb.client.config.AfloatDBClientConfig;
+import io.afloatdb.client.internal.channel.ChannelManager;
+import io.afloatdb.client.internal.channel.impl.ChannelManagerImpl;
 import io.afloatdb.client.internal.kvstore.impl.KVSupplier;
-import io.afloatdb.client.internal.rpc.impl.KVServiceBlockingStubSupplier;
-import io.afloatdb.client.internal.rpc.impl.ManagedChannelSupplier;
+import io.afloatdb.client.internal.rpc.impl.KVServiceStubManager;
 import io.afloatdb.client.kvstore.KV;
-import io.afloatdb.internal.lifecycle.ProcessTerminationReporter;
-import io.afloatdb.internal.lifecycle.impl.ProcessTerminationReporterImpl;
+import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
+import io.afloatdb.internal.lifecycle.impl.ProcessTerminationLoggerImpl;
 import io.afloatdb.kv.proto.KVServiceGrpc.KVServiceBlockingStub;
-import io.grpc.ManagedChannel;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -38,8 +38,7 @@ public class AfloatDBClientModule
 
     public static final String CLIENT_ID_KEY = "ClientId";
     public static final String CONFIG_KEY = "Config";
-    public static final String MANAGED_CHANNEL_KEY = "ManagedChannel";
-    public static final String BLOCKING_STUB_KEY = "BlockingStub";
+    public static final String KV_STUB_KEY = "KVStub";
     public static final String KV_STORE_KEY = "KVStore";
     public static final String PROCESS_TERMINATION_FLAG_KEY = "ProcessTerminationFlag";
 
@@ -56,11 +55,10 @@ public class AfloatDBClientModule
         bind(String.class).annotatedWith(named(CLIENT_ID_KEY)).toInstance(config.getClientId());
         bind(AfloatDBClientConfig.class).annotatedWith(named(CONFIG_KEY)).toInstance(config);
         bind(AtomicBoolean.class).annotatedWith(named(PROCESS_TERMINATION_FLAG_KEY)).toInstance(processTerminationFlag);
-        bind(ProcessTerminationReporter.class).to(ProcessTerminationReporterImpl.class);
-        bind(new TypeLiteral<Supplier<ManagedChannel>>() {
-        }).annotatedWith(named(MANAGED_CHANNEL_KEY)).to(ManagedChannelSupplier.class);
+        bind(ProcessTerminationLogger.class).to(ProcessTerminationLoggerImpl.class);
+        bind(ChannelManager.class).to(ChannelManagerImpl.class);
         bind(new TypeLiteral<Supplier<KVServiceBlockingStub>>() {
-        }).annotatedWith(named(BLOCKING_STUB_KEY)).to(KVServiceBlockingStubSupplier.class);
+        }).annotatedWith(named(KV_STUB_KEY)).to(KVServiceStubManager.class);
         bind(new TypeLiteral<Supplier<KV>>() {
         }).annotatedWith(named(KV_STORE_KEY)).to(KVSupplier.class);
     }

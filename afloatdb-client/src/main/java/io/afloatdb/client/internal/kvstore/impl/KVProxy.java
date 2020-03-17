@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import io.afloatdb.kv.proto.SizeResponse;
 import io.afloatdb.kv.proto.TypedValue;
 
 import javax.annotation.Nonnull;
+import java.util.function.Supplier;
 
 import static io.afloatdb.internal.serialization.Serialization.BOOLEAN_TYPE;
 import static io.afloatdb.internal.serialization.Serialization.BYTE_ARRAY_TYPE;
@@ -66,10 +67,10 @@ import static java.util.Objects.requireNonNull;
 public class KVProxy
         implements KV {
 
-    private final KVServiceBlockingStub stub;
+    private final Supplier<KVServiceBlockingStub> kvStubSupplier;
 
-    public KVProxy(KVServiceBlockingStub stub) {
-        this.stub = stub;
+    public KVProxy(Supplier<KVServiceBlockingStub> kvStubSupplier) {
+        this.kvStubSupplier = kvStubSupplier;
     }
 
     @Override
@@ -234,7 +235,7 @@ public class KVProxy
 
     private <T> T put(String key, TypedValue value, boolean absent) {
         PutRequest request = PutRequest.newBuilder().setKey(key).setValue(value).setAbsent(absent).build();
-        PutResponse response = stub.put(request);
+        PutResponse response = kvStubSupplier.get().put(request);
         return response.hasValue() ? (T) Serialization.deserialize(response.getValue()) : null;
     }
 
@@ -306,7 +307,7 @@ public class KVProxy
 
     private void set(String key, TypedValue value) {
         SetRequest request = SetRequest.newBuilder().setKey(key).setValue(value).build();
-        stub.set(request);
+        kvStubSupplier.get().set(request);
     }
 
     @Override
@@ -314,17 +315,16 @@ public class KVProxy
         requireNonNull(key);
 
         GetRequest request = GetRequest.newBuilder().setKey(key).build();
-        GetResponse response = stub.get(request);
-
+        GetResponse response = kvStubSupplier.get().get(request);
         return response.hasValue() ? (T) Serialization.deserialize(response.getValue()) : null;
     }
 
     @Override
     public boolean contains(@Nonnull String key) {
+        requireNonNull(key);
+
         ContainsRequest request = ContainsRequest.newBuilder().setKey(key).build();
-
-        ContainsResponse response = stub.contains(request);
-
+        ContainsResponse response = kvStubSupplier.get().contains(request);
         return response.getSuccess();
     }
 
@@ -391,8 +391,7 @@ public class KVProxy
 
     private boolean contains(String key, TypedValue value) {
         ContainsRequest request = ContainsRequest.newBuilder().setKey(key).setValue(value).build();
-
-        return stub.contains(request).getSuccess();
+        return kvStubSupplier.get().contains(request).getSuccess();
     }
 
     @Override
@@ -400,9 +399,7 @@ public class KVProxy
         requireNonNull(key);
 
         DeleteRequest request = DeleteRequest.newBuilder().setKey(key).build();
-
-        DeleteResponse response = stub.delete(request);
-
+        DeleteResponse response = kvStubSupplier.get().delete(request);
         return response.getSuccess();
     }
 
@@ -411,9 +408,7 @@ public class KVProxy
         requireNonNull(key);
 
         RemoveRequest request = RemoveRequest.newBuilder().setKey(key).build();
-
-        RemoveResponse response = stub.remove(request);
-
+        RemoveResponse response = kvStubSupplier.get().remove(request);
         return response.hasValue() ? (T) Serialization.deserialize(response.getValue()) : null;
     }
 
@@ -480,8 +475,7 @@ public class KVProxy
 
     private boolean remove(String key, TypedValue value) {
         RemoveRequest request = RemoveRequest.newBuilder().setKey(key).setValue(value).build();
-
-        return stub.remove(request).getSuccess();
+        return kvStubSupplier.get().remove(request).getSuccess();
     }
 
     @Override
@@ -492,9 +486,7 @@ public class KVProxy
 
         ReplaceRequest request = ReplaceRequest.newBuilder().setKey(key).setOldValue(getTypedValue(oldValue))
                                                .setNewValue(getTypedValue(newValue)).build();
-
-        ReplaceResponse response = stub.replace(request);
-
+        ReplaceResponse response = kvStubSupplier.get().replace(request);
         return response.getSuccess();
     }
 
@@ -526,15 +518,13 @@ public class KVProxy
 
     @Override
     public int size() {
-        SizeResponse response = stub.size(SizeRequest.getDefaultInstance());
-
+        SizeResponse response = kvStubSupplier.get().size(SizeRequest.getDefaultInstance());
         return response.getSize();
     }
 
     @Override
     public int clear() {
-        ClearResponse response = stub.clear(ClearRequest.getDefaultInstance());
-
+        ClearResponse response = kvStubSupplier.get().clear(ClearRequest.getDefaultInstance());
         return response.getSize();
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,12 @@ import static com.typesafe.config.ConfigFactory.load;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_1;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_2;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_3;
-import static io.afloatdb.utils.AfloatDBTestUtils.waitUntilLeaderElected;
+import static io.microraft.impl.util.RandomPicker.getRandomInt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class AfloatDBClientTest
+public class AfloatDBClientKVTest
         extends BaseTest {
 
     private static final byte BYTE_1 = 76;
@@ -72,8 +72,8 @@ public class AfloatDBClientTest
         servers.add(AfloatDB.bootstrap(CONFIG_2));
         servers.add(AfloatDB.bootstrap(CONFIG_3));
 
-        String leaderAddress = waitUntilLeaderElected(servers).getConfig().getLocalEndpointConfig().getAddress();
-        Config config = ConfigFactory.parseString("afloatdb.client.server-address: \"" + leaderAddress + "\"")
+        String serverAddress = servers.get(getRandomInt(servers.size())).getConfig().getLocalEndpointConfig().getAddress();
+        Config config = ConfigFactory.parseString("afloatdb.client.server-address: \"" + serverAddress + "\"")
                                      .withFallback(load("client.conf"));
         client = AfloatDBClient.newInstance(AfloatDBClientConfig.from(config));
         kv = client.getKV();

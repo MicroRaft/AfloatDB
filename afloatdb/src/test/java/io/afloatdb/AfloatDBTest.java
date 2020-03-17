@@ -2,7 +2,13 @@ package io.afloatdb;
 
 import com.google.protobuf.ByteString;
 import com.typesafe.config.ConfigFactory;
+import io.afloatdb.cluster.proto.AfloatDBClusterEndpoints;
+import io.afloatdb.cluster.proto.AfloatDBClusterEndpointsRequest;
+import io.afloatdb.cluster.proto.AfloatDBClusterEndpointsResponse;
+import io.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc;
+import io.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc.AfloatDBClusterServiceStub;
 import io.afloatdb.config.AfloatDBConfig;
+import io.afloatdb.config.AfloatDBEndpointConfig;
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.kv.proto.GetRequest;
 import io.afloatdb.kv.proto.GetResponse;
@@ -25,6 +31,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.stub.StreamObserver;
 import io.microraft.impl.util.BaseTest;
 import io.microraft.report.RaftGroupMembers;
 import io.microraft.report.RaftNodeReport;
@@ -36,6 +43,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static io.afloatdb.internal.serialization.Serialization.STRING_TYPE;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_1;
@@ -57,7 +67,7 @@ public class AfloatDBTest
         extends BaseTest {
 
     private List<AfloatDB> servers = new ArrayList<>();
-    private Map<String, StubContext> stubContexts = new HashMap<>();
+    private Map<String, ManagedChannel> channels = new HashMap<>();
 
     @Before
     public void init() {
@@ -69,7 +79,18 @@ public class AfloatDBTest
     @After
     public void tearDown() {
         servers.forEach(AfloatDB::shutdown);
-        stubContexts.values().stream().map(ctx -> ctx.channel).forEach(ManagedChannel::shutdownNow);
+        channels.values().forEach(ManagedChannel::shutdownNow);
+    }
+
+    @Test
+    public void when_leaderFails_then_newLeaderElected() {
+        AfloatDB leader = waitUntilLeaderElected(servers);
+        leader.shutdown();
+        leader.awaitTermination();
+
+        AfloatDB newLeader = waitUntilLeaderElected(servers);
+
+        assertThat(newLeader.getLocalEndpoint()).isNotEqualTo(leader.getLocalEndpoint());
     }
 
     @Test
@@ -95,17 +116,13 @@ public class AfloatDBTest
         });
     }
 
-    private ManagementServiceBlockingStub createManagementServiceStub(AfloatDB server) {
-        String address = server.getConfig().getLocalEndpointConfig().getAddress();
-        return stubContexts.computeIfAbsent(address, s -> {
-            ManagedChannel channel = ManagedChannelBuilder.forTarget(address).usePlaintext().disableRetry().directExecutor()
-                                                          .build();
-            return new StubContext(channel, ManagementServiceGrpc.newBlockingStub(channel));
-        }).stub;
+    private ManagedChannel createChannel(String address) {
+        return channels.computeIfAbsent(address,
+                s -> ManagedChannelBuilder.forTarget(address).usePlaintext().disableRetry().directExecutor().build());
     }
 
     @Test
-    public void when_serverCrashesAndIsRemoved_then_newMemberListDoesNotContainIt() {
+    public void when_serverCrashesAndIsRemoved_then_newMemberListDoesNotContainRemovedServer() {
         AfloatDB leader = waitUntilLeaderElected(servers);
         AfloatDB follower = getAnyFollower(servers);
         ProtoRaftEndpoint followerEndpoint = AfloatDBEndpoint.extract(follower.getLocalEndpoint());
@@ -154,7 +171,7 @@ public class AfloatDBTest
     }
 
     @Test
-    public void when_removeEndpointInvokedWithWrongGroupMembersCommitIndex_then_cannotRemoveMember() {
+    public void when_removeEndpointInvokedWithWrongGroupMembersCommitIndex_then_cannotRemoveEndpoint() {
         AfloatDB leader = waitUntilLeaderElected(servers);
         AfloatDB follower = getAnyFollower(servers);
         ProtoRaftEndpoint followerEndpoint = AfloatDBEndpoint.extract(follower.getLocalEndpoint());
@@ -165,7 +182,7 @@ public class AfloatDBTest
             createManagementServiceStub(leader).removeEndpoint(removeEndpointRequest);
             fail();
         } catch (StatusRuntimeException e) {
-            assertThat(e.getStatus().getCode()).isSameAs(Status.FAILED_PRECONDITION.getCode());
+            assertThat(e.getStatus().getCode()).isSameAs(Status.INVALID_ARGUMENT.getCode());
         }
     }
 
@@ -342,15 +359,135 @@ public class AfloatDBTest
         AfloatDB.join(CONFIG_3);
     }
 
-    private static class StubContext {
-        final ManagedChannel channel;
-        final ManagementServiceBlockingStub stub;
+    @Test
+    public void when_observerStubConnects_then_itGetsCurrentGroupMembersImmediately()
+            throws InterruptedException {
+        AfloatDB leader = waitUntilLeaderElected(servers);
+        AfloatDBClusterServiceStub stub = createAfloatDBClusterServiceStub(leader);
 
-        StubContext(ManagedChannel channel, ManagementServiceBlockingStub stub) {
-            this.channel = channel;
-            this.stub = stub;
+        AtomicReference<AfloatDBClusterEndpoints> endpointsRef = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+
+        AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId("client1").build();
+        stub.observeClusterEndpoints(request, new StreamObserver<AfloatDBClusterEndpointsResponse>() {
+            @Override
+            public void onNext(AfloatDBClusterEndpointsResponse response) {
+                endpointsRef.set(response.getEndpoints());
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                latch.countDown();
+            }
+
+            @Override
+            public void onCompleted() {
+                latch.countDown();
+            }
+        });
+
+        assertThat(latch.await(15, TimeUnit.SECONDS)).isTrue();
+
+        AfloatDBClusterEndpoints endpoints = endpointsRef.get();
+
+        List<AfloatDBEndpointConfig> initialEndpoints = leader.getConfig().getRaftGroupConfig().getInitialEndpoints();
+        assertThat(endpoints.getEndpointCount()).isEqualTo(initialEndpoints.size());
+
+        for (AfloatDBEndpointConfig endpointConfig : leader.getConfig().getRaftGroupConfig().getInitialEndpoints()) {
+            String address = endpoints.getEndpointMap().get(endpointConfig.getId());
+            assertThat(address).isNotNull().isEqualTo(endpointConfig.getAddress());
         }
+    }
 
+    @Test
+    public void when_crashedServerIsRemoved_then_observerStubGetsNotified() {
+        AfloatDB leader = waitUntilLeaderElected(servers);
+        AfloatDBClusterServiceStub stub = createAfloatDBClusterServiceStub(leader);
+
+        AtomicReference<AfloatDBClusterEndpoints> endpointsRef = new AtomicReference<>();
+
+        AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId("client1").build();
+        stub.observeClusterEndpoints(request, new StreamObserver<AfloatDBClusterEndpointsResponse>() {
+            @Override
+            public void onNext(AfloatDBClusterEndpointsResponse response) {
+                endpointsRef.set(response.getEndpoints());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+            }
+
+            @Override
+            public void onCompleted() {
+            }
+        });
+
+        eventually(() -> assertThat(endpointsRef.get()).isNotNull());
+
+        AfloatDB follower = getAnyFollower(servers);
+        follower.shutdown();
+        follower.awaitTermination();
+
+        createManagementServiceStub(leader).removeEndpoint(
+                RemoveEndpointRequest.newBuilder().setEndpoint(AfloatDBEndpoint.extract(follower.getLocalEndpoint())).build());
+
+        eventually(() -> {
+            AfloatDBClusterEndpoints endpoints = endpointsRef.get();
+            assertThat(endpoints).isNotNull();
+            List<AfloatDBEndpointConfig> initialEndpoints = leader.getConfig().getRaftGroupConfig().getInitialEndpoints();
+            assertThat(endpoints.getEndpointMap().size()).isEqualTo(initialEndpoints.size() - 1);
+            assertThat(endpoints.getEndpointMap()).doesNotContainKey((String) follower.getLocalEndpoint().getId());
+        });
+    }
+
+    @Test
+    public void when_newServerJoins_then_observerStubGetsNotified() {
+        AfloatDB leader = waitUntilLeaderElected(servers);
+        AfloatDBClusterServiceStub stub = createAfloatDBClusterServiceStub(leader);
+
+        AtomicReference<AfloatDBClusterEndpoints> endpointsRef = new AtomicReference<>();
+
+        AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId("client1").build();
+        stub.observeClusterEndpoints(request, new StreamObserver<AfloatDBClusterEndpointsResponse>() {
+            @Override
+            public void onNext(AfloatDBClusterEndpointsResponse response) {
+                endpointsRef.set(response.getEndpoints());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+            }
+
+            @Override
+            public void onCompleted() {
+            }
+        });
+
+        eventually(() -> assertThat(endpointsRef.get()).isNotNull());
+
+        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: " + "\"localhost:6704\"\n"
+                + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \"" + leader.getConfig().getLocalEndpointConfig()
+                                                                                    .getAddress() + "\"";
+
+        AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)));
+        servers.add(newServer);
+
+        eventually(() -> {
+            AfloatDBClusterEndpoints endpoints = endpointsRef.get();
+            assertThat(endpoints).isNotNull();
+            List<AfloatDBEndpointConfig> initialEndpoints = leader.getConfig().getRaftGroupConfig().getInitialEndpoints();
+            assertThat(endpoints.getEndpointMap().size()).isEqualTo(initialEndpoints.size() + 1);
+            assertThat(endpoints.getEndpointMap()).containsEntry("node4", "localhost:6704");
+        });
+    }
+
+    private ManagementServiceBlockingStub createManagementServiceStub(AfloatDB server) {
+        return ManagementServiceGrpc.newBlockingStub(createChannel(server.getConfig().getLocalEndpointConfig().getAddress()));
+    }
+
+    private AfloatDBClusterServiceStub createAfloatDBClusterServiceStub(AfloatDB server) {
+        return AfloatDBClusterServiceGrpc.newStub(createChannel(server.getConfig().getLocalEndpointConfig().getAddress()));
     }
 
 }

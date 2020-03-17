@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package io.afloatdb.internal.raft.impl;
 
+import io.afloatdb.internal.raft.RaftNodeReportObserver;
 import io.afloatdb.internal.rpc.RaftMessageDispatcher;
 import io.microraft.RaftEndpoint;
 import io.microraft.integration.RaftNodeRuntime;
@@ -28,23 +29,23 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_EXECUTOR_KEY;
 
 @Singleton
 public class AfloatDBRaftNodeRuntime
-        implements RaftNodeRuntime, Supplier<RaftNodeReport> {
+        implements RaftNodeRuntime {
 
     private final ScheduledExecutorService executor;
     private final RaftMessageDispatcher raftMessageDispatcher;
-    private volatile RaftNodeReport lastStateSnapshot;
+    private final RaftNodeReportObserver raftNodeReportObserver;
 
     @Inject
     public AfloatDBRaftNodeRuntime(@Named(RAFT_NODE_EXECUTOR_KEY) ScheduledExecutorService executor,
-                                   RaftMessageDispatcher raftMessageDispatcher) {
+                                   RaftMessageDispatcher raftMessageDispatcher, RaftNodeReportObserver raftNodeReportObserver) {
         this.executor = executor;
         this.raftMessageDispatcher = raftMessageDispatcher;
+        this.raftNodeReportObserver = raftNodeReportObserver;
     }
 
     @Override
@@ -72,17 +73,12 @@ public class AfloatDBRaftNodeRuntime
     }
 
     @Override
-    public void onRaftNodeReport(@Nonnull RaftNodeReport snapshot) {
-        this.lastStateSnapshot = snapshot;
+    public void onRaftNodeReport(@Nonnull RaftNodeReport report) {
+        raftNodeReportObserver.onRaftNodeReport(report);
     }
 
     @Override
     public void onRaftGroupTerminated() {
-    }
-
-    @Override
-    public RaftNodeReport get() {
-        return lastStateSnapshot;
     }
 
 }

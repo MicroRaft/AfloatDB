@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package io.afloatdb.internal.rpc;
 
+import io.afloatdb.raft.proto.RaftMessageServiceGrpc.RaftMessageServiceStub;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.RaftMessage;
 
@@ -29,5 +30,7 @@ public interface RaftMessageDispatcher {
     void add(@Nonnull RaftEndpoint endpoint, @Nonnull String address);
 
     Map<RaftEndpoint, String> getAddresses();
+
+    RaftMessageServiceStub getStub(RaftEndpoint endpoint);
 
 }

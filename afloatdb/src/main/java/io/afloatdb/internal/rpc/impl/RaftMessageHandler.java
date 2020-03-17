@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,46 @@
 
 package io.afloatdb.internal.rpc.impl;
 
-import io.afloatdb.raft.proto.PingRequest;
-import io.afloatdb.raft.proto.PingResponse;
+import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
+import io.afloatdb.kv.proto.ClearResponse;
+import io.afloatdb.kv.proto.ContainsResponse;
+import io.afloatdb.kv.proto.DeleteResponse;
+import io.afloatdb.kv.proto.GetResponse;
+import io.afloatdb.kv.proto.PutResponse;
+import io.afloatdb.kv.proto.RemoveResponse;
+import io.afloatdb.kv.proto.ReplaceResponse;
+import io.afloatdb.kv.proto.SetResponse;
+import io.afloatdb.kv.proto.SizeResponse;
+import io.afloatdb.raft.proto.ProtoOperationResponse;
+import io.afloatdb.raft.proto.ProtoQueryRequest;
 import io.afloatdb.raft.proto.ProtoRaftMessage;
 import io.afloatdb.raft.proto.ProtoRaftResponse;
+import io.afloatdb.raft.proto.ProtoReplicateRequest;
 import io.afloatdb.raft.proto.RaftMessageServiceGrpc.RaftMessageServiceImplBase;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.microraft.Ordered;
+import io.microraft.QueryPolicy;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.model.message.RaftMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_SUPPLIER_KEY;
-import static io.afloatdb.internal.raft.impl.RaftMessages.extract;
+import static io.afloatdb.internal.utils.Exceptions.wrap;
+import static io.afloatdb.internal.utils.Serialization.fromProto;
+import static io.afloatdb.internal.utils.Serialization.unwrap;
 
 @Singleton
 public class RaftMessageHandler
@@ -43,23 +64,92 @@ public class RaftMessageHandler
     private static Logger LOGGER = LoggerFactory.getLogger(RaftMessageHandler.class);
 
     private final RaftNode raftNode;
-    private final RaftEndpoint localMember;
+    private final RaftEndpoint localEndpoint;
+    private final ProcessTerminationLogger processTerminationLogger;
+    private final Set<RaftMessageStreamObserver> streamObservers = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @Inject
-    public RaftMessageHandler(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier) {
+    public RaftMessageHandler(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
+                              ProcessTerminationLogger processTerminationLogger) {
         this.raftNode = raftNodeSupplier.get();
-        this.localMember = this.raftNode.getLocalEndpoint();
+        this.localEndpoint = this.raftNode.getLocalEndpoint();
+        this.processTerminationLogger = processTerminationLogger;
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        streamObservers.forEach(RaftMessageStreamObserver::onCompleted);
+        streamObservers.clear();
+
+        processTerminationLogger.logInfo(LOGGER, localEndpoint.getId() + " RaftMessageHandler is shut down.");
+    }
+
+    @Override
+    public void replicate(ProtoReplicateRequest request, StreamObserver<ProtoOperationResponse> responseObserver) {
+        raftNode.replicate(request.getOperation()).whenComplete((response, throwable) -> {
+            if (throwable == null) {
+                responseObserver.onNext(createProtoOperationResponse(response));
+            } else {
+                responseObserver.onError(wrap(throwable));
+            }
+            responseObserver.onCompleted();
+        });
+    }
+
+    @Override
+    public void query(ProtoQueryRequest request, StreamObserver<ProtoOperationResponse> responseObserver) {
+        QueryPolicy queryPolicy = fromProto(request.getQueryPolicy());
+        if (queryPolicy == null) {
+            responseObserver.onError(new StatusRuntimeException(Status.INVALID_ARGUMENT));
+            responseObserver.onCompleted();
+            return;
+        }
+
+        raftNode.query(request.getOperation(), queryPolicy, request.getMinCommitIndex()).whenComplete((response, throwable) -> {
+            if (throwable == null) {
+                responseObserver.onNext(createProtoOperationResponse(response));
+            } else {
+                responseObserver.onError(wrap(throwable));
+            }
+            responseObserver.onCompleted();
+        });
+    }
+
+    private ProtoOperationResponse createProtoOperationResponse(Ordered<Object> ordered) {
+        ProtoOperationResponse.Builder builder = ProtoOperationResponse.newBuilder();
+        builder.setCommitIndex(ordered.getCommitIndex());
+
+        Object result = ordered.getResult();
+        if (result instanceof PutResponse) {
+            builder.setPutResponse((PutResponse) result);
+        } else if (result instanceof SetResponse) {
+            builder.setSetResponse((SetResponse) result);
+        } else if (result instanceof GetResponse) {
+            builder.setGetResponse((GetResponse) result);
+        } else if (result instanceof ContainsResponse) {
+            builder.setContainsResponse((ContainsResponse) result);
+        } else if (result instanceof DeleteResponse) {
+            builder.setDeleteResponse((DeleteResponse) result);
+        } else if (result instanceof RemoveResponse) {
+            builder.setRemoveResponse((RemoveResponse) result);
+        } else if (result instanceof ReplaceResponse) {
+            builder.setReplaceResponse((ReplaceResponse) result);
+        } else if (result instanceof SizeResponse) {
+            builder.setSizeResponse((SizeResponse) result);
+        } else if (result instanceof ClearResponse) {
+            builder.setClearResponse((ClearResponse) result);
+        } else {
+            throw new IllegalArgumentException("Invalid result: " + ordered);
+        }
+
+        return builder.build();
     }
 
     @Override
     public StreamObserver<ProtoRaftMessage> handle(StreamObserver<ProtoRaftResponse> responseObserver) {
-        return new RaftMessageStreamObserver();
-    }
-
-    @Override
-    public void ping(PingRequest request, StreamObserver<PingResponse> responseObserver) {
-        responseObserver.onNext(PingResponse.getDefaultInstance());
-        responseObserver.onCompleted();
+        RaftMessageStreamObserver observer = new RaftMessageStreamObserver();
+        streamObservers.add(observer);
+        return observer;
     }
 
     private class RaftMessageStreamObserver
@@ -69,12 +159,12 @@ public class RaftMessageHandler
 
         @Override
         public void onNext(ProtoRaftMessage proto) {
-            RaftMessage message = extract(proto);
+            RaftMessage message = unwrap(proto);
             if (sender == null) {
                 sender = message.getSender();
             }
 
-            LOGGER.debug("{} received {}", localMember.getId(), message);
+            LOGGER.debug("{} received {}.", localEndpoint.getId(), message);
 
             raftNode.handle(message);
         }
@@ -82,20 +172,27 @@ public class RaftMessageHandler
         @Override
         public void onError(Throwable t) {
             if (sender != null) {
-                LOGGER.error(localMember.getId() + " failure on Raft RPC stream of " + sender.getId(), t);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.error(localEndpoint.getId() + " failure on Raft RPC stream of " + sender.getId(), t);
+                } else {
+                    LOGGER.error("{} failure on Raft RPC stream of {}. Exception: {} Message: {}", localEndpoint.getId(),
+                            sender.getId(), t.getClass().getSimpleName(), t.getMessage());
+                }
             } else {
-                LOGGER.error(localMember.getId() + " failure on Raft RPC stream.", t);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.error(localEndpoint.getId() + " failure on Raft RPC stream.", t);
+                } else {
+                    LOGGER.error("{} failure on Raft RPC stream. Exception: {} Message: {}", localEndpoint.getId(),
+                            t.getClass().getSimpleName(), t.getMessage());
+                }
             }
 
         }
 
         @Override
         public void onCompleted() {
-            if (sender != null) {
-                LOGGER.debug("{} Raft RPC stream of {} completed.", localMember.getId(), sender.getId());
-            } else {
-                LOGGER.debug("{} Raft RPC stream completed.", localMember.getId());
-            }
+            LOGGER.debug("{} Raft RPC stream of {} completed.", localEndpoint.getId(), sender != null ? sender.getId() : null);
+            streamObservers.remove(this);
         }
 
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ import javax.inject.Singleton;
 import java.util.function.Supplier;
 
 import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_SUPPLIER_KEY;
-import static io.afloatdb.internal.rpc.impl.RaftExceptionUtils.wrap;
-import static io.afloatdb.internal.rpc.impl.SerializationUtils.toProto;
+import static io.afloatdb.internal.utils.Exceptions.wrap;
+import static io.afloatdb.internal.utils.Serialization.toProto;
 import static io.microraft.MembershipChangeMode.REMOVE;
 
 @Singleton
@@ -111,7 +111,7 @@ public class ManagementRequestHandler
             raftMessageDispatcher.add(AfloatDBEndpoint.wrap(request.getEndpoint()), request.getAddress());
             responseObserver.onNext(AddRaftEndpointAddressResponse.getDefaultInstance());
         } catch (Throwable t) {
-            responseObserver.onError(RaftExceptionUtils.wrap(t));
+            responseObserver.onError(wrap(t));
         } finally {
             responseObserver.onCompleted();
         }

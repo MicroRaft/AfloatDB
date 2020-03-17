@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package io.afloatdb.internal.raft.impl;
 
 import io.afloatdb.AfloatDBException;
 import io.afloatdb.config.AfloatDBConfig;
-import io.afloatdb.internal.lifecycle.ProcessTerminationReporter;
+import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.integration.RaftNodeRuntime;
@@ -33,6 +33,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static io.afloatdb.internal.di.AfloatDBModule.CONFIG_KEY;
@@ -46,17 +47,17 @@ public class RaftNodeSupplier
     private static final Logger LOGGER = LoggerFactory.getLogger(RaftNodeSupplier.class);
 
     private final RaftNode raftNode;
-    private final ProcessTerminationReporter processTerminationReporter;
+    private final ProcessTerminationLogger processTerminationLogger;
 
     @Inject
     public RaftNodeSupplier(@Named(CONFIG_KEY) AfloatDBConfig config, @Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
                             @Named(INITIAL_ENDPOINTS_KEY) Collection<RaftEndpoint> initialGroupMembers, RaftNodeRuntime runtime,
                             StateMachine stateMachine, RaftModelFactory modelFactory,
-                            ProcessTerminationReporter processTerminationReporter) {
+                            ProcessTerminationLogger processTerminationLogger) {
         this.raftNode = RaftNode.newBuilder().setGroupId(config.getRaftGroupConfig().getId()).setLocalEndpoint(localEndpoint)
                                 .setInitialGroupMembers(initialGroupMembers).setConfig(config.getRaftConfig()).setRuntime(runtime)
                                 .setStateMachine(stateMachine).setModelFactory(modelFactory).build();
-        this.processTerminationReporter = processTerminationReporter;
+        this.processTerminationLogger = processTerminationLogger;
     }
 
     @PostConstruct
@@ -71,28 +72,18 @@ public class RaftNodeSupplier
 
     @PreDestroy
     public void shutdown() {
-        if (processTerminationReporter.isCurrentProcessTerminating()) {
-            System.err.println(raftNode.getLocalEndpoint().getId() + " terminating Raft node...");
-        } else {
-            LOGGER.info("{} terminating Raft node...", raftNode.getLocalEndpoint().getId());
-        }
+        processTerminationLogger.logInfo(LOGGER, raftNode.getLocalEndpoint().getId() + " terminating Raft node...");
 
         try {
-            raftNode.terminate().join();
-
-            if (processTerminationReporter.isCurrentProcessTerminating()) {
-                System.err.println(raftNode.getLocalEndpoint().getId() + " RaftNode is terminated.");
-            } else {
-                LOGGER.warn("{} Raft node is terminated.", raftNode.getLocalEndpoint().getId());
-            }
+            raftNode.terminate().get(10, TimeUnit.SECONDS);
+            processTerminationLogger.logInfo(LOGGER, raftNode.getLocalEndpoint().getId() + " RaftNode is terminated.");
         } catch (Throwable t) {
-            String message = raftNode.getLocalEndpoint().getId() + " failure during termination of Raft node";
-            if (processTerminationReporter.isCurrentProcessTerminating()) {
-                System.err.println(message);
-                t.printStackTrace(System.err);
-            } else {
-                LOGGER.error(message, t);
+            if (t instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
             }
+
+            String message = raftNode.getLocalEndpoint().getId() + " failure during termination of Raft node";
+            processTerminationLogger.logError(LOGGER, message, t);
         }
     }
 

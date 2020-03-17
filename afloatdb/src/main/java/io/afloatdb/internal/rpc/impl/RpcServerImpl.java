@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
 package io.afloatdb.internal.rpc.impl;
 
 import io.afloatdb.AfloatDBException;
+import io.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc.AfloatDBClusterServiceImplBase;
 import io.afloatdb.config.AfloatDBConfig;
-import io.afloatdb.internal.lifecycle.ProcessTerminationReporter;
+import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.afloatdb.internal.lifecycle.TerminationAware;
+import io.afloatdb.internal.raft.RaftNodeReportObserver;
 import io.afloatdb.internal.rpc.RpcServer;
 import io.grpc.Server;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
@@ -33,6 +35,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static io.afloatdb.internal.di.AfloatDBModule.CONFIG_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
@@ -45,69 +48,51 @@ public class RpcServerImpl
 
     private final RaftEndpoint localEndpoint;
     private final Server server;
-    private final ProcessTerminationReporter processTerminationReporter;
+    private final ProcessTerminationLogger processTerminationLogger;
 
     @Inject
     public RpcServerImpl(@Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint, @Named(CONFIG_KEY) AfloatDBConfig config,
                          KVRequestHandler requestHandler, RaftMessageHandler raftMessageHandler,
-                         ProcessTerminationReporter processTerminationReporter,
-                         ManagementRequestHandler managementRequestHandler) {
+                         ManagementRequestHandler managementRequestHandler, RaftNodeReportObserver raftNodeReportObserver,
+                         ProcessTerminationLogger processTerminationLogger) {
         this.localEndpoint = localEndpoint;
         this.server = NettyServerBuilder.forAddress(config.getLocalEndpointConfig().getSocketAddress()).addService(requestHandler)
-                                        .addService(raftMessageHandler).addService(managementRequestHandler).directExecutor()
+                                        .addService(raftMessageHandler).addService(managementRequestHandler)
+                                        .addService((AfloatDBClusterServiceImplBase) raftNodeReportObserver).directExecutor()
                                         .build();
-        this.processTerminationReporter = processTerminationReporter;
+        this.processTerminationLogger = processTerminationLogger;
     }
 
     @PostConstruct
     public void start() {
         try {
             server.start();
-            LOGGER.info(localEndpoint.getId() + " RPC server started.");
+            LOGGER.info(localEndpoint.getId() + " RpcServer started.");
         } catch (IOException e) {
-            throw new AfloatDBException(localEndpoint.getId() + " RPC server start failed!", e);
+            throw new AfloatDBException(localEndpoint.getId() + " RpcServer start failed!", e);
         }
     }
 
     @PreDestroy
     public void shutdown() {
-        if (processTerminationReporter.isCurrentProcessTerminating()) {
-            System.err.println(localEndpoint.getId() + " terminating RPC server...");
-        } else {
-            LOGGER.info("{} terminating RPC server...", localEndpoint.getId());
-        }
+        processTerminationLogger.logInfo(LOGGER, localEndpoint.getId() + " shutting down RpcServer...");
 
         try {
             server.shutdownNow();
-
-            if (processTerminationReporter.isCurrentProcessTerminating()) {
-                System.err.println(localEndpoint.getId() + " RPC server is shut down.");
-            } else {
-                LOGGER.warn("{} RPC server is shut down.", localEndpoint.getId());
-            }
+            processTerminationLogger.logInfo(LOGGER, localEndpoint.getId() + " RpcServer is shut down.");
         } catch (Throwable t) {
-            String message = localEndpoint.getId() + " failure during termination of RPC server";
-            if (processTerminationReporter.isCurrentProcessTerminating()) {
-                System.err.println(message);
-                t.printStackTrace(System.err);
-            } else {
-                LOGGER.error(message, t);
-            }
+            String message = localEndpoint.getId() + " failure during termination of RpcServer";
+            processTerminationLogger.logError(LOGGER, message, t);
         }
     }
 
     @Override
     public void awaitTermination() {
         try {
-            server.awaitTermination();
+            server.awaitTermination(30, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-
-            if (processTerminationReporter.isCurrentProcessTerminating()) {
-                System.err.println(localEndpoint.getId() + " await termination of RPC server interrupted!");
-            } else {
-                LOGGER.warn("{} await termination of RPC server interrupted!", localEndpoint.getId());
-            }
+            processTerminationLogger.logWarn(LOGGER, localEndpoint.getId() + " await termination of RpcServer interrupted!");
         }
     }
 

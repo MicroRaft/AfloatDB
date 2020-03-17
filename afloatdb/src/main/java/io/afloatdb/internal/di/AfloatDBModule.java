@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,12 @@ package io.afloatdb.internal.di;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import io.afloatdb.config.AfloatDBConfig;
-import io.afloatdb.internal.lifecycle.ProcessTerminationReporter;
-import io.afloatdb.internal.lifecycle.impl.ProcessTerminationReporterImpl;
+import io.afloatdb.internal.invocation.RaftInvocationManager;
+import io.afloatdb.internal.invocation.impl.RaftInvocationManagerImpl;
+import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
+import io.afloatdb.internal.lifecycle.impl.ProcessTerminationLoggerImpl;
+import io.afloatdb.internal.raft.RaftNodeReportObserver;
+import io.afloatdb.internal.raft.impl.AfloatDBClusterEndpointsPublisher;
 import io.afloatdb.internal.raft.impl.AfloatDBRaftNodeRuntime;
 import io.afloatdb.internal.raft.impl.KVStoreStateMachine;
 import io.afloatdb.internal.raft.impl.RaftNodeSupplier;
@@ -80,13 +84,13 @@ public class AfloatDBModule
 
     @Override
     protected void configure() {
-        ThreadGroup raftNodeThreadGroup = new ThreadGroup("RaftThread");
+        ThreadGroup raftNodeThreadGroup = new ThreadGroup("RaftNodeThread");
         ScheduledExecutorService raftNodeExecutor = newSingleThreadScheduledExecutor(
                 runnable -> new RaftNodeThread(raftNodeThreadGroup, runnable));
         bind(ScheduledExecutorService.class).annotatedWith(named(RAFT_NODE_EXECUTOR_KEY)).toInstance(raftNodeExecutor);
 
         bind(AtomicBoolean.class).annotatedWith(named(PROCESS_TERMINATION_FLAG_KEY)).toInstance(processTerminationFlag);
-        bind(ProcessTerminationReporter.class).to(ProcessTerminationReporterImpl.class);
+        bind(ProcessTerminationLogger.class).to(ProcessTerminationLoggerImpl.class);
 
         bind(AfloatDBConfig.class).annotatedWith(named(CONFIG_KEY)).toInstance(config);
         bind(RaftEndpoint.class).annotatedWith(named(LOCAL_ENDPOINT_KEY)).toInstance(localEndpoint);
@@ -103,6 +107,8 @@ public class AfloatDBModule
         bind(RaftMessageDispatcher.class).to(RaftMessageDispatcherImpl.class);
         bind(KVServiceImplBase.class).to(KVRequestHandler.class);
         bind(ManagementServiceImplBase.class).to(ManagementRequestHandler.class);
+        bind(RaftNodeReportObserver.class).to(AfloatDBClusterEndpointsPublisher.class);
+        bind(RaftInvocationManager.class).to(RaftInvocationManagerImpl.class);
 
         bind(new TypeLiteral<Supplier<RaftNode>>() {
         }).annotatedWith(named(RAFT_NODE_SUPPLIER_KEY)).to(RaftNodeSupplier.class);

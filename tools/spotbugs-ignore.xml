@@ -4,6 +4,9 @@
         <Package name="~io\.afloatdb\.kv\.proto.*"/>
     </Match>
     <Match>
+        <Package name="~io\.afloatdb\.cluster\.proto.*"/>
+    </Match>
+    <Match>
         <Package name="~io\.afloatdb\.raft\.proto.*"/>
     </Match>
     <Match>

@@ -5,11 +5,11 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Logger name="io.afloatdb" level="INFO">
+        <Root level="INFO">
             <AppenderRef ref="CONSOLE"/>
-        </Logger>
-        <Logger name="io.microraft" level="INFO">
-            <AppenderRef ref="CONSOLE"/>
-        </Logger>
+        </Root>
+        <Logger name="io.afloatdb" level="INFO"/>
+        <Logger name="io.microraft" level="INFO"/>
+        <Logger name="com.netflix.governator" level="OFF"/>
     </Loggers>
 </Configuration>

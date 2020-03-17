@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package io.afloatdb.utils;
 import io.afloatdb.AfloatDB;
 import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.internal.AfloatDBImpl;
+import io.afloatdb.internal.invocation.RaftInvocationManager;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.report.RaftGroupMembers;
@@ -130,6 +131,10 @@ public final class AfloatDBTestUtils {
 
     public static RaftGroupMembers getRaftGroupMembers(AfloatDB server) {
         return ((AfloatDBImpl) server).getRaftNode().getCommittedMembers();
+    }
+
+    public static RaftInvocationManager getRaftInvocationManager(AfloatDB server) {
+        return ((AfloatDBImpl) server).getInjector().getInstance(RaftInvocationManager.class);
     }
 
 }

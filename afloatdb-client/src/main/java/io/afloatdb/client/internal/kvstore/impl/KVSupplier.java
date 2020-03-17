@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.function.Supplier;
 
-import static io.afloatdb.client.internal.di.AfloatDBClientModule.BLOCKING_STUB_KEY;
+import static io.afloatdb.client.internal.di.AfloatDBClientModule.KV_STUB_KEY;
 
 @Singleton
 public class KVSupplier
@@ -33,8 +33,8 @@ public class KVSupplier
     private final KV kv;
 
     @Inject
-    public KVSupplier(@Named(BLOCKING_STUB_KEY) Supplier<KVServiceBlockingStub> stubSupplier) {
-        this.kv = new KVProxy(stubSupplier.get());
+    public KVSupplier(@Named(KV_STUB_KEY) Supplier<KVServiceBlockingStub> kvStubSupplier) {
+        this.kv = new KVProxy(kvStubSupplier);
     }
 
     @Override

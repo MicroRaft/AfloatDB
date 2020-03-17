@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package io.afloatdb.internal.rpc.impl;
 
+import io.afloatdb.internal.invocation.RaftInvocationManager;
 import io.afloatdb.kv.proto.ClearRequest;
 import io.afloatdb.kv.proto.ClearResponse;
 import io.afloatdb.kv.proto.ContainsRequest;
@@ -37,28 +38,22 @@ import io.afloatdb.kv.proto.SizeRequest;
 import io.afloatdb.kv.proto.SizeResponse;
 import io.afloatdb.raft.proto.ProtoOperation;
 import io.grpc.stub.StreamObserver;
-import io.microraft.Ordered;
-import io.microraft.RaftNode;
+import io.microraft.QueryPolicy;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Singleton;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 
-import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_SUPPLIER_KEY;
-import static io.afloatdb.internal.rpc.impl.RaftExceptionUtils.wrap;
-import static io.microraft.QueryPolicy.LINEARIZABLE;
+import static io.afloatdb.internal.utils.Exceptions.wrap;
 
 @Singleton
 public class KVRequestHandler
         extends KVServiceImplBase {
 
-    private final RaftNode raftNode;
+    private final RaftInvocationManager raftInvocationManager;
 
     @Inject
-    public KVRequestHandler(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier) {
-        this.raftNode = raftNodeSupplier.get();
+    public KVRequestHandler(RaftInvocationManager raftInvocationManager) {
+        this.raftInvocationManager = raftInvocationManager;
     }
 
     @Override
@@ -106,35 +101,26 @@ public class KVRequestHandler
         replicate(ProtoOperation.newBuilder().setClearRequest(request).build(), responseObserver);
     }
 
-    private <T> void query(Object request, StreamObserver<T> responseObserver) {
-        // TODO [basri] add timeout
-        raftNode.<T>query(request, LINEARIZABLE, 0).whenComplete(new RaftResultConsumer<>(responseObserver));
-    }
-
-    private <T> void replicate(Object request, StreamObserver<T> responseObserver) {
-        // TODO [basri] add timeout
-        raftNode.<T>replicate(request).whenComplete(new RaftResultConsumer<>(responseObserver));
-    }
-
-    static class RaftResultConsumer<T>
-            implements BiConsumer<Ordered<T>, Throwable> {
-
-        final StreamObserver<T> responseObserver;
-
-        RaftResultConsumer(StreamObserver<T> responseObserver) {
-            this.responseObserver = responseObserver;
-        }
-
-        @Override
-        public void accept(Ordered<T> response, Throwable throwable) {
+    private <T> void replicate(ProtoOperation request, StreamObserver<T> responseObserver) {
+        raftInvocationManager.<T>invoke(request).whenComplete((response, throwable) -> {
             if (throwable == null) {
                 responseObserver.onNext(response.getResult());
             } else {
                 responseObserver.onError(wrap(throwable));
             }
             responseObserver.onCompleted();
-        }
+        });
+    }
 
+    private <T> void query(ProtoOperation request, StreamObserver<T> responseObserver) {
+        raftInvocationManager.<T>query(request, QueryPolicy.LINEARIZABLE, 0).whenComplete((response, throwable) -> {
+            if (throwable == null) {
+                responseObserver.onNext(response.getResult());
+            } else {
+                responseObserver.onError(wrap(throwable));
+            }
+            responseObserver.onCompleted();
+        });
     }
 
 }

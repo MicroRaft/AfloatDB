@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package io.afloatdb.internal.rpc.impl;
 
-import io.afloatdb.internal.lifecycle.ProcessTerminationReporter;
+import io.afloatdb.config.AfloatDBConfig;
+import io.afloatdb.internal.di.AfloatDBModule;
+import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.afloatdb.internal.rpc.RaftMessageDispatcher;
-import io.afloatdb.raft.proto.PingRequest;
-import io.afloatdb.raft.proto.PingResponse;
 import io.afloatdb.raft.proto.ProtoRaftMessage;
 import io.afloatdb.raft.proto.ProtoRaftResponse;
 import io.afloatdb.raft.proto.RaftMessageServiceGrpc.RaftMessageServiceStub;
@@ -47,7 +47,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import static io.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.RAFT_ENDPOINT_ADDRESSES_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_EXECUTOR_KEY;
-import static io.afloatdb.internal.raft.impl.RaftMessages.wrap;
+import static io.afloatdb.internal.utils.Exceptions.runSilently;
+import static io.afloatdb.internal.utils.Serialization.wrap;
 import static io.afloatdb.raft.proto.RaftMessageServiceGrpc.newStub;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -57,51 +58,58 @@ public class RaftMessageDispatcherImpl
         implements RaftMessageDispatcher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RaftMessageDispatcher.class);
+    private static final long LEADER_HEARTBEAT_TIMEOUT_EXTENSION_MILLIS = 1000;
 
     private final RaftEndpoint localEndpoint;
     private final Map<RaftEndpoint, String> addresses;
+    private final AfloatDBConfig config;
     private final ScheduledExecutorService executor;
     private final Map<RaftEndpoint, ClientContext> clients = new ConcurrentHashMap<>();
-    private final Set<RaftEndpoint> initializingClients = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    private final ProcessTerminationReporter processTerminationReporter;
+    private final Set<RaftEndpoint> initializingEndpoints = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final ProcessTerminationLogger processTerminationLogger;
 
     @Inject
     public RaftMessageDispatcherImpl(@Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
                                      @Named(RAFT_ENDPOINT_ADDRESSES_KEY) Map<RaftEndpoint, String> addresses,
+                                     @Named(AfloatDBModule.CONFIG_KEY) AfloatDBConfig config,
                                      @Named(RAFT_NODE_EXECUTOR_KEY) ScheduledExecutorService executor,
-                                     ProcessTerminationReporter processTerminationReporter) {
+                                     ProcessTerminationLogger processTerminationLogger) {
         this.localEndpoint = localEndpoint;
         this.addresses = new ConcurrentHashMap<>(addresses);
+        this.config = config;
         this.executor = executor;
-        this.processTerminationReporter = processTerminationReporter;
+        this.processTerminationLogger = processTerminationLogger;
     }
 
     @PreDestroy
     public void shutdown() {
-        clients.values().stream().map(context -> (ManagedChannel) context.stub.getChannel()).forEach(ManagedChannel::shutdownNow);
+        clients.values().forEach(ClientContext::shutdown);
         clients.clear();
 
-        if (processTerminationReporter.isCurrentProcessTerminating()) {
-            System.err.println(localEndpoint.getId() + " RaftMessage dispatcher is shut down.");
-        } else {
-            LOGGER.warn("{} RaftMessage dispatcher is shut down.", localEndpoint.getId());
-        }
+        processTerminationLogger.logInfo(LOGGER, localEndpoint.getId() + " RaftMessageDispatcher is shut down.");
     }
 
     public void send(@Nonnull RaftEndpoint target, @Nonnull RaftMessage message) {
         requireNonNull(target);
         requireNonNull(message);
 
-        StreamObserver<ProtoRaftMessage> observer = getOrTriggerConnect(target);
-        if (observer == null) {
+        ClientContext context = getOrCreateChannel(target);
+        if (context == null) {
             LOGGER.debug("{} has no connection to {} for sending {}.", localEndpoint.getId(), target, message);
             return;
         }
 
         try {
-            observer.onNext(wrap(message));
+            context.observer.onNext(wrap(message));
         } catch (Throwable t) {
-            LOGGER.error(localEndpoint.getId() + " failure during sending " + message + " to " + target, t);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.error(
+                        localEndpoint.getId() + " failure during sending " + message.getClass().getSimpleName() + " to " + target,
+                        t);
+            } else {
+                LOGGER.error("{} failure during sending {} to {}. Exception: {} Message: {}", localEndpoint.getId(),
+                        message.getClass().getSimpleName(), target, t.getClass().getSimpleName(), t.getMessage());
+            }
         }
     }
 
@@ -124,193 +132,124 @@ public class RaftMessageDispatcherImpl
         return new HashMap<>(addresses);
     }
 
-    private StreamObserver<ProtoRaftMessage> getOrTriggerConnect(RaftEndpoint target) {
+    @Override
+    public RaftMessageServiceStub getStub(RaftEndpoint target) {
+        requireNonNull(target);
+        ClientContext context = getOrCreateChannel(target);
+        return context != null ? context.stub : null;
+    }
+
+    private ClientContext getOrCreateChannel(RaftEndpoint target) {
         if (localEndpoint.equals(target)) {
-            LOGGER.error("{} cannot send message to itself...", localEndpoint.getId());
+            LOGGER.error("{} cannot send Raft message to itself...", localEndpoint.getId());
             return null;
         }
 
         ClientContext context = clients.get(target);
         if (context != null) {
-            return context.observer;
-        }
-
-        if (!addresses.containsKey(target)) {
+            return context;
+        } else if (!addresses.containsKey(target)) {
             LOGGER.error("{} unknown target: {}", localEndpoint.getId(), target);
             return null;
         }
 
-        if (initializingClients.add(target)) {
-            connectAsync(target);
+        return connect(target);
+    }
+
+    private ClientContext connect(RaftEndpoint target) {
+        if (!initializingEndpoints.add(target)) {
+            return null;
         }
 
-        return null;
+        String address = addresses.get(target);
+
+        ManagedChannel channel = ManagedChannelBuilder.forTarget(address).disableRetry().keepAliveWithoutCalls(true)
+                                                      .keepAliveTime(60, SECONDS).usePlaintext().directExecutor().build();
+
+        // TODO [basri] introduce deadline
+        //        RaftConfig raftConfig = config.getRaftConfig();
+        //        long deadline = raftConfig.getLeaderHeartbeatTimeoutMillis() + LEADER_HEARTBEAT_TIMEOUT_EXTENSION_MILLIS;
+        //        RaftMessageServiceStub stub = newStub(channel).withDeadlineAfter(deadline, MILLISECONDS);
+
+        RaftMessageServiceStub stub = newStub(channel);
+        ClientContext context = new ClientContext(target, channel, stub);
+        ResponseStreamObserver responseObserver = new ResponseStreamObserver(context);
+
+        context.observer = stub.handle(responseObserver);
+        clients.put(target, context);
+        initializingEndpoints.remove(target);
+
+        return context;
     }
 
-    private void connectAsync(RaftEndpoint target) {
-        try {
-            String address = addresses.get(target);
-
-            LOGGER.info("{} connecting to {} on {}.", localEndpoint.getId(), target.getId(), address);
-
-            ManagedChannel channel = ManagedChannelBuilder.forTarget(address).disableRetry()
-                                                          //                    .idleTimeout(4, HOURS)
-                                                          //                    .keepAliveTimeout(10, SECONDS)
-                                                          .usePlaintext().directExecutor().build();
-
-            RaftMessageServiceStub stub = newStub(channel);
-            StreamObserver<PingResponse> observer = new InitialPingResponseObserver(target, address, channel, stub);
-            stub.ping(PingRequest.getDefaultInstance(), observer);
-        } catch (Throwable t) {
-            LOGGER.error(localEndpoint.getId() + " could not create channel to " + target.getId(), t);
-            removeInitializingClientDelayed(target);
+    private void closeContext(ClientContext context) {
+        if (clients.remove(context.endpoint, context)) {
+            context.shutdown();
         }
+
+        delayChannelCreationFor(context.endpoint);
     }
 
-    private void removeInitializingClientDelayed(RaftEndpoint target) {
-        executor.schedule(() -> {
-            initializingClients.remove(target);
-        }, 5, SECONDS);
-    }
-
-    private void checkChannelAsync(RaftEndpoint target, ManagedChannel channel) {
-        if (initializingClients.add(target)) {
+    private void delayChannelCreationFor(RaftEndpoint target) {
+        if (initializingEndpoints.add(target)) {
+            LOGGER.debug("{} delaying channel creation to {}.", localEndpoint.getId(), target.getId());
             try {
-                executor.submit(() -> checkChannel(target, channel));
+                executor.schedule(() -> {
+                    initializingEndpoints.remove(target);
+                }, 5, SECONDS);
             } catch (RejectedExecutionException e) {
-                LOGGER.error("Could not check connection to " + target);
+                LOGGER.warn("{} could not schedule task for channel creation to: {}", localEndpoint.getId(), target.getId());
+                initializingEndpoints.remove(target);
             }
         }
     }
 
-    private void checkChannel(RaftEndpoint target, ManagedChannel channel) {
-        ClientContext context = clients.get(target);
-        if (context == null || context.stub.getChannel() != channel) {
-            LOGGER.error("{} channel to {} is already removed.", localEndpoint.getId(), target);
-            removeInitializingClientDelayed(target);
-            return;
-        }
-
-        if (channel.isTerminated() || channel.isShutdown()) {
-            LOGGER.error("{} removing channel to {} since it is closed.", localEndpoint.getId(), target);
-            clients.remove(target, context);
-            removeInitializingClientDelayed(target);
-            return;
-        }
-
-        HealthCheckPingResponseObserver observer = new HealthCheckPingResponseObserver(target, channel, context);
-        context.stub.ping(PingRequest.getDefaultInstance(), observer);
-    }
-
     private static class ClientContext {
+        final RaftEndpoint endpoint;
+        final ManagedChannel channel;
         final RaftMessageServiceStub stub;
-        final StreamObserver<ProtoRaftMessage> observer;
+        StreamObserver<ProtoRaftMessage> observer;
 
-        ClientContext(RaftMessageServiceStub stub, StreamObserver<ProtoRaftMessage> observer) {
+        ClientContext(RaftEndpoint endpoint, ManagedChannel channel, RaftMessageServiceStub stub) {
+            this.endpoint = endpoint;
+            this.channel = channel;
             this.stub = stub;
-            this.observer = observer;
         }
 
+        void shutdown() {
+            runSilently(observer::onCompleted);
+            runSilently(channel::shutdown);
+        }
     }
 
     private class ResponseStreamObserver
             implements StreamObserver<ProtoRaftResponse> {
-        final RaftEndpoint target;
-        final ManagedChannel channel;
-
-        private ResponseStreamObserver(RaftEndpoint target, ManagedChannel channel) {
-            this.target = target;
-            this.channel = channel;
-        }
-
-        @Override
-        public void onNext(ProtoRaftResponse response) {
-            LOGGER.warn("{} received {} for streaming RaftMessage rpc to {}", localEndpoint.getId(), response, target.getId());
-            checkChannelAsync(target, channel);
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            LOGGER.error(localEndpoint.getId() + " streaming RaftMessage rpc to " + target.getId() + " has " + "failed.", t);
-            checkChannelAsync(target, channel);
-        }
-
-        @Override
-        public void onCompleted() {
-            LOGGER.warn("{} streaming RaftMessage rpc to {} has completed.", localEndpoint.getId(), target.getId());
-            checkChannelAsync(target, channel);
-        }
-
-    }
-
-    private class InitialPingResponseObserver
-            implements StreamObserver<PingResponse> {
-        final RaftEndpoint target;
-        final String address;
-        final ManagedChannel channel;
-        final RaftMessageServiceStub stub;
-
-        InitialPingResponseObserver(RaftEndpoint target, String address, ManagedChannel channel, RaftMessageServiceStub stub) {
-            this.target = target;
-            this.address = address;
-            this.channel = channel;
-            this.stub = stub;
-        }
-
-        @Override
-        public void onNext(PingResponse response) {
-            StreamObserver<ProtoRaftResponse> observer = new ResponseStreamObserver(target, channel);
-            clients.put(target, new ClientContext(stub, stub.handle(observer)));
-            initializingClients.remove(target);
-            LOGGER.info(localEndpoint.getId() + " connected to " + address + " for " + target.getId());
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            LOGGER.error(localEndpoint.getId() + " could not connect to " + target.getId(), t);
-            channel.shutdownNow();
-            removeInitializingClientDelayed(target);
-        }
-
-        @Override
-        public void onCompleted() {
-        }
-
-    }
-
-    private class HealthCheckPingResponseObserver
-            implements StreamObserver<PingResponse> {
-        final RaftEndpoint target;
-        final ManagedChannel channel;
         final ClientContext context;
 
-        HealthCheckPingResponseObserver(RaftEndpoint target, ManagedChannel channel, ClientContext context) {
-            this.target = target;
-            this.channel = channel;
+        private ResponseStreamObserver(ClientContext context) {
             this.context = context;
         }
 
         @Override
-        public void onNext(PingResponse response) {
-            RaftMessageServiceStub stub = context.stub;
-            StreamObserver<ProtoRaftMessage> observer = stub.handle(new ResponseStreamObserver(target, channel));
-            if (!clients.replace(target, context, new ClientContext(stub, observer))) {
-                LOGGER.error("{} could not set new client context for {}", localEndpoint.getId(), target);
-            }
-            initializingClients.remove(target);
+        public void onNext(ProtoRaftResponse response) {
+            LOGGER.warn("{} received {} from Raft RPC stream to {}", localEndpoint.getId(), response, context.endpoint.getId());
         }
 
         @Override
         public void onError(Throwable t) {
-            LOGGER.error("{} could not ping {}", localEndpoint.getId(), target.getId());
-            channel.shutdownNow();
-            clients.remove(target, context);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.error(localEndpoint.getId() + " streaming Raft RPC to " + context.endpoint.getId() + " has failed.", t);
+            } else {
+                LOGGER.error("{} Raft RPC stream to {} has failed. Exception: {} Message: {}", localEndpoint.getId(),
+                        context.endpoint.getId(), t.getClass().getSimpleName(), t.getMessage());
+            }
 
-            removeInitializingClientDelayed(target);
+            closeContext(context);
         }
 
         @Override
         public void onCompleted() {
+            LOGGER.warn("{} Raft RPC stream to {} has completed.", localEndpoint.getId(), context.endpoint.getId());
         }
 
     }

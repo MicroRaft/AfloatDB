@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.config.AfloatDBEndpointConfig;
 import io.afloatdb.internal.di.AfloatDBModule;
 import io.afloatdb.internal.lifecycle.TerminationAware;
-import io.afloatdb.internal.raft.impl.AfloatDBRaftNodeRuntime;
+import io.afloatdb.internal.raft.RaftNodeReportObserver;
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.management.proto.AddRaftEndpointAddressRequest;
 import io.afloatdb.management.proto.AddRaftEndpointRequest;
@@ -73,7 +73,7 @@ public class AfloatDBImpl
     private final LifecycleManager lifecycleManager;
     private final ScheduledExecutorService executor;
     private final RaftNode raftNode;
-    private final Supplier<RaftNodeReport> raftNodeReportCache;
+    private final Supplier<RaftNodeReport> raftNodeReportSupplier;
     private final AtomicReference<Status> status = new AtomicReference<>(Status.LATENT);
     private final AtomicBoolean processTerminationFlag = new AtomicBoolean();
     private volatile boolean terminationCompleted;
@@ -95,7 +95,7 @@ public class AfloatDBImpl
             Supplier<RaftNode> raftNodeSupplier = injector.getInstance(Key.get(new TypeLiteral<Supplier<RaftNode>>() {
             }, named(RAFT_NODE_SUPPLIER_KEY)));
             this.raftNode = raftNodeSupplier.get();
-            this.raftNodeReportCache = injector.getInstance(AfloatDBRaftNodeRuntime.class);
+            this.raftNodeReportSupplier = injector.getInstance(RaftNodeReportObserver.class);
 
             registerShutdownHook();
         } catch (Throwable t) {
@@ -135,7 +135,7 @@ public class AfloatDBImpl
     @Nonnull
     @Override
     public RaftNodeReport getRaftNodeReport() {
-        return raftNodeReportCache.get();
+        return raftNodeReportSupplier.get();
     }
 
     @Override
@@ -170,6 +170,11 @@ public class AfloatDBImpl
 
     public RaftNode getRaftNode() {
         return raftNode;
+    }
+
+    // Only for testing
+    public Injector getInjector() {
+        return injector;
     }
 
     private enum Status {
@@ -333,7 +338,6 @@ public class AfloatDBImpl
             try {
                 ManagementServiceGrpc.newBlockingStub(leaderChannel).addRaftEndpoint(request);
             } catch (Throwable t) {
-                // TODO [basri] we could also get some retryable exceptions...
                 throw new AfloatDBException(
                         localEndpoint.getId() + " failure during add Raft endpoint via the Raft " + "leader: " + leaderEndpoint
                                 + " at " + leaderAddress, t);

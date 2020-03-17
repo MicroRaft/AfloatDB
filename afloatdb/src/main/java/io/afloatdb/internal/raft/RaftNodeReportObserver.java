@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, MicroRaft.
+ * Copyright (c) 2020, AfloatDB.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package io.afloatdb.internal.lifecycle;
+package io.afloatdb.internal.raft;
 
-public interface ProcessTerminationReporter {
+import io.microraft.report.RaftNodeReport;
 
-    boolean isCurrentProcessTerminating();
+import java.util.function.Supplier;
+
+public interface RaftNodeReportObserver
+        extends Supplier<RaftNodeReport> {
+
+    void onRaftNodeReport(RaftNodeReport report);
 
 }

@@ -187,17 +187,47 @@ message ProtoRaftResponse {
     int32 status = 1;
 }
 
-message PingRequest {
+message ProtoReplicateRequest {
+    ProtoOperation operation = 1;
 }
 
-message PingResponse {
+message ProtoQueryRequest {
+    ProtoOperation operation = 1;
+
+    enum QUERY_POLICY {
+        ANY_LOCAL = 0;
+        LEADER_LOCAL = 1;
+        LINEARIZABLE = 2;
+    }
+
+    QUERY_POLICY queryPolicy = 2;
+    int64 minCommitIndex = 3;
+}
+
+message ProtoOperationResponse {
+    int64 commitIndex = 1;
+    oneof response {
+        io.afloatdb.kv.proto.PutResponse putResponse = 2;
+        io.afloatdb.kv.proto.SetResponse setResponse = 3;
+        io.afloatdb.kv.proto.GetResponse getResponse = 4;
+        io.afloatdb.kv.proto.ContainsResponse containsResponse = 5;
+        io.afloatdb.kv.proto.DeleteResponse deleteResponse = 6;
+        io.afloatdb.kv.proto.RemoveResponse removeResponse = 7;
+        io.afloatdb.kv.proto.ReplaceResponse replaceResponse = 8;
+        io.afloatdb.kv.proto.SizeResponse sizeResponse = 9;
+        io.afloatdb.kv.proto.ClearResponse clearResponse = 10;
+    };
 }
 
 service RaftMessageService {
-    rpc handle (stream ProtoRaftMessage) returns (ProtoRaftResponse) {
+
+    rpc replicate (ProtoReplicateRequest) returns (ProtoOperationResponse) {
     }
 
-    rpc ping (PingRequest) returns (PingResponse) {
+    rpc query (ProtoQueryRequest) returns (ProtoOperationResponse) {
+    }
+
+    rpc handle (stream ProtoRaftMessage) returns (ProtoRaftResponse) {
     }
 }
 
