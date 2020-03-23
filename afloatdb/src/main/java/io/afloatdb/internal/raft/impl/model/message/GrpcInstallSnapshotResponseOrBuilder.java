@@ -72,8 +72,15 @@ public class GrpcInstallSnapshotResponseOrBuilder
 
     @Nonnull
     @Override
-    public InstallSnapshotResponseBuilder setQueryRound(long queryRound) {
-        builder.setQueryRound(queryRound);
+    public InstallSnapshotResponseBuilder setQuerySeqNo(long querySeqNo) {
+        builder.setQuerySeqNo(querySeqNo);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public InstallSnapshotResponseBuilder setFlowControlSeqNo(long flowControlSeqNo) {
+        builder.setFlowControlSeqNo(flowControlSeqNo);
         return this;
     }
 
@@ -91,17 +98,6 @@ public class GrpcInstallSnapshotResponseOrBuilder
     }
 
     @Override
-    public String toString() {
-        if (builder != null) {
-            return "GrpcInstallSnapshotResponseBuilder{builder=" + builder + "}";
-        }
-
-        return "GrpcInstallSnapshotResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
-                + ", snapshotIndex=" + getSnapshotIndex() + ", requestedSnapshotChunkIndices="
-                + getRequestedSnapshotChunkIndices() + ", queryRound=" + getQueryRound() + '}';
-    }
-
-    @Override
     public long getSnapshotIndex() {
         return response.getSnapshotIndex();
     }
@@ -113,8 +109,13 @@ public class GrpcInstallSnapshotResponseOrBuilder
     }
 
     @Override
-    public long getQueryRound() {
-        return response.getQueryRound();
+    public long getQuerySeqNo() {
+        return response.getQuerySeqNo();
+    }
+
+    @Override
+    public long getFlowControlSeqNo() {
+        return response.getFlowControlSeqNo();
     }
 
     @Override
@@ -131,6 +132,18 @@ public class GrpcInstallSnapshotResponseOrBuilder
     @Override
     public int getTerm() {
         return response.getTerm();
+    }
+
+    @Override
+    public String toString() {
+        if (builder != null) {
+            return "GrpcInstallSnapshotResponseBuilder{builder=" + builder + "}";
+        }
+
+        return "GrpcInstallSnapshotResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
+                + ", snapshotIndex=" + getSnapshotIndex() + ", requestedSnapshotChunkIndices="
+                + getRequestedSnapshotChunkIndices() + ", querySeqNo=" + getQuerySeqNo() + ", flowControlSeqNo="
+                + getFlowControlSeqNo() + '}';
     }
 
 }

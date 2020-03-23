@@ -103,6 +103,7 @@ public class KVRequestHandler
 
     private <T> void replicate(ProtoOperation request, StreamObserver<T> responseObserver) {
         raftInvocationManager.<T>invoke(request).whenComplete((response, throwable) -> {
+            // TODO [basri] bottleneck. offload to IO thread...
             if (throwable == null) {
                 responseObserver.onNext(response.getResult());
             } else {
@@ -114,6 +115,7 @@ public class KVRequestHandler
 
     private <T> void query(ProtoOperation request, StreamObserver<T> responseObserver) {
         raftInvocationManager.<T>query(request, QueryPolicy.LINEARIZABLE, 0).whenComplete((response, throwable) -> {
+            // TODO [basri] bottleneck. offload to IO thread...
             if (throwable == null) {
                 responseObserver.onNext(response.getResult());
             } else {

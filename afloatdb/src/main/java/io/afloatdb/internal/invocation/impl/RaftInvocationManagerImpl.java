@@ -18,13 +18,13 @@ package io.afloatdb.internal.invocation.impl;
 
 import io.afloatdb.internal.invocation.RaftInvocationManager;
 import io.afloatdb.internal.raft.RaftNodeReportObserver;
-import io.afloatdb.internal.rpc.RaftMessageDispatcher;
+import io.afloatdb.internal.rpc.RaftRpcStub;
+import io.afloatdb.internal.rpc.RaftRpcStubManager;
 import io.afloatdb.internal.utils.Exceptions;
 import io.afloatdb.raft.proto.ProtoOperation;
 import io.afloatdb.raft.proto.ProtoOperationResponse;
 import io.afloatdb.raft.proto.ProtoQueryRequest;
 import io.afloatdb.raft.proto.ProtoReplicateRequest;
-import io.afloatdb.raft.proto.RaftMessageServiceGrpc.RaftMessageServiceStub;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
@@ -63,15 +63,15 @@ public class RaftInvocationManagerImpl
 
     private final RaftNode raftNode;
     private final Supplier<RaftNodeReport> raftNodeReportSupplier;
-    private final RaftMessageDispatcher raftMessageDispatcher;
+    private final RaftRpcStubManager raftRpcStubManager;
     private final ScheduledExecutorService executor;
 
     @Inject
     public RaftInvocationManagerImpl(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
-                                     RaftNodeReportObserver raftNodeReportObserver, RaftMessageDispatcher raftMessageDispatcher) {
+                                     RaftNodeReportObserver raftNodeReportObserver, RaftRpcStubManager raftRpcStubManager) {
         this.raftNode = raftNodeSupplier.get();
         this.raftNodeReportSupplier = raftNodeReportObserver;
-        this.raftMessageDispatcher = raftMessageDispatcher;
+        this.raftRpcStubManager = raftRpcStubManager;
         this.executor = newSingleThreadScheduledExecutor();
     }
 
@@ -180,7 +180,7 @@ public class RaftInvocationManagerImpl
             if (report != null) {
                 RaftEndpoint leader = report.getTerm().getLeaderEndpoint();
                 if (leader != null) {
-                    RaftMessageServiceStub stub = raftMessageDispatcher.getStub(leader);
+                    RaftRpcStub stub = raftRpcStubManager.getRpcStub(leader);
                     if (stub != null) {
                         doInvokeRemotely(stub);
                         return;
@@ -193,7 +193,7 @@ public class RaftInvocationManagerImpl
 
         abstract boolean invokeLocally();
 
-        abstract void doInvokeRemotely(RaftMessageServiceStub stub);
+        abstract void doInvokeRemotely(RaftRpcStub stub);
 
     }
 
@@ -214,7 +214,8 @@ public class RaftInvocationManagerImpl
         }
 
         @Override
-        protected void doInvokeRemotely(RaftMessageServiceStub stub) {
+        protected void doInvokeRemotely(RaftRpcStub stub) {
+            // TODO [basri] offload to IO thread...
             stub.replicate(request, this);
         }
     }
@@ -240,7 +241,8 @@ public class RaftInvocationManagerImpl
         }
 
         @Override
-        void doInvokeRemotely(RaftMessageServiceStub stub) {
+        void doInvokeRemotely(RaftRpcStub stub) {
+            // TODO [basri] offload to IO thread...
             stub.query(request, this);
         }
     }

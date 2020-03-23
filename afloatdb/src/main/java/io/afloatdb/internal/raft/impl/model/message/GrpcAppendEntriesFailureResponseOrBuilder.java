@@ -84,8 +84,15 @@ public class GrpcAppendEntriesFailureResponseOrBuilder
 
     @Nonnull
     @Override
-    public AppendEntriesFailureResponseBuilder setQueryRound(long queryRound) {
-        builder.setQueryRound(queryRound);
+    public AppendEntriesFailureResponseBuilder setQuerySeqNo(long querySeqNo) {
+        builder.setQuerySeqNo(querySeqNo);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public AppendEntriesFailureResponseBuilder setFlowControlSeqNo(long flowControlSeqNo) {
+        builder.setFlowControlSeqNo(flowControlSeqNo);
         return this;
     }
 
@@ -98,23 +105,18 @@ public class GrpcAppendEntriesFailureResponseOrBuilder
     }
 
     @Override
-    public String toString() {
-        if (builder != null) {
-            return "GrpcAppendEntriesFailureResponseBuilder{builder=" + builder + "}";
-        }
-
-        return "GrpcAppendEntriesFailureResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", " + "term="
-                + getTerm() + ", expectedNextIndex=" + getExpectedNextIndex() + ", queryRound=" + getQueryRound() + '}';
-    }
-
-    @Override
     public long getExpectedNextIndex() {
         return response.getExpectedNextIndex();
     }
 
     @Override
-    public long getQueryRound() {
-        return response.getQueryRound();
+    public long getQuerySeqNo() {
+        return response.getQuerySeqNo();
+    }
+
+    @Override
+    public long getFlowControlSeqNo() {
+        return response.getFlowControlSeqNo();
     }
 
     @Override
@@ -131,6 +133,17 @@ public class GrpcAppendEntriesFailureResponseOrBuilder
     @Override
     public int getTerm() {
         return response.getTerm();
+    }
+
+    @Override
+    public String toString() {
+        if (builder != null) {
+            return "GrpcAppendEntriesFailureResponseBuilder{builder=" + builder + "}";
+        }
+
+        return "GrpcAppendEntriesFailureResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", " + "term="
+                + getTerm() + ", expectedNextIndex=" + getExpectedNextIndex() + ", querySeqNo=" + getQuerySeqNo()
+                + ", flowControlSeqNo=" + getFlowControlSeqNo() + '}';
     }
 
 }

@@ -17,7 +17,8 @@
 package io.afloatdb.internal.raft.impl;
 
 import io.afloatdb.internal.raft.RaftNodeReportObserver;
-import io.afloatdb.internal.rpc.RaftMessageDispatcher;
+import io.afloatdb.internal.rpc.RaftRpcStub;
+import io.afloatdb.internal.rpc.RaftRpcStubManager;
 import io.microraft.RaftEndpoint;
 import io.microraft.integration.RaftNodeRuntime;
 import io.microraft.model.message.RaftMessage;
@@ -37,14 +38,14 @@ public class AfloatDBRaftNodeRuntime
         implements RaftNodeRuntime {
 
     private final ScheduledExecutorService executor;
-    private final RaftMessageDispatcher raftMessageDispatcher;
+    private final RaftRpcStubManager raftRpcStubManager;
     private final RaftNodeReportObserver raftNodeReportObserver;
 
     @Inject
     public AfloatDBRaftNodeRuntime(@Named(RAFT_NODE_EXECUTOR_KEY) ScheduledExecutorService executor,
-                                   RaftMessageDispatcher raftMessageDispatcher, RaftNodeReportObserver raftNodeReportObserver) {
+                                   RaftRpcStubManager raftRpcStubManager, RaftNodeReportObserver raftNodeReportObserver) {
         this.executor = executor;
-        this.raftMessageDispatcher = raftMessageDispatcher;
+        this.raftRpcStubManager = raftRpcStubManager;
         this.raftNodeReportObserver = raftNodeReportObserver;
     }
 
@@ -69,7 +70,10 @@ public class AfloatDBRaftNodeRuntime
 
     @Override
     public void send(@Nonnull RaftEndpoint target, @Nonnull RaftMessage message) {
-        raftMessageDispatcher.send(target, message);
+        RaftRpcStub stub = raftRpcStubManager.getRpcStub(target);
+        if (stub != null) {
+            stub.send(message);
+        }
     }
 
     @Override

@@ -83,7 +83,6 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>afloatdb-client-fat</finalName>
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>

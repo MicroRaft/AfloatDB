@@ -103,7 +103,8 @@ message ProtoAppendEntriesRequest {
     int64 prevLogIndex = 5;
     int64 commitIndex = 6;
     repeated ProtoLogEntry entry = 7;
-    int64 queryRound = 8;
+    int64 querySeqNo = 8;
+    int64 flowControlSeqNo = 9;
 }
 
 message ProtoAppendEntriesSuccessResponse {
@@ -111,7 +112,8 @@ message ProtoAppendEntriesSuccessResponse {
     ProtoRaftEndpoint sender = 2;
     int32 term = 3;
     int64 lastLogIndex = 4;
-    int64 queryRound = 5;
+    int64 querySeqNo = 5;
+    int64 flowControlSeqNo = 6;
 }
 
 message ProtoAppendEntriesFailureResponse {
@@ -119,7 +121,8 @@ message ProtoAppendEntriesFailureResponse {
     ProtoRaftEndpoint sender = 2;
     int32 term = 3;
     int64 expectedNextIndex = 4;
-    int64 queryRound = 5;
+    int64 querySeqNo = 5;
+    int64 flowControlSeqNo = 6;
 }
 
 message ProtoInstallSnapshotRequest {
@@ -133,7 +136,8 @@ message ProtoInstallSnapshotRequest {
     repeated ProtoKVSnapshotChunk snapshotChunk = 8;
     int64 groupMembersLogIndex = 9;
     repeated ProtoRaftEndpoint groupMember = 10;
-    int64 queryRound = 11;
+    int64 querySeqNo = 11;
+    int64 flowControlSeqNo = 12;
 }
 
 message ProtoInstallSnapshotResponse {
@@ -142,7 +146,8 @@ message ProtoInstallSnapshotResponse {
     int32 term = 3;
     int64 snapshotIndex = 4;
     repeated int32 requestedSnapshotChunkIndices = 5;
-    int64 queryRound = 6;
+    int64 querySeqNo = 6;
+    int64 flowControlSeqNo = 7;
 }
 
 message ProtoPreVoteRequest {

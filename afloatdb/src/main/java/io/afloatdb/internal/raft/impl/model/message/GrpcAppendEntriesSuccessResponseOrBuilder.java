@@ -79,8 +79,15 @@ public class GrpcAppendEntriesSuccessResponseOrBuilder
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponseBuilder setQueryRound(long queryRound) {
-        builder.setQueryRound(queryRound);
+    public AppendEntriesSuccessResponseBuilder setQuerySeqNo(long querySeqNo) {
+        builder.setQuerySeqNo(querySeqNo);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public AppendEntriesSuccessResponseBuilder setFlowControlSeqNo(long flowControlSeqNo) {
+        builder.setFlowControlSeqNo(flowControlSeqNo);
         return this;
     }
 
@@ -98,23 +105,18 @@ public class GrpcAppendEntriesSuccessResponseOrBuilder
     }
 
     @Override
-    public String toString() {
-        if (builder != null) {
-            return "GrpcAppendEntriesFailureResponseBuilder{builder=" + builder + "}";
-        }
-
-        return "GrpcAppendEntriesSuccessResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", " + "term="
-                + getTerm() + ", lastLogIndex=" + getLastLogIndex() + ", queryRound=" + getQueryRound() + '}';
-    }
-
-    @Override
     public long getLastLogIndex() {
         return response.getLastLogIndex();
     }
 
     @Override
-    public long getQueryRound() {
-        return response.getQueryRound();
+    public long getQuerySeqNo() {
+        return response.getQuerySeqNo();
+    }
+
+    @Override
+    public long getFlowControlSeqNo() {
+        return response.getFlowControlSeqNo();
     }
 
     @Override
@@ -131,6 +133,17 @@ public class GrpcAppendEntriesSuccessResponseOrBuilder
     @Override
     public int getTerm() {
         return response.getTerm();
+    }
+
+    @Override
+    public String toString() {
+        if (builder != null) {
+            return "GrpcAppendEntriesFailureResponseBuilder{builder=" + builder + "}";
+        }
+
+        return "GrpcAppendEntriesSuccessResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", " + "term="
+                + getTerm() + ", lastLogIndex=" + getLastLogIndex() + ", querySeqNo=" + getQuerySeqNo() + ", flowControlSeqNo="
+                + getFlowControlSeqNo() + '}';
     }
 
 }

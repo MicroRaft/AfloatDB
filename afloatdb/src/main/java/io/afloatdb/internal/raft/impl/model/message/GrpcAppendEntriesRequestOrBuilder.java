@@ -116,8 +116,15 @@ public class GrpcAppendEntriesRequestOrBuilder
 
     @Nonnull
     @Override
-    public AppendEntriesRequestBuilder setQueryRound(long queryRound) {
-        builder.setQueryRound(queryRound);
+    public AppendEntriesRequestBuilder setQuerySeqNo(long querySeqNo) {
+        builder.setQuerySeqNo(querySeqNo);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public AppendEntriesRequestBuilder setFlowControlSeqNo(long flowControlSeqNo) {
+        builder.setFlowControlSeqNo(flowControlSeqNo);
         return this;
     }
 
@@ -127,17 +134,6 @@ public class GrpcAppendEntriesRequestOrBuilder
         request = builder.build();
         builder = null;
         return this;
-    }
-
-    @Override
-    public String toString() {
-        if (builder != null) {
-            return "GrpcAppendEntriesFailureResponseBuilder{builder=" + builder + "}";
-        }
-
-        return "GrpcAppendEntriesRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
-                + ", commitIndex=" + getCommitIndex() + ", queryRound=" + getQueryRound() + ", " + "prevLogIndex="
-                + getPreviousLogIndex() + ", prevLogTerm=" + getPreviousLogTerm() + ", entries=" + getLogEntries() + '}';
     }
 
     @Override
@@ -162,8 +158,13 @@ public class GrpcAppendEntriesRequestOrBuilder
     }
 
     @Override
-    public long getQueryRound() {
-        return request.getQueryRound();
+    public long getQuerySeqNo() {
+        return request.getQuerySeqNo();
+    }
+
+    @Override
+    public long getFlowControlSeqNo() {
+        return request.getFlowControlSeqNo();
     }
 
     @Override
@@ -180,6 +181,18 @@ public class GrpcAppendEntriesRequestOrBuilder
     @Override
     public int getTerm() {
         return request.getTerm();
+    }
+
+    @Override
+    public String toString() {
+        if (builder != null) {
+            return "GrpcAppendEntriesFailureResponseBuilder{builder=" + builder + "}";
+        }
+
+        return "GrpcAppendEntriesRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
+                + ", commitIndex=" + getCommitIndex() + ", querySeqNo=" + getQuerySeqNo() + ", flowControlSeqNo="
+                + getFlowControlSeqNo() + ", " + "prevLogIndex=" + getPreviousLogIndex() + ", prevLogTerm=" + getPreviousLogTerm()
+                + ", entries=" + getLogEntries() + '}';
     }
 
 }

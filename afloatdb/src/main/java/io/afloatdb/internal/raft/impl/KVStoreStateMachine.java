@@ -47,7 +47,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -61,7 +61,9 @@ public class KVStoreStateMachine
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KVStoreStateMachine.class);
 
-    private final Map<String, TypedValue> map = new HashMap<>();
+    // we need to keep the insertion order to create snapshot chunks
+    // in a deterministic way on all servers.
+    private final Map<String, TypedValue> map = new LinkedHashMap<>();
 
     private final RaftEndpoint localMember;
 
@@ -186,22 +188,27 @@ public class KVStoreStateMachine
 
     @Override
     public void takeSnapshot(long commitIndex, Consumer<Object> snapshotChunkConsumer) {
-        ProtoKVSnapshotChunkObject.Builder builder = ProtoKVSnapshotChunkObject.newBuilder();
+        ProtoKVSnapshotChunkObject.Builder chunkBuilder = ProtoKVSnapshotChunkObject.newBuilder();
 
+        int chunkCount = 0, keyCount = 0;
         for (Entry<String, TypedValue> entry : map.entrySet()) {
+            keyCount++;
             ProtoKVEntry protoEntry = ProtoKVEntry.newBuilder().setKey(entry.getKey()).setValue(entry.getValue()).build();
-            builder.addEntry(protoEntry);
-            if (builder.getEntryCount() == 5000) {
-                snapshotChunkConsumer.accept(builder.build());
-                builder = ProtoKVSnapshotChunkObject.newBuilder();
+            chunkBuilder.addEntry(protoEntry);
+            if (chunkBuilder.getEntryCount() == 5000) {
+                snapshotChunkConsumer.accept(chunkBuilder.build());
+                chunkBuilder = ProtoKVSnapshotChunkObject.newBuilder();
+                chunkCount++;
             }
         }
 
-        if (map.size() == 0 || builder.getEntryCount() > 0) {
-            snapshotChunkConsumer.accept(builder.build());
+        if (map.size() == 0 || chunkBuilder.getEntryCount() > 0) {
+            snapshotChunkConsumer.accept(chunkBuilder.build());
+            chunkCount++;
         }
 
-        LOGGER.info("{} took snapshot at commit index: {}", localMember.getId(), commitIndex);
+        LOGGER.info("{} took snapshot with {} chunks and {} keys at log index: {}", localMember.getId(), chunkCount, keyCount,
+                commitIndex);
 
         //        try {
         //            Output out = ByteString.newOutput();
@@ -250,7 +257,7 @@ public class KVStoreStateMachine
         //            throw new RuntimeException("Failure during snapshot restore", e);
         //        }
 
-        LOGGER.info("{} restored snapshot at commit index: {}", localMember.getId(), commitIndex);
+        LOGGER.info("{} restored snapshot with {} keys at commit index: {}", localMember.getId(), map.size(), commitIndex);
     }
 
     //    private ByteString readBytes(DataInputStream in, int count) throws IOException {

@@ -16,6 +16,8 @@
     <properties>
         <root.dir>${project.parent.basedir}</root.dir>
 
+        <afloatdb.main.class>io.afloatdb.RunAfloatDB</afloatdb.main.class>
+
         <protobuf.version>3.11.1</protobuf.version>
         <io.grpc.version>1.26.0</io.grpc.version>
 
@@ -105,10 +107,14 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>afloatdb-fat</finalName>
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
+                            <archive>
+                                <manifest>
+                                    <mainClass>${afloatdb.main.class}</mainClass>
+                                </manifest>
+                            </archive>
                         </configuration>
                     </execution>
                 </executions>
@@ -117,6 +123,16 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>${maven-jar-plugin.version}</version>
+                <configuration>
+                    <archive>
+                        <index>true</index>
+                        <compress>true</compress>
+                        <manifest>
+                            <mainClass>${afloatdb.main.class}</mainClass>
+                            <addClasspath>true</addClasspath>
+                        </manifest>
+                    </archive>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

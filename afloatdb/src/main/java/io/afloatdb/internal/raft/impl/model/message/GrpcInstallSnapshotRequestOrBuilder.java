@@ -136,8 +136,15 @@ public class GrpcInstallSnapshotRequestOrBuilder
 
     @Nonnull
     @Override
-    public InstallSnapshotRequestBuilder setQueryRound(long queryRound) {
-        builder.setQueryRound(queryRound);
+    public InstallSnapshotRequestBuilder setQuerySeqNo(long querySeqNo) {
+        builder.setQuerySeqNo(querySeqNo);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public InstallSnapshotRequestBuilder setFlowControlSeqNo(long flowControlSeqNo) {
+        builder.setFlowControlSeqNo(flowControlSeqNo);
         return this;
     }
 
@@ -152,19 +159,6 @@ public class GrpcInstallSnapshotRequestOrBuilder
     @Override
     public void populate(ProtoRaftMessage.Builder builder) {
         builder.setInstallSnapshotRequest(request);
-    }
-
-    @Override
-    public String toString() {
-        if (builder != null) {
-            return "GrpcInstallSnapshotRequestBuilder{builder=" + builder + "}";
-        }
-
-        return "GrpcInstallSnapshotRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
-                + ", senderLeader=" + isSenderLeader() + ", snapshotTerm=" + getSnapshotTerm() + ", snapshotIndex="
-                + getSnapshotIndex() + ", chunkCount=" + getTotalSnapshotChunkCount() + ", snapshotChunks=" + getSnapshotChunks()
-                + ", groupMembers=" + getGroupMembers() + ", groupMembersLogIndex=" + getGroupMembersLogIndex() + ", queryRound="
-                + getQueryRound() + '}';
     }
 
     @Override
@@ -205,8 +199,13 @@ public class GrpcInstallSnapshotRequestOrBuilder
     }
 
     @Override
-    public long getQueryRound() {
-        return request.getQueryRound();
+    public long getQuerySeqNo() {
+        return request.getQuerySeqNo();
+    }
+
+    @Override
+    public long getFlowControlSeqNo() {
+        return request.getFlowControlSeqNo();
     }
 
     @Override
@@ -223,6 +222,19 @@ public class GrpcInstallSnapshotRequestOrBuilder
     @Override
     public int getTerm() {
         return request.getTerm();
+    }
+
+    @Override
+    public String toString() {
+        if (builder != null) {
+            return "GrpcInstallSnapshotRequestBuilder{builder=" + builder + "}";
+        }
+
+        return "GrpcInstallSnapshotRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
+                + ", senderLeader=" + isSenderLeader() + ", snapshotTerm=" + getSnapshotTerm() + ", snapshotIndex="
+                + getSnapshotIndex() + ", chunkCount=" + getTotalSnapshotChunkCount() + ", snapshotChunks=" + getSnapshotChunks()
+                + ", groupMembers=" + getGroupMembers() + ", groupMembersLogIndex=" + getGroupMembersLogIndex() + ", querySeqNo="
+                + getQuerySeqNo() + ", flowControlSeqNo=" + getFlowControlSeqNo() + '}';
     }
 
 }

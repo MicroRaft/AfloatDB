@@ -16,21 +16,17 @@
 
 package io.afloatdb.internal.rpc;
 
-import io.afloatdb.raft.proto.RaftMessageServiceGrpc.RaftMessageServiceStub;
 import io.microraft.RaftEndpoint;
-import io.microraft.model.message.RaftMessage;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
 
-public interface RaftMessageDispatcher {
+public interface RaftRpcStubManager {
 
-    void send(@Nonnull RaftEndpoint target, @Nonnull RaftMessage message);
-
-    void add(@Nonnull RaftEndpoint endpoint, @Nonnull String address);
+    void addAddress(@Nonnull RaftEndpoint endpoint, @Nonnull String address);
 
     Map<RaftEndpoint, String> getAddresses();
 
-    RaftMessageServiceStub getStub(RaftEndpoint endpoint);
+    RaftRpcStub getRpcStub(RaftEndpoint endpoint);
 
 }

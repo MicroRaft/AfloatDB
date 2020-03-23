@@ -17,7 +17,7 @@
 package io.afloatdb.internal.rpc.impl;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.internal.rpc.RaftMessageDispatcher;
+import io.afloatdb.internal.rpc.RaftRpcStubManager;
 import io.afloatdb.management.proto.AddRaftEndpointAddressRequest;
 import io.afloatdb.management.proto.AddRaftEndpointAddressResponse;
 import io.afloatdb.management.proto.AddRaftEndpointRequest;
@@ -53,13 +53,13 @@ public class ManagementRequestHandler
     private static final Logger LOGGER = LoggerFactory.getLogger(ManagementRequestHandler.class);
 
     private final RaftNode raftNode;
-    private final RaftMessageDispatcher raftMessageDispatcher;
+    private final RaftRpcStubManager raftRpcStubManager;
 
     @Inject
     public ManagementRequestHandler(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
-                                    RaftMessageDispatcher raftMessageDispatcher) {
+                                    RaftRpcStubManager raftRpcStubManager) {
         this.raftNode = raftNodeSupplier.get();
-        this.raftMessageDispatcher = raftMessageDispatcher;
+        this.raftRpcStubManager = raftRpcStubManager;
     }
 
     @Override
@@ -93,8 +93,8 @@ public class ManagementRequestHandler
             if (throwable == null) {
                 GetRaftNodeReportResponse.Builder builder = GetRaftNodeReportResponse.newBuilder();
                 builder.setReport(toProto(response.getResult()));
-                raftMessageDispatcher.getAddresses()
-                                     .forEach((key, value) -> builder.putEndpointAddress((String) key.getId(), value));
+                raftRpcStubManager.getAddresses()
+                                  .forEach((key, value) -> builder.putEndpointAddress((String) key.getId(), value));
 
                 responseObserver.onNext(builder.build());
             } else {
@@ -108,7 +108,7 @@ public class ManagementRequestHandler
     public void addRaftEndpointAddress(AddRaftEndpointAddressRequest request,
                                        StreamObserver<AddRaftEndpointAddressResponse> responseObserver) {
         try {
-            raftMessageDispatcher.add(AfloatDBEndpoint.wrap(request.getEndpoint()), request.getAddress());
+            raftRpcStubManager.addAddress(AfloatDBEndpoint.wrap(request.getEndpoint()), request.getAddress());
             responseObserver.onNext(AddRaftEndpointAddressResponse.getDefaultInstance());
         } catch (Throwable t) {
             responseObserver.onError(wrap(t));
@@ -120,7 +120,7 @@ public class ManagementRequestHandler
     @Override
     public void addRaftEndpoint(AddRaftEndpointRequest request, StreamObserver<AddRaftEndpointResponse> responseObserver) {
         RaftEndpoint endpoint = AfloatDBEndpoint.wrap(request.getEndpoint());
-        if (!raftMessageDispatcher.getAddresses().containsKey(endpoint)) {
+        if (!raftRpcStubManager.getAddresses().containsKey(endpoint)) {
             LOGGER.error("{} cannot add {} because its address is not known!", raftNode.getLocalEndpoint().getId(),
                     endpoint.getId());
             responseObserver.onError(new StatusRuntimeException(Status.FAILED_PRECONDITION));

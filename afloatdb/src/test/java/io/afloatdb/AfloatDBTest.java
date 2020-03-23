@@ -32,6 +32,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.util.BaseTest;
 import io.microraft.report.RaftGroupMembers;
 import io.microraft.report.RaftNodeReport;
@@ -314,12 +315,14 @@ public class AfloatDBTest
     public void when_newServerJoinsAfterLeaderTakesSnapshot_then_newServerInstallsSnapshot() {
         AfloatDB leader = waitUntilLeaderElected(servers);
 
-        int keyCount = 0;
-        while (leader.getRaftNodeReport().getLog().getTakeSnapshotCount() == 0) {
-            String key = "key" + (keyCount++);
+        RaftNodeImpl raftNode = (RaftNodeImpl) getRaftNode(leader);
+        int keyCount = leader.getConfig().getRaftConfig().getCommitCountToTakeSnapshot();
+        for (int keyIndex = 1; keyIndex <= keyCount; keyIndex++) {
+            String key = "key" + keyIndex;
             TypedValue typedValue = TypedValue.newBuilder().setType(STRING_TYPE).setValue(ByteString.copyFromUtf8(key)).build();
             SetRequest request = SetRequest.newBuilder().setKey(key).setValue(typedValue).build();
-            getRaftNode(leader).replicate(ProtoOperation.newBuilder().setSetRequest(request).build()).join();
+            ProtoOperation operation = ProtoOperation.newBuilder().setSetRequest(request).build();
+            raftNode.replicate(operation).join();
         }
 
         eventually(() -> {
@@ -335,12 +338,12 @@ public class AfloatDBTest
         AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)));
         servers.add(newServer);
 
-        eventually(() -> assertThat(newServer.getRaftNodeReport().getLog().getInstallSnapshotCount()).isEqualTo(1));
-
-        SizeResponse sizeResponse = (SizeResponse) getRaftNode(newServer)
-                .query(ProtoOperation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build(), ANY_LOCAL, 0).join()
-                .getResult();
-        assertThat(sizeResponse.getSize()).isEqualTo(keyCount);
+        eventually(() -> {
+            SizeResponse sizeResponse = (SizeResponse) getRaftNode(newServer)
+                    .query(ProtoOperation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build(), ANY_LOCAL, 0)
+                    .join().getResult();
+            assertThat(sizeResponse.getSize()).isEqualTo(keyCount);
+        });
     }
 
     @Test(expected = AfloatDBException.class)

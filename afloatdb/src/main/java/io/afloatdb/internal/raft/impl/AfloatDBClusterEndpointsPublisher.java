@@ -22,7 +22,7 @@ import io.afloatdb.cluster.proto.AfloatDBClusterEndpointsResponse;
 import io.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc.AfloatDBClusterServiceImplBase;
 import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.internal.raft.RaftNodeReportObserver;
-import io.afloatdb.internal.rpc.RaftMessageDispatcher;
+import io.afloatdb.internal.rpc.RaftRpcStubManager;
 import io.grpc.stub.StreamObserver;
 import io.microraft.RaftEndpoint;
 import io.microraft.report.RaftGroupMembers;
@@ -56,17 +56,17 @@ public class AfloatDBClusterEndpointsPublisher
     private final Map<String, StreamObserver<AfloatDBClusterEndpointsResponse>> observers = new ConcurrentHashMap<>();
     private final AfloatDBConfig config;
     private final RaftEndpoint localEndpoint;
-    private final RaftMessageDispatcher raftMessageDispatcher;
+    private final RaftRpcStubManager raftRpcStubManager;
     private volatile RaftNodeReport lastReport;
     private long raftNodeReportIdlePublishTimestamp;
 
     @Inject
     public AfloatDBClusterEndpointsPublisher(@Named(CONFIG_KEY) AfloatDBConfig config,
                                              @Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
-                                             RaftMessageDispatcher raftMessageDispatcher) {
+                                             RaftRpcStubManager raftRpcStubManager) {
         this.config = config;
         this.localEndpoint = localEndpoint;
-        this.raftMessageDispatcher = raftMessageDispatcher;
+        this.raftRpcStubManager = raftRpcStubManager;
         this.raftNodeReportIdlePublishTimestamp = System.currentTimeMillis() - CLUSTER_ENDPOINTS_IDLE_PUBLISH_DURATION_MILLIS;
     }
 
@@ -153,8 +153,8 @@ public class AfloatDBClusterEndpointsPublisher
 
         endpointsBuilder.setTerm(report.getTerm().getTerm());
 
-        raftMessageDispatcher.getAddresses().entrySet().stream().filter(e -> committedMembers.getMembers().contains(e.getKey()))
-                             .forEach(e -> endpointsBuilder.putEndpoint((String) e.getKey().getId(), e.getValue()));
+        raftRpcStubManager.getAddresses().entrySet().stream().filter(e -> committedMembers.getMembers().contains(e.getKey()))
+                          .forEach(e -> endpointsBuilder.putEndpoint((String) e.getKey().getId(), e.getValue()));
 
         return AfloatDBClusterEndpointsResponse.newBuilder().setEndpoints(endpointsBuilder.build()).build();
     }
