@@ -47,12 +47,11 @@ public class AfloatDBConfigTest
                         + "        initial-endpoints: [\n" + "            {id: \"node1\", address: \"localhost:6701\"}," + "\n"
                         + "            {id: \"node2\", address: \"localhost:6702\"}," + "\n"
                         + "            {id: \"node3\", address: \"localhost:6703\"}\n" + "        ]\n" + "\n" + "    }\n" + "\n"
-                        + "    raft: {\n" + "        leader-election-timeout-millis: 2000\n"
-                        + "        leader-heartbeat-period-millis: 5000\n" + "        leader-heartbeat-timeout-millis: 15000\n"
+                        + "    raft: {\n" + "        leader-election-timeout-millis : 2000\n"
+                        + "        leader-heartbeat-period-secs: 5\n" + "        leader-heartbeat-timeout-secs: 15\n"
                         + "        append-entries-request-batch-size: 1000\n" + "        commit-count-to-take-snapshot: "
                         + "50000\n" + "        max-uncommitted-log-entry-count: 1000\n"
-                        + "        leader-backoff-duration-millis: 200\n" + "        raft-node-report-publish-period-secs: 10\n"
-                        + "    }\n" + "\n" + "}\n");
+                        + "        raft-node-report-publish-period-secs: 10\n" + "    }\n" + "\n" + "}\n");
 
         AfloatDBConfig.from(config);
     }
@@ -62,11 +61,10 @@ public class AfloatDBConfigTest
         Config config = ConfigFactory.parseString(
                 "afloatdb: {\n" + "\n" + "    local-endpoint: {id: \"node1\", address: " + "\"localhost:6701\"}\n" + "\n"
                         + "    raft: {\n" + "        leader-election-timeout-millis: 2000\n"
-                        + "        leader-heartbeat-period-millis: 5000\n" + "        leader-heartbeat-timeout-millis: 15000\n"
+                        + "        leader-heartbeat-period-secs: 5\n" + "        leader-heartbeat-timeout-secs: 15\n"
                         + "        append-entries-request-batch-size: 1000\n" + "        commit-count-to-take-snapshot: "
                         + "50000\n" + "        max-uncommitted-log-entry-count: 1000\n"
-                        + "        leader-backoff-duration-millis: 200\n" + "        raft-node-report-publish-period-secs: 10\n"
-                        + "    }\n" + "\n" + "}\n");
+                        + "        raft-node-report-publish-period-secs: 10\n" + "    }\n" + "\n" + "}\n");
 
         AfloatDBConfig.from(config);
     }
@@ -106,11 +104,11 @@ public class AfloatDBConfigTest
                         + "            {id: \"node2\", address: \"localhost:6702\"}," + "\n"
                         + "            {id: \"node3\", address: \"localhost:6703\"}\n" + "        ]\n" + "\n" + "    }\n" + "\n"
                         + "    raft: {\n" + "        leader-election-timeout-millis: 2500\n"
-                        + "        leader-heartbeat-period-millis: 4000\n" + "        leader-heartbeat-timeout-millis: 8000\n"
+                        + "        leader-heartbeat-period-secs: 4\n" + "        leader-heartbeat-timeout-secs: 8\n"
                         + "        append-entries-request-batch-size: 150\n" + "        commit-count-to-take-snapshot: "
                         + "1000\n" + "        max-uncommitted-log-entry-count: 50\n"
-                        + "        leader-backoff-duration-millis: 500\n" + "        raft-node-report-publish-period-secs: 30\n"
-                        + "    }\n" + "\n" + "}\n");
+                        + "        raft-node-report-publish-period-secs: 30\n"
+                        + "transfer-snapshots-from-followers-enabled: false\n" + "    }\n" + "\n" + "}\n");
 
         AfloatDBConfig afloatDBConfig = AfloatDBConfig.from(config);
 
@@ -127,13 +125,13 @@ public class AfloatDBConfigTest
         assertThat(initialEndpoints.get(2).getAddress()).isEqualTo("localhost:6703");
         assertThat(afloatDBConfig.getRaftConfig()).isNotNull();
         assertThat(afloatDBConfig.getRaftConfig().getLeaderElectionTimeoutMillis()).isEqualTo(2500L);
-        assertThat(afloatDBConfig.getRaftConfig().getLeaderHeartbeatPeriodMillis()).isEqualTo(4000L);
-        assertThat(afloatDBConfig.getRaftConfig().getLeaderHeartbeatTimeoutMillis()).isEqualTo(8000L);
+        assertThat(afloatDBConfig.getRaftConfig().getLeaderHeartbeatPeriodSecs()).isEqualTo(4L);
+        assertThat(afloatDBConfig.getRaftConfig().getLeaderHeartbeatTimeoutSecs()).isEqualTo(8L);
         assertThat(afloatDBConfig.getRaftConfig().getAppendEntriesRequestBatchSize()).isEqualTo(150);
         assertThat(afloatDBConfig.getRaftConfig().getCommitCountToTakeSnapshot()).isEqualTo(1000);
         assertThat(afloatDBConfig.getRaftConfig().getMaxUncommittedLogEntryCount()).isEqualTo(50);
-        assertThat(afloatDBConfig.getRaftConfig().getLeaderBackoffDurationMillis()).isEqualTo(500);
         assertThat(afloatDBConfig.getRaftConfig().getRaftNodeReportPublishPeriodSecs()).isEqualTo(30);
+        assertThat(afloatDBConfig.getRaftConfig().isTransferSnapshotsFromFollowersEnabled()).isFalse();
     }
 
     @Test

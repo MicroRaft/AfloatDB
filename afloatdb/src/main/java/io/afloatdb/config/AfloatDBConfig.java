@@ -60,12 +60,12 @@ public final class AfloatDBConfig {
             builder.setLeaderElectionTimeoutMillis(config.getLong("leader-election-timeout-millis"));
         }
 
-        if (config.hasPath("leader-heartbeat-period-millis")) {
-            builder.setLeaderHeartbeatPeriodMillis(config.getLong("leader-heartbeat-period-millis"));
+        if (config.hasPath("leader-heartbeat-period-secs")) {
+            builder.setLeaderHeartbeatPeriodSecs(config.getLong("leader-heartbeat-period-secs"));
         }
 
-        if (config.hasPath("leader-heartbeat-timeout-millis")) {
-            builder.setLeaderHeartbeatTimeoutMillis(config.getLong("leader-heartbeat-timeout-millis"));
+        if (config.hasPath("leader-heartbeat-timeout-secs")) {
+            builder.setLeaderHeartbeatTimeoutSecs(config.getLong("leader-heartbeat-timeout-secs"));
         }
 
         if (config.hasPath("append-entries-request-batch-size")) {
@@ -80,8 +80,8 @@ public final class AfloatDBConfig {
             builder.setMaxUncommittedLogEntryCount(config.getInt("max-uncommitted-log-entry-count"));
         }
 
-        if (config.hasPath("leader-backoff-duration-millis")) {
-            builder.setLeaderBackoffDurationMillis(config.getLong("leader-backoff-duration-millis"));
+        if (config.hasPath("transfer-snapshots-from-followers-enabled")) {
+            builder.setTransferSnapshotsFromFollowersEnabled(config.getBoolean("transfer-snapshots-from-followers-enabled"));
         }
 
         if (config.hasPath("raft-node-report-publish-period-secs")) {
