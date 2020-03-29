@@ -19,16 +19,16 @@ package io.afloatdb.internal.raft.impl.model.message;
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.internal.raft.impl.model.log.GrpcSnapshotChunkOrBuilder;
 import io.afloatdb.raft.proto.ProtoInstallSnapshotRequest;
+import io.afloatdb.raft.proto.ProtoKVSnapshotChunk;
 import io.afloatdb.raft.proto.ProtoRaftMessage;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.message.InstallSnapshotRequest;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
@@ -39,7 +39,7 @@ public class GrpcInstallSnapshotRequestOrBuilder
     private ProtoInstallSnapshotRequest.Builder builder;
     private ProtoInstallSnapshotRequest request;
     private RaftEndpoint sender;
-    private List<SnapshotChunk> snapshotChunks = new ArrayList<>();
+    private SnapshotChunk snapshotChunk;
     private Collection<RaftEndpoint> groupMembers = new LinkedHashSet<>();
 
     public GrpcInstallSnapshotRequestOrBuilder() {
@@ -49,7 +49,9 @@ public class GrpcInstallSnapshotRequestOrBuilder
     public GrpcInstallSnapshotRequestOrBuilder(ProtoInstallSnapshotRequest request) {
         this.request = request;
         this.sender = AfloatDBEndpoint.wrap(request.getSender());
-        this.snapshotChunks = request.getSnapshotChunkList().stream().map(GrpcSnapshotChunkOrBuilder::new).collect(toList());
+        if (!request.getSnapshotChunk().equals(ProtoKVSnapshotChunk.getDefaultInstance())) {
+            this.snapshotChunk = new GrpcSnapshotChunkOrBuilder(request.getSnapshotChunk());
+        }
         this.groupMembers = request.getGroupMemberList().stream().map(AfloatDBEndpoint::wrap).collect(toList());
     }
 
@@ -110,11 +112,12 @@ public class GrpcInstallSnapshotRequestOrBuilder
 
     @Nonnull
     @Override
-    public InstallSnapshotRequestBuilder setSnapshotChunks(@Nonnull List<SnapshotChunk> snapshotChunks) {
-        requireNonNull(snapshotChunks);
-        snapshotChunks.stream().map(snapshotChunk -> ((GrpcSnapshotChunkOrBuilder) snapshotChunk).getSnapshotChunk())
-                      .forEach(builder::addSnapshotChunk);
-        this.snapshotChunks = snapshotChunks;
+    public InstallSnapshotRequestBuilder setSnapshotChunk(@Nullable SnapshotChunk snapshotChunk) {
+        if (snapshotChunk != null) {
+            builder.setSnapshotChunk(((GrpcSnapshotChunkOrBuilder) snapshotChunk).getSnapshotChunk());
+        }
+
+        this.snapshotChunk = snapshotChunk;
         return this;
     }
 
@@ -181,10 +184,10 @@ public class GrpcInstallSnapshotRequestOrBuilder
         return request.getTotalSnapshotChunkCount();
     }
 
-    @Nonnull
+    @Nullable
     @Override
-    public List<SnapshotChunk> getSnapshotChunks() {
-        return snapshotChunks;
+    public SnapshotChunk getSnapshotChunk() {
+        return snapshotChunk;
     }
 
     @Override
@@ -232,7 +235,7 @@ public class GrpcInstallSnapshotRequestOrBuilder
 
         return "GrpcInstallSnapshotRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
                 + ", senderLeader=" + isSenderLeader() + ", snapshotTerm=" + getSnapshotTerm() + ", snapshotIndex="
-                + getSnapshotIndex() + ", chunkCount=" + getTotalSnapshotChunkCount() + ", snapshotChunks=" + getSnapshotChunks()
+                + getSnapshotIndex() + ", chunkCount=" + getTotalSnapshotChunkCount() + ", snapshotChunk=" + getSnapshotChunk()
                 + ", groupMembers=" + getGroupMembers() + ", groupMembersLogIndex=" + getGroupMembersLogIndex() + ", querySeqNo="
                 + getQuerySeqNo() + ", flowControlSeqNo=" + getFlowControlSeqNo() + '}';
     }

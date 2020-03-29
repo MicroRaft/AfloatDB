@@ -77,6 +77,11 @@ public class AfloatDBRaftNodeRuntime
     }
 
     @Override
+    public boolean isReachable(@Nonnull RaftEndpoint endpoint) {
+        return raftRpcStubManager.getRpcStub(endpoint) != null;
+    }
+
+    @Override
     public void onRaftNodeReport(@Nonnull RaftNodeReport report) {
         raftNodeReportObserver.onRaftNodeReport(report);
     }

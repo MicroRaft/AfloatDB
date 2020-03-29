@@ -8,7 +8,6 @@ import io.microraft.model.message.InstallSnapshotResponse;
 import io.microraft.model.message.InstallSnapshotResponse.InstallSnapshotResponseBuilder;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
@@ -64,9 +63,8 @@ public class GrpcInstallSnapshotResponseOrBuilder
 
     @Nonnull
     @Override
-    public InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndices(@Nonnull List<Integer> requestedSnapshotChunkIndices) {
-        requireNonNull(requestedSnapshotChunkIndices);
-        builder.addAllRequestedSnapshotChunkIndices(requestedSnapshotChunkIndices);
+    public InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndex(int requestedSnapshotChunkIndex) {
+        builder.setRequestedSnapshotChunkIndex(requestedSnapshotChunkIndex);
         return this;
     }
 
@@ -102,10 +100,9 @@ public class GrpcInstallSnapshotResponseOrBuilder
         return response.getSnapshotIndex();
     }
 
-    @Nonnull
     @Override
-    public List<Integer> getRequestedSnapshotChunkIndices() {
-        return response.getRequestedSnapshotChunkIndicesList();
+    public int getRequestedSnapshotChunkIndex() {
+        return response.getRequestedSnapshotChunkIndex();
     }
 
     @Override
@@ -141,9 +138,8 @@ public class GrpcInstallSnapshotResponseOrBuilder
         }
 
         return "GrpcInstallSnapshotResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
-                + ", snapshotIndex=" + getSnapshotIndex() + ", requestedSnapshotChunkIndices="
-                + getRequestedSnapshotChunkIndices() + ", querySeqNo=" + getQuerySeqNo() + ", flowControlSeqNo="
-                + getFlowControlSeqNo() + '}';
+                + ", snapshotIndex=" + getSnapshotIndex() + ", requestedSnapshotChunkIndex=" + getRequestedSnapshotChunkIndex()
+                + ", querySeqNo=" + getQuerySeqNo() + ", flowControlSeqNo=" + getFlowControlSeqNo() + '}';
     }
 
 }
