@@ -55,7 +55,7 @@ public class AfloatDBClientBenchmark {
     @Threads(5)
     @Measurement(iterations = 100)
     public void setTesting(Context context) {
-        int i = context.random.nextInt(10000);
+        int i = context.random.nextInt(50000);
         String keyStr = "key" + i;
         String valueStr = "value" + i;
         context.kv.set(keyStr, valueStr);

@@ -11,8 +11,17 @@ public final class Serialization {
     public static final int BYTE_TYPE = 1;
     public static final int BYTE_ARRAY_TYPE = 2;
     public static final int CHAR_TYPE = 3;
-    public static final int DOUBLE_TYPE = 4;
-    public static final int FLOAT_TYPE = 5;
+
+    /*
+    PHYSALIA:
+    Floating-point data types and limited-precision integers are not supported
+    due to difficulties in ensuring that nodes will produce identical results
+    when using different software versions and hardware (see [24] and chapter
+    11 of [1]).
+     */
+    public static final int DOUBLE_TYPE = 4; // TODO [basri] get rid of this
+    public static final int FLOAT_TYPE = 5; // TODO [basri] get rid of this
+
     public static final int INT_TYPE = 6;
     public static final int LONG_TYPE = 7;
     public static final int SHORT_TYPE = 8;

@@ -195,7 +195,7 @@ public class KVStoreStateMachine
             keyCount++;
             ProtoKVEntry protoEntry = ProtoKVEntry.newBuilder().setKey(entry.getKey()).setValue(entry.getValue()).build();
             chunkBuilder.addEntry(protoEntry);
-            if (chunkBuilder.getEntryCount() == 5000) {
+            if (chunkBuilder.getEntryCount() == 10000) {
                 snapshotChunkConsumer.accept(chunkBuilder.build());
                 chunkBuilder = ProtoKVSnapshotChunkObject.newBuilder();
                 chunkCount++;

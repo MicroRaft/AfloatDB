@@ -134,10 +134,11 @@ message ProtoInstallSnapshotRequest {
     int64 snapshotIndex = 6;
     int32 totalSnapshotChunkCount = 7;
     ProtoKVSnapshotChunk snapshotChunk = 8;
-    int64 groupMembersLogIndex = 9;
-    repeated ProtoRaftEndpoint groupMember = 10;
-    int64 querySeqNo = 11;
-    int64 flowControlSeqNo = 12;
+    repeated ProtoRaftEndpoint snapshottedMember = 9;
+    int64 groupMembersLogIndex = 10;
+    repeated ProtoRaftEndpoint groupMember = 11;
+    int64 querySeqNo = 12;
+    int64 flowControlSeqNo = 13;
 }
 
 message ProtoInstallSnapshotResponse {
