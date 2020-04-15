@@ -21,7 +21,6 @@ import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public class GrpcLogEntryOrBuilder
         implements LogEntry, LogEntryBuilder {
@@ -57,7 +56,7 @@ public class GrpcLogEntryOrBuilder
 
     @Nonnull
     @Override
-    public LogEntryBuilder setOperation(@Nullable Object operation) {
+    public LogEntryBuilder setOperation(@Nonnull Object operation) {
         builder.setOperation(ProtoOperations.wrap(operation));
         return this;
     }

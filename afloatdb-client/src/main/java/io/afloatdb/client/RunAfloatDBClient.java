@@ -16,11 +16,11 @@
 
 package io.afloatdb.client;
 
-import com.google.common.base.Charsets;
 import com.typesafe.config.ConfigFactory;
 import io.afloatdb.client.config.AfloatDBClientConfig;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
 import static java.nio.file.Files.readAllLines;
@@ -52,7 +52,7 @@ public class RunAfloatDBClient {
 
     private static AfloatDBClientConfig readConfigFile(String configFileName) {
         try {
-            String config = String.join("\n", readAllLines(Paths.get(configFileName), Charsets.UTF_8));
+            String config = String.join("\n", readAllLines(Paths.get(configFileName), StandardCharsets.UTF_8));
             return AfloatDBClientConfig.from(ConfigFactory.parseString(config));
         } catch (IOException e) {
             e.printStackTrace();

@@ -29,8 +29,6 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import static java.util.Objects.requireNonNull;
-
 public class GrpcSnapshotEntryOrBuilder
         implements SnapshotEntry, SnapshotEntryBuilder {
 
@@ -89,7 +87,6 @@ public class GrpcSnapshotEntryOrBuilder
     @Nonnull
     @Override
     public SnapshotEntryBuilder setSnapshotChunks(@Nonnull List<SnapshotChunk> snapshotChunks) {
-        requireNonNull(snapshotChunks);
         snapshotChunks.stream().map(chunk -> ((GrpcSnapshotChunkOrBuilder) chunk).getSnapshotChunk())
                       .forEach(builder::addSnapshotChunk);
         this.snapshotChunks = snapshotChunks;
@@ -106,7 +103,6 @@ public class GrpcSnapshotEntryOrBuilder
     @Nonnull
     @Override
     public SnapshotEntryBuilder setGroupMembers(@Nonnull Collection<RaftEndpoint> groupMembers) {
-        requireNonNull(groupMembers);
         groupMembers.stream().map(AfloatDBEndpoint::extract).forEach(builder::addGroupMember);
         this.groupMembers = groupMembers;
         return this;

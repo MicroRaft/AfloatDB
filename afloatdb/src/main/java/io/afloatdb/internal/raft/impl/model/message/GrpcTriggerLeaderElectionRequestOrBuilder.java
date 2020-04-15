@@ -25,8 +25,6 @@ import io.microraft.model.message.TriggerLeaderElectionRequest.TriggerLeaderElec
 
 import javax.annotation.Nonnull;
 
-import static java.util.Objects.requireNonNull;
-
 public class GrpcTriggerLeaderElectionRequestOrBuilder
         implements TriggerLeaderElectionRequest, TriggerLeaderElectionRequestBuilder, GrpcRaftMessage {
 
@@ -50,7 +48,6 @@ public class GrpcTriggerLeaderElectionRequestOrBuilder
     @Nonnull
     @Override
     public TriggerLeaderElectionRequestBuilder setGroupId(@Nonnull Object groupId) {
-        requireNonNull(groupId);
         builder.setGroupId((String) groupId);
         return this;
     }

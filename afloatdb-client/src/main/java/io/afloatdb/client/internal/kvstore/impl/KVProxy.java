@@ -41,25 +41,13 @@ import io.afloatdb.kv.proto.TypedValue;
 import javax.annotation.Nonnull;
 import java.util.function.Supplier;
 
-import static io.afloatdb.internal.serialization.Serialization.BOOLEAN_TYPE;
 import static io.afloatdb.internal.serialization.Serialization.BYTE_ARRAY_TYPE;
-import static io.afloatdb.internal.serialization.Serialization.BYTE_TYPE;
-import static io.afloatdb.internal.serialization.Serialization.CHAR_TYPE;
-import static io.afloatdb.internal.serialization.Serialization.DOUBLE_TYPE;
-import static io.afloatdb.internal.serialization.Serialization.FLOAT_TYPE;
 import static io.afloatdb.internal.serialization.Serialization.INT_TYPE;
 import static io.afloatdb.internal.serialization.Serialization.LONG_TYPE;
-import static io.afloatdb.internal.serialization.Serialization.SHORT_TYPE;
 import static io.afloatdb.internal.serialization.Serialization.STRING_TYPE;
-import static io.afloatdb.internal.serialization.Serialization.serializeBoolean;
-import static io.afloatdb.internal.serialization.Serialization.serializeByte;
 import static io.afloatdb.internal.serialization.Serialization.serializeBytes;
-import static io.afloatdb.internal.serialization.Serialization.serializeChar;
-import static io.afloatdb.internal.serialization.Serialization.serializeDouble;
-import static io.afloatdb.internal.serialization.Serialization.serializeFloat;
 import static io.afloatdb.internal.serialization.Serialization.serializeInt;
 import static io.afloatdb.internal.serialization.Serialization.serializeLong;
-import static io.afloatdb.internal.serialization.Serialization.serializeShort;
 import static io.afloatdb.internal.serialization.Serialization.serializeString;
 import static java.util.Objects.requireNonNull;
 
@@ -74,135 +62,47 @@ public class KVProxy
     }
 
     @Override
-    public <T> T put(@Nonnull String key, boolean value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), false);
-    }
-
-    @Override
-    public <T> T put(@Nonnull String key, byte value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), false);
-    }
-
-    @Override
     public <T> T put(@Nonnull String key, @Nonnull byte[] value) {
-        requireNonNull(key);
-        requireNonNull(value);
-        return put(key, getTypedValue(value), false);
-    }
-
-    @Override
-    public <T> T put(@Nonnull String key, char value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), false);
-    }
-
-    @Override
-    public <T> T put(@Nonnull String key, double value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), false);
-    }
-
-    @Override
-    public <T> T put(@Nonnull String key, float value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), false);
+        return put(requireNonNull(key), getTypedValue(requireNonNull(value)), false);
     }
 
     @Override
     public <T> T put(@Nonnull String key, int value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), false);
+        return put(requireNonNull(key), getTypedValue(value), false);
     }
 
     @Override
     public <T> T put(@Nonnull String key, long value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), false);
-    }
-
-    @Override
-    public <T> T put(@Nonnull String key, short value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), false);
+        return put(requireNonNull(key), getTypedValue(value), false);
     }
 
     @Override
     public <T> T put(@Nonnull String key, @Nonnull String value) {
-        requireNonNull(key);
-        requireNonNull(value);
-        return put(key, getTypedValue(value), false);
-    }
-
-    @Override
-    public <T> T putIfAbsent(@Nonnull String key, boolean value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), true);
-    }
-
-    @Override
-    public <T> T putIfAbsent(@Nonnull String key, byte value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), true);
+        return put(requireNonNull(key), getTypedValue(requireNonNull(value)), false);
     }
 
     @Override
     public <T> T putIfAbsent(@Nonnull String key, @Nonnull byte[] value) {
-        requireNonNull(key);
-        requireNonNull(value);
-        return put(key, getTypedValue(value), true);
-    }
-
-    @Override
-    public <T> T putIfAbsent(@Nonnull String key, char value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), true);
-    }
-
-    @Override
-    public <T> T putIfAbsent(@Nonnull String key, double value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), true);
-    }
-
-    @Override
-    public <T> T putIfAbsent(@Nonnull String key, float value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), true);
+        return put(requireNonNull(key), getTypedValue(requireNonNull(value)), true);
     }
 
     @Override
     public <T> T putIfAbsent(@Nonnull String key, int value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), true);
+        return put(requireNonNull(key), getTypedValue(value), true);
     }
 
     @Override
     public <T> T putIfAbsent(@Nonnull String key, long value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), true);
-    }
-
-    @Override
-    public <T> T putIfAbsent(@Nonnull String key, short value) {
-        requireNonNull(key);
-        return put(key, getTypedValue(value), true);
+        return put(requireNonNull(key), getTypedValue(value), true);
     }
 
     @Override
     public <T> T putIfAbsent(@Nonnull String key, @Nonnull String value) {
-        requireNonNull(key);
-        requireNonNull(value);
-        return put(key, getTypedValue(value), true);
+        return put(requireNonNull(key), getTypedValue(requireNonNull(value)), true);
     }
 
     private TypedValue getTypedValue(@Nonnull String value) {
         return TypedValue.newBuilder().setType(STRING_TYPE).setValue(serializeString(value)).build();
-    }
-
-    private TypedValue getTypedValue(short value) {
-        return TypedValue.newBuilder().setType(SHORT_TYPE).setValue(serializeShort(value)).build();
     }
 
     private TypedValue getTypedValue(long value) {
@@ -213,24 +113,8 @@ public class KVProxy
         return TypedValue.newBuilder().setType(INT_TYPE).setValue(serializeInt(value)).build();
     }
 
-    private TypedValue getTypedValue(float value) {
-        return TypedValue.newBuilder().setType(FLOAT_TYPE).setValue(serializeFloat(value)).build();
-    }
-
-    private TypedValue getTypedValue(double value) {
-        return TypedValue.newBuilder().setType(DOUBLE_TYPE).setValue(serializeDouble(value)).build();
-    }
-
-    private TypedValue getTypedValue(char value) {
-        return TypedValue.newBuilder().setType(CHAR_TYPE).setValue(serializeChar(value)).build();
-    }
-
     private TypedValue getTypedValue(byte[] value) {
         return TypedValue.newBuilder().setType(BYTE_ARRAY_TYPE).setValue(serializeBytes(value)).build();
-    }
-
-    private TypedValue getTypedValue(byte value) {
-        return TypedValue.newBuilder().setType(BYTE_TYPE).setValue(serializeByte(value)).build();
     }
 
     private <T> T put(String key, TypedValue value, boolean absent) {
@@ -239,70 +123,24 @@ public class KVProxy
         return response.hasValue() ? (T) Serialization.deserialize(response.getValue()) : null;
     }
 
-    private TypedValue getTypedValue(boolean value) {
-        return TypedValue.newBuilder().setType(BOOLEAN_TYPE).setValue(serializeBoolean(value)).build();
-    }
-
-    @Override
-    public void set(String key, boolean value) {
-        requireNonNull(key);
-        set(key, getTypedValue(value));
-    }
-
-    @Override
-    public void set(String key, byte value) {
-        requireNonNull(key);
-        set(key, getTypedValue(value));
-    }
-
     @Override
     public void set(String key, @Nonnull byte[] value) {
-        requireNonNull(key);
-        requireNonNull(value);
-        set(key, getTypedValue(value));
-    }
-
-    @Override
-    public void set(String key, char value) {
-        requireNonNull(key);
-        set(key, getTypedValue(value));
-    }
-
-    @Override
-    public void set(String key, double value) {
-        requireNonNull(key);
-        set(key, getTypedValue(value));
-    }
-
-    @Override
-    public void set(String key, float value) {
-        requireNonNull(key);
-        set(key, getTypedValue(value));
+        set(requireNonNull(key), getTypedValue(requireNonNull(value)));
     }
 
     @Override
     public void set(String key, int value) {
-        requireNonNull(key);
-        set(key, getTypedValue(value));
+        set(requireNonNull(key), getTypedValue(value));
     }
 
     @Override
     public void set(String key, long value) {
-        requireNonNull(key);
-        set(key, getTypedValue(value));
-    }
-
-    @Override
-    public void set(String key, short value) {
-        requireNonNull(key);
-        set(key, getTypedValue(value));
+        set(requireNonNull(key), getTypedValue(value));
     }
 
     @Override
     public void set(String key, @Nonnull String value) {
-        requireNonNull(key);
-        requireNonNull(value);
-        set(key, getTypedValue(value));
+        set(requireNonNull(key), getTypedValue(requireNonNull(value)));
     }
 
     private void set(String key, TypedValue value) {
@@ -329,64 +167,23 @@ public class KVProxy
     }
 
     @Override
-    public boolean contains(@Nonnull String key, boolean value) {
-        requireNonNull(key);
-        return contains(key, getTypedValue(value));
-    }
-
-    @Override
-    public boolean contains(@Nonnull String key, byte value) {
-        requireNonNull(key);
-        return contains(key, getTypedValue(value));
-    }
-
-    @Override
     public boolean contains(@Nonnull String key, @Nonnull byte[] value) {
-        requireNonNull(key);
-        requireNonNull(value);
-        return contains(key, getTypedValue(value));
-    }
-
-    @Override
-    public boolean contains(@Nonnull String key, char value) {
-        requireNonNull(key);
-        return contains(key, getTypedValue(value));
-    }
-
-    @Override
-    public boolean contains(@Nonnull String key, double value) {
-        requireNonNull(key);
-        return contains(key, getTypedValue(value));
-    }
-
-    @Override
-    public boolean contains(@Nonnull String key, float value) {
-        requireNonNull(key);
-        return contains(key, getTypedValue(value));
+        return contains(requireNonNull(key), getTypedValue(requireNonNull(value)));
     }
 
     @Override
     public boolean contains(@Nonnull String key, int value) {
-        requireNonNull(key);
-        return contains(key, getTypedValue(value));
+        return contains(requireNonNull(key), getTypedValue(value));
     }
 
     @Override
     public boolean contains(@Nonnull String key, long value) {
-        requireNonNull(key);
-        return contains(key, getTypedValue(value));
-    }
-
-    @Override
-    public boolean contains(@Nonnull String key, short value) {
-        requireNonNull(key);
-        return contains(key, getTypedValue(value));
+        return contains(requireNonNull(key), getTypedValue(value));
     }
 
     @Override
     public boolean contains(@Nonnull String key, @Nonnull String value) {
-        requireNonNull(key);
-        return contains(key, getTypedValue(value));
+        return contains(requireNonNull(key), getTypedValue(value));
     }
 
     private boolean contains(String key, TypedValue value) {
@@ -413,64 +210,23 @@ public class KVProxy
     }
 
     @Override
-    public boolean remove(@Nonnull String key, boolean value) {
-        requireNonNull(key);
-        return remove(key, getTypedValue(value));
-    }
-
-    @Override
-    public boolean remove(@Nonnull String key, byte value) {
-        requireNonNull(key);
-        return remove(key, getTypedValue(value));
-    }
-
-    @Override
     public boolean remove(@Nonnull String key, byte[] value) {
-        requireNonNull(key);
-        requireNonNull(value);
-        return remove(key, getTypedValue(value));
-    }
-
-    @Override
-    public boolean remove(@Nonnull String key, char value) {
-        requireNonNull(key);
-        return remove(key, getTypedValue(value));
-    }
-
-    @Override
-    public boolean remove(@Nonnull String key, double value) {
-        requireNonNull(key);
-        return remove(key, getTypedValue(value));
-    }
-
-    @Override
-    public boolean remove(@Nonnull String key, float value) {
-        requireNonNull(key);
-        return remove(key, getTypedValue(value));
+        return remove(requireNonNull(key), getTypedValue(requireNonNull(value)));
     }
 
     @Override
     public boolean remove(@Nonnull String key, int value) {
-        requireNonNull(key);
-        return remove(key, getTypedValue(value));
+        return remove(requireNonNull(key), getTypedValue(value));
     }
 
     @Override
     public boolean remove(@Nonnull String key, long value) {
-        requireNonNull(key);
-        return remove(key, getTypedValue(value));
-    }
-
-    @Override
-    public boolean remove(@Nonnull String key, short value) {
-        requireNonNull(key);
-        return remove(key, getTypedValue(value));
+        return remove(requireNonNull(key), getTypedValue(value));
     }
 
     @Override
     public boolean remove(@Nonnull String key, @Nonnull String value) {
-        requireNonNull(key);
-        return remove(key, getTypedValue(value));
+        return remove(requireNonNull(key), getTypedValue(value));
     }
 
     private boolean remove(String key, TypedValue value) {
@@ -491,24 +247,12 @@ public class KVProxy
     }
 
     private TypedValue getTypedValue(Object object) {
-        if (object instanceof Boolean) {
-            return getTypedValue((boolean) object);
-        } else if (object instanceof Byte) {
-            return getTypedValue((byte) object);
-        } else if (object instanceof byte[]) {
+        if (object instanceof byte[]) {
             return getTypedValue((byte[]) object);
-        } else if (object instanceof Character) {
-            return getTypedValue((char) object);
-        } else if (object instanceof Double) {
-            return getTypedValue((double) object);
-        } else if (object instanceof Float) {
-            return getTypedValue((float) object);
         } else if (object instanceof Integer) {
             return getTypedValue((int) object);
         } else if (object instanceof Long) {
             return getTypedValue((long) object);
-        } else if (object instanceof Short) {
-            return getTypedValue((short) object);
         } else if (object instanceof String) {
             return getTypedValue((String) object);
         }

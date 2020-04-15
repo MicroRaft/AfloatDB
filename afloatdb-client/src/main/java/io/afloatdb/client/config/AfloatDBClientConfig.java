@@ -62,20 +62,17 @@ public class AfloatDBClientConfig {
         private AfloatDBClientConfig clientConfig = new AfloatDBClientConfig();
 
         public AfloatDBClientConfigBuilder setConfig(Config config) {
-            requireNonNull(config);
-            clientConfig.config = config;
+            clientConfig.config = requireNonNull(config);
             return this;
         }
 
         public AfloatDBClientConfigBuilder setClientId(String clientId) {
-            requireNonNull(clientId);
-            clientConfig.clientId = clientId;
+            clientConfig.clientId = requireNonNull(clientId);
             return this;
         }
 
         public AfloatDBClientConfigBuilder setServerAddress(String serverAddress) {
-            requireNonNull(serverAddress);
-            clientConfig.serverAddress = serverAddress;
+            clientConfig.serverAddress = requireNonNull(serverAddress);
             return this;
         }
 

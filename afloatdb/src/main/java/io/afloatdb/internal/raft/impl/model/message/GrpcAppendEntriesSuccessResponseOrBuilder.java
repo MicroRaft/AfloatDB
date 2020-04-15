@@ -24,8 +24,6 @@ import io.microraft.model.message.AppendEntriesSuccessResponse;
 
 import javax.annotation.Nonnull;
 
-import static java.util.Objects.requireNonNull;
-
 public class GrpcAppendEntriesSuccessResponseOrBuilder
         implements AppendEntriesSuccessResponse, AppendEntriesSuccessResponse.AppendEntriesSuccessResponseBuilder,
                    GrpcRaftMessage {
@@ -50,7 +48,6 @@ public class GrpcAppendEntriesSuccessResponseOrBuilder
     @Nonnull
     @Override
     public AppendEntriesSuccessResponseBuilder setGroupId(@Nonnull Object groupId) {
-        requireNonNull(groupId);
         builder.setGroupId((String) groupId);
         return this;
     }

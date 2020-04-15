@@ -38,7 +38,7 @@ import io.afloatdb.raft.proto.ProtoKVSnapshotChunkObject;
 import io.afloatdb.raft.proto.ProtoOperation;
 import io.afloatdb.raft.proto.ProtoStartNewTermOp;
 import io.microraft.RaftEndpoint;
-import io.microraft.integration.StateMachine;
+import io.microraft.statemachine.StateMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +73,7 @@ public class KVStoreStateMachine
     }
 
     @Override
-    public Object runOperation(long commitIndex, @Nullable Object operation) {
+    public Object runOperation(long commitIndex, @Nonnull Object operation) {
         if (!(operation instanceof ProtoOperation)) {
             throw new IllegalArgumentException("Invalid operation: " + operation + " at commit index: " + commitIndex);
         }

@@ -200,7 +200,7 @@
             </build>
         </profile>
         <profile>
-            <id>log4j-embedded</id>
+            <id>with-logger</id>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.logging.log4j</groupId>

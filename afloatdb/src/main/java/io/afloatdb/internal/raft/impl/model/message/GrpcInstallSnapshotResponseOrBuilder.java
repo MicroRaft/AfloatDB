@@ -9,8 +9,6 @@ import io.microraft.model.message.InstallSnapshotResponse.InstallSnapshotRespons
 
 import javax.annotation.Nonnull;
 
-import static java.util.Objects.requireNonNull;
-
 public class GrpcInstallSnapshotResponseOrBuilder
         implements InstallSnapshotResponse, InstallSnapshotResponseBuilder, GrpcRaftMessage {
 
@@ -34,7 +32,6 @@ public class GrpcInstallSnapshotResponseOrBuilder
     @Nonnull
     @Override
     public InstallSnapshotResponseBuilder setGroupId(@Nonnull Object groupId) {
-        requireNonNull(groupId);
         builder.setGroupId((String) groupId);
         return this;
     }

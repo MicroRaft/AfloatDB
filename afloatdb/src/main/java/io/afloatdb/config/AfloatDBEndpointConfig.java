@@ -79,15 +79,13 @@ public class AfloatDBEndpointConfig {
 
         @Nonnull
         public AfloatDBEndpointConfigBuilder setId(@Nonnull String id) {
-            requireNonNull(id);
-            config.id = id;
+            config.id = requireNonNull(id);
             return this;
         }
 
         @Nonnull
         public AfloatDBEndpointConfigBuilder setAddress(@Nonnull String address) {
-            requireNonNull(address);
-            config.address = address;
+            config.address = requireNonNull(address);
             return this;
         }
 

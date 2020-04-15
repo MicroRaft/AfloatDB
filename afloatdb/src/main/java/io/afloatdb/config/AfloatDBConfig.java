@@ -20,10 +20,10 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.afloatdb.AfloatDBException;
 import io.microraft.RaftConfig;
-import io.microraft.RaftConfig.RaftConfigBuilder;
 
 import javax.annotation.Nonnull;
 
+import static io.microraft.HoconRaftConfigParser.parseConfig;
 import static io.microraft.RaftConfig.DEFAULT_RAFT_CONFIG;
 import static java.util.Objects.requireNonNull;
 
@@ -46,49 +46,6 @@ public final class AfloatDBConfig {
     @Nonnull
     public static AfloatDBConfigBuilder newBuilder() {
         return new AfloatDBConfigBuilder();
-    }
-
-    private static RaftConfig parseRaftConfig(@Nonnull Config config) {
-        if (!config.hasPath("raft")) {
-            return DEFAULT_RAFT_CONFIG;
-        }
-
-        config = config.getConfig("raft");
-        RaftConfigBuilder builder = RaftConfig.newBuilder();
-
-        if (config.hasPath("leader-election-timeout-millis")) {
-            builder.setLeaderElectionTimeoutMillis(config.getLong("leader-election-timeout-millis"));
-        }
-
-        if (config.hasPath("leader-heartbeat-period-secs")) {
-            builder.setLeaderHeartbeatPeriodSecs(config.getLong("leader-heartbeat-period-secs"));
-        }
-
-        if (config.hasPath("leader-heartbeat-timeout-secs")) {
-            builder.setLeaderHeartbeatTimeoutSecs(config.getLong("leader-heartbeat-timeout-secs"));
-        }
-
-        if (config.hasPath("append-entries-request-batch-size")) {
-            builder.setAppendEntriesRequestBatchSize(config.getInt("append-entries-request-batch-size"));
-        }
-
-        if (config.hasPath("commit-count-to-take-snapshot")) {
-            builder.setCommitCountToTakeSnapshot(config.getInt("commit-count-to-take-snapshot"));
-        }
-
-        if (config.hasPath("max-uncommitted-log-entry-count")) {
-            builder.setMaxUncommittedLogEntryCount(config.getInt("max-uncommitted-log-entry-count"));
-        }
-
-        if (config.hasPath("transfer-snapshots-from-followers-enabled")) {
-            builder.setTransferSnapshotsFromFollowersEnabled(config.getBoolean("transfer-snapshots-from-followers-enabled"));
-        }
-
-        if (config.hasPath("raft-node-report-publish-period-secs")) {
-            builder.setRaftNodeReportPublishPeriodSecs(config.getInt("raft-node-report-publish-period-secs"));
-        }
-
-        return builder.build();
     }
 
     @Nonnull
@@ -117,29 +74,25 @@ public final class AfloatDBConfig {
 
         @Nonnull
         public AfloatDBConfigBuilder setConfig(@Nonnull Config config) {
-            requireNonNull(config);
-            afloatDBConfig.config = config;
+            afloatDBConfig.config = requireNonNull(config);
             return this;
         }
 
         @Nonnull
         public AfloatDBConfigBuilder setLocalEndpointConfig(@Nonnull AfloatDBEndpointConfig localEndpointConfig) {
-            requireNonNull(localEndpointConfig);
-            afloatDBConfig.localEndpointConfig = localEndpointConfig;
+            afloatDBConfig.localEndpointConfig = requireNonNull(localEndpointConfig);
             return this;
         }
 
         @Nonnull
         public AfloatDBConfigBuilder setRaftGroupConfig(@Nonnull RaftGroupConfig raftGroupConfig) {
-            requireNonNull(raftGroupConfig);
-            afloatDBConfig.raftGroupConfig = raftGroupConfig;
+            afloatDBConfig.raftGroupConfig = requireNonNull(raftGroupConfig);
             return this;
         }
 
         @Nonnull
         public AfloatDBConfigBuilder setRaftConfig(@Nonnull RaftConfig raftConfig) {
-            requireNonNull(raftConfig);
-            afloatDBConfig.raftConfig = raftConfig;
+            afloatDBConfig.raftConfig = requireNonNull(raftConfig);
             return this;
         }
 
@@ -170,7 +123,7 @@ public final class AfloatDBConfig {
                     }
 
                     if (afloatDBConfig.raftConfig == null) {
-                        afloatDBConfig.raftConfig = parseRaftConfig(config);
+                        afloatDBConfig.raftConfig = config.hasPath("raft") ? parseConfig(config) : DEFAULT_RAFT_CONFIG;
                     }
                 }
             } catch (Exception e) {

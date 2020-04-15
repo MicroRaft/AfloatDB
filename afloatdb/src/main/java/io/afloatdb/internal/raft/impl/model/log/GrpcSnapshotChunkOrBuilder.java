@@ -11,8 +11,6 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
-import static java.util.Objects.requireNonNull;
-
 public class GrpcSnapshotChunkOrBuilder
         implements SnapshotChunk, SnapshotChunkBuilder {
 
@@ -51,7 +49,6 @@ public class GrpcSnapshotChunkOrBuilder
     @Nonnull
     @Override
     public SnapshotChunkBuilder setOperation(@Nonnull Object operation) {
-        requireNonNull(operation);
         builder.setOperation((ProtoKVSnapshotChunkObject) operation);
         return this;
     }
@@ -135,6 +132,7 @@ public class GrpcSnapshotChunkOrBuilder
         return snapshotChunk.getTerm();
     }
 
+    @Nonnull
     @Override
     public Object getOperation() {
         return snapshotChunk.getOperation();

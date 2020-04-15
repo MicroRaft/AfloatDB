@@ -25,8 +25,6 @@ import io.microraft.model.message.PreVoteResponse.PreVoteResponseBuilder;
 
 import javax.annotation.Nonnull;
 
-import static java.util.Objects.requireNonNull;
-
 public class GrpcPreVoteResponseOrBuilder
         implements PreVoteResponse, PreVoteResponseBuilder, GrpcRaftMessage {
 
@@ -50,7 +48,6 @@ public class GrpcPreVoteResponseOrBuilder
     @Nonnull
     @Override
     public PreVoteResponseBuilder setGroupId(@Nonnull Object groupId) {
-        requireNonNull(groupId);
         builder.setGroupId((String) groupId);
         return this;
     }

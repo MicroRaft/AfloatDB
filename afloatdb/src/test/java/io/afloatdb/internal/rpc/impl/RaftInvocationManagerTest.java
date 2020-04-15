@@ -28,7 +28,7 @@ import io.afloatdb.raft.proto.ProtoOperation;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.microraft.Ordered;
-import io.microraft.impl.util.BaseTest;
+import io.microraft.test.util.BaseTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

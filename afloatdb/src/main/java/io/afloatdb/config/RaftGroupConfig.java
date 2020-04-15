@@ -98,8 +98,7 @@ public class RaftGroupConfig {
 
         @Nonnull
         public RaftGroupConfigBuilder setId(@Nonnull String id) {
-            requireNonNull(id);
-            config.id = id;
+            config.id = requireNonNull(id);
             return this;
         }
 
@@ -112,8 +111,7 @@ public class RaftGroupConfig {
 
         @Nonnull
         public RaftGroupConfigBuilder setJoinTo(@Nonnull String joinTo) {
-            requireNonNull(joinTo);
-            config.joinTo = joinTo;
+            config.joinTo = requireNonNull(joinTo);
             return this;
         }
 

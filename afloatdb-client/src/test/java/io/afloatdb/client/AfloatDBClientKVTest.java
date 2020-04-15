@@ -21,7 +21,7 @@ import com.typesafe.config.ConfigFactory;
 import io.afloatdb.AfloatDB;
 import io.afloatdb.client.config.AfloatDBClientConfig;
 import io.afloatdb.client.kvstore.KV;
-import io.microraft.impl.util.BaseTest;
+import io.microraft.test.util.BaseTest;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -98,30 +98,6 @@ public class AfloatDBClientKVTest
     }
 
     @Test
-    public void testPutBoolean() {
-        Boolean bool = kv.put(KEY, false);
-        assertThat(bool).isNull();
-
-        bool = kv.put(KEY, true);
-        assertThat(bool).isFalse();
-
-        bool = kv.get(KEY);
-        assertThat(bool).isTrue();
-    }
-
-    @Test
-    public void testPutByte() {
-        Byte b = kv.put(KEY, BYTE_1);
-        assertThat(b).isNull();
-
-        b = kv.put(KEY, BYTE_2);
-        assertThat(b).isEqualTo(BYTE_1);
-
-        b = kv.get(KEY);
-        assertThat(b).isEqualTo(BYTE_2);
-    }
-
-    @Test
     public void testPutByteArray() {
         byte[] bytes = kv.put(KEY, BYTES_1);
         assertThat(bytes).isNull();
@@ -131,42 +107,6 @@ public class AfloatDBClientKVTest
 
         bytes = kv.get(KEY);
         assertThat(bytes).isEqualTo(BYTES_2);
-    }
-
-    @Test
-    public void testPutChar() {
-        Character ch = kv.put(KEY, CHAR_1);
-        assertThat(ch).isNull();
-
-        ch = kv.put(KEY, CHAR_2);
-        assertThat(ch).isEqualTo(CHAR_1);
-
-        ch = kv.get(KEY);
-        assertThat(ch).isEqualTo(CHAR_2);
-    }
-
-    @Test
-    public void testPutDouble() {
-        Double d = kv.put(KEY, DOUBLE_1);
-        assertThat(d).isNull();
-
-        d = kv.put(KEY, DOUBLE_2);
-        assertThat(d).isEqualTo(DOUBLE_1);
-
-        d = kv.get(KEY);
-        assertThat(d).isEqualTo(DOUBLE_2);
-    }
-
-    @Test
-    public void testPutFloat() {
-        Float f = kv.put(KEY, FLOAT_1);
-        assertThat(f).isNull();
-
-        f = kv.put(KEY, FLOAT_2);
-        assertThat(f).isEqualTo(FLOAT_1);
-
-        f = kv.get(KEY);
-        assertThat(f).isEqualTo(FLOAT_2);
     }
 
     @Test
@@ -194,18 +134,6 @@ public class AfloatDBClientKVTest
     }
 
     @Test
-    public void testPutShort() {
-        Short s = kv.put(KEY, SHORT_1);
-        assertThat(s).isNull();
-
-        s = kv.put(KEY, SHORT_2);
-        assertThat(s).isEqualTo(SHORT_1);
-
-        s = kv.get(KEY);
-        assertThat(s).isEqualTo(SHORT_2);
-    }
-
-    @Test
     public void testPutString() {
         String s = kv.put(KEY, STRING_1);
         assertThat(s).isNull();
@@ -223,30 +151,6 @@ public class AfloatDBClientKVTest
     }
 
     @Test
-    public void testPutBooleanIfAbsent() {
-        Boolean bool = kv.putIfAbsent(KEY, false);
-        assertThat(bool).isNull();
-
-        bool = kv.get(KEY);
-        assertThat(bool).isFalse();
-
-        bool = kv.putIfAbsent(KEY, true);
-        assertThat(bool).isFalse();
-    }
-
-    @Test
-    public void testPutByteIfAbsent() {
-        Byte b = kv.putIfAbsent(KEY, BYTE_1);
-        assertThat(b).isNull();
-
-        b = kv.get(KEY);
-        assertThat(b).isEqualTo(BYTE_1);
-
-        b = kv.putIfAbsent(KEY, BYTE_2);
-        assertThat(b).isEqualTo(BYTE_1);
-    }
-
-    @Test
     public void testPutByteArrayIfAbsent() {
         byte[] bytes = kv.putIfAbsent(KEY, BYTES_1);
         assertThat(bytes).isNull();
@@ -256,42 +160,6 @@ public class AfloatDBClientKVTest
 
         bytes = kv.putIfAbsent(KEY, BYTES_2);
         assertThat(bytes).isEqualTo(BYTES_1);
-    }
-
-    @Test
-    public void testPutCharIfAbsent() {
-        Character ch = kv.putIfAbsent(KEY, CHAR_1);
-        assertThat(ch).isNull();
-
-        ch = kv.get(KEY);
-        assertThat(ch).isEqualTo(CHAR_1);
-
-        ch = kv.putIfAbsent(KEY, CHAR_2);
-        assertThat(ch).isEqualTo(CHAR_1);
-    }
-
-    @Test
-    public void testPutDoubleIfAbsent() {
-        Double d = kv.putIfAbsent(KEY, DOUBLE_1);
-        assertThat(d).isNull();
-
-        d = kv.get(KEY);
-        assertThat(d).isEqualTo(DOUBLE_1);
-
-        d = kv.putIfAbsent(KEY, DOUBLE_2);
-        assertThat(d).isEqualTo(DOUBLE_1);
-    }
-
-    @Test
-    public void testPutFloatIfAbsent() {
-        Float f = kv.putIfAbsent(KEY, FLOAT_1);
-        assertThat(f).isNull();
-
-        f = kv.get(KEY);
-        assertThat(f).isEqualTo(FLOAT_1);
-
-        f = kv.putIfAbsent(KEY, FLOAT_2);
-        assertThat(f).isEqualTo(FLOAT_1);
     }
 
     @Test
@@ -319,18 +187,6 @@ public class AfloatDBClientKVTest
     }
 
     @Test
-    public void testPutShortIfAbsent() {
-        Short s = kv.putIfAbsent(KEY, SHORT_1);
-        assertThat(s).isNull();
-
-        s = kv.get(KEY);
-        assertThat(s).isEqualTo(SHORT_1);
-
-        s = kv.putIfAbsent(KEY, SHORT_2);
-        assertThat(s).isEqualTo(SHORT_1);
-    }
-
-    @Test
     public void testPutStringIfAbsent() {
         String s = kv.putIfAbsent(KEY, STRING_1);
         assertThat(s).isNull();
@@ -348,51 +204,11 @@ public class AfloatDBClientKVTest
     }
 
     @Test
-    public void testSetBoolean() {
-        kv.set(KEY, true);
-
-        boolean b = kv.get(KEY);
-        assertThat(b).isTrue();
-    }
-
-    @Test
-    public void testSetByte() {
-        kv.set(KEY, BYTE_1);
-
-        byte b = kv.get(KEY);
-        assertThat(b).isEqualTo(BYTE_1);
-    }
-
-    @Test
     public void testSetByteArray() {
         kv.set(KEY, BYTES_1);
 
         byte[] b = kv.get(KEY);
         assertThat(b).isEqualTo(BYTES_1);
-    }
-
-    @Test
-    public void testSetChar() {
-        kv.set(KEY, CHAR_1);
-
-        char ch = kv.get(KEY);
-        assertThat(ch).isEqualTo(CHAR_1);
-    }
-
-    @Test
-    public void testSetDouble() {
-        kv.set(KEY, DOUBLE_1);
-
-        double d = kv.get(KEY);
-        assertThat(d).isEqualTo(DOUBLE_1);
-    }
-
-    @Test
-    public void testSetFloat() {
-        kv.set(KEY, FLOAT_1);
-
-        float f = kv.get(KEY);
-        assertThat(f).isEqualTo(FLOAT_1);
     }
 
     @Test
@@ -409,14 +225,6 @@ public class AfloatDBClientKVTest
 
         long l = kv.get(KEY);
         assertThat(l).isEqualTo(LONG_1);
-    }
-
-    @Test
-    public void testSetShort() {
-        kv.set(KEY, SHORT_1);
-
-        short s = kv.get(KEY);
-        assertThat(s).isEqualTo(SHORT_1);
     }
 
     @Test
@@ -451,39 +259,9 @@ public class AfloatDBClientKVTest
     }
 
     @Test
-    public void testGetBooleanOrDefault() {
-        boolean b = kv.getOrDefault(KEY, true);
-        assertThat(b).isTrue();
-    }
-
-    @Test
-    public void testGetByteOrDefault() {
-        byte b = kv.getOrDefault(KEY, BYTE_2);
-        assertThat(b).isEqualTo(BYTE_2);
-    }
-
-    @Test
     public void testGetByteArrayOrDefault() {
         byte[] b = kv.getOrDefault(KEY, BYTES_2);
         assertThat(b).isEqualTo(BYTES_2);
-    }
-
-    @Test
-    public void testGetCharOrDefault() {
-        char ch = kv.getOrDefault(KEY, CHAR_2);
-        assertThat(ch).isEqualTo(CHAR_2);
-    }
-
-    @Test
-    public void testGetDoubleOrDefault() {
-        double d = kv.getOrDefault(KEY, DOUBLE_2);
-        assertThat(d).isEqualTo(DOUBLE_2);
-    }
-
-    @Test
-    public void testGetFloatOrDefault() {
-        float f = kv.getOrDefault(KEY, FLOAT_2);
-        assertThat(f).isEqualTo(FLOAT_2);
     }
 
     @Test
@@ -496,12 +274,6 @@ public class AfloatDBClientKVTest
     public void testGetLongOrDefault() {
         long l = kv.getOrDefault(KEY, LONG_2);
         assertThat(l).isEqualTo(LONG_2);
-    }
-
-    @Test
-    public void testGetShortOrDefault() {
-        short s = kv.getOrDefault(KEY, SHORT_2);
-        assertThat(s).isEqualTo(SHORT_2);
     }
 
     @Test
@@ -526,72 +298,12 @@ public class AfloatDBClientKVTest
     }
 
     @Test
-    public void testContainsBoolean() {
-        kv.set(KEY, true);
-
-        assertThat(kv.contains(KEY)).isTrue();
-        assertThat(kv.contains(KEY, true)).isTrue();
-        assertThat(kv.contains(KEY, false)).isFalse();
-
-        kv.delete(KEY);
-        assertThat(kv.contains(KEY)).isFalse();
-    }
-
-    @Test
-    public void testContainsByte() {
-        kv.set(KEY, BYTE_1);
-
-        assertThat(kv.contains(KEY)).isTrue();
-        assertThat(kv.contains(KEY, BYTE_1)).isTrue();
-        assertThat(kv.contains(KEY, BYTE_2)).isFalse();
-
-        kv.delete(KEY);
-        assertThat(kv.contains(KEY)).isFalse();
-    }
-
-    @Test
     public void testContainsByteArray() {
         kv.set(KEY, BYTES_1);
 
         assertThat(kv.contains(KEY)).isTrue();
         assertThat(kv.contains(KEY, BYTES_1)).isTrue();
         assertThat(kv.contains(KEY, BYTES_2)).isFalse();
-
-        kv.delete(KEY);
-        assertThat(kv.contains(KEY)).isFalse();
-    }
-
-    @Test
-    public void testContainsChar() {
-        kv.set(KEY, CHAR_1);
-
-        assertThat(kv.contains(KEY)).isTrue();
-        assertThat(kv.contains(KEY, CHAR_1)).isTrue();
-        assertThat(kv.contains(KEY, CHAR_2)).isFalse();
-
-        kv.delete(KEY);
-        assertThat(kv.contains(KEY)).isFalse();
-    }
-
-    @Test
-    public void testContainsDouble() {
-        kv.set(KEY, DOUBLE_1);
-
-        assertThat(kv.contains(KEY)).isTrue();
-        assertThat(kv.contains(KEY, DOUBLE_1)).isTrue();
-        assertThat(kv.contains(KEY, DOUBLE_2)).isFalse();
-
-        kv.delete(KEY);
-        assertThat(kv.contains(KEY)).isFalse();
-    }
-
-    @Test
-    public void testContainsFloat() {
-        kv.set(KEY, FLOAT_1);
-
-        assertThat(kv.contains(KEY)).isTrue();
-        assertThat(kv.contains(KEY, FLOAT_1)).isTrue();
-        assertThat(kv.contains(KEY, FLOAT_2)).isFalse();
 
         kv.delete(KEY);
         assertThat(kv.contains(KEY)).isFalse();
@@ -616,18 +328,6 @@ public class AfloatDBClientKVTest
         assertThat(kv.contains(KEY)).isTrue();
         assertThat(kv.contains(KEY, LONG_1)).isTrue();
         assertThat(kv.contains(KEY, LONG_2)).isFalse();
-
-        kv.delete(KEY);
-        assertThat(kv.contains(KEY)).isFalse();
-    }
-
-    @Test
-    public void testContainsShort() {
-        kv.set(KEY, SHORT_1);
-
-        assertThat(kv.contains(KEY)).isTrue();
-        assertThat(kv.contains(KEY, SHORT_1)).isTrue();
-        assertThat(kv.contains(KEY, SHORT_2)).isFalse();
 
         kv.delete(KEY);
         assertThat(kv.contains(KEY)).isFalse();
@@ -678,48 +378,8 @@ public class AfloatDBClientKVTest
     }
 
     @Test
-    public void testDeleteBoolean() {
-        kv.set(KEY, true);
-
-        boolean success = kv.delete(KEY);
-        assertThat(success).isTrue();
-    }
-
-    @Test
-    public void testDeleteByte() {
-        kv.set(KEY, BYTE_1);
-
-        boolean success = kv.delete(KEY);
-        assertThat(success).isTrue();
-    }
-
-    @Test
     public void testDeleteByteArray() {
         kv.set(KEY, BYTES_1);
-
-        boolean success = kv.delete(KEY);
-        assertThat(success).isTrue();
-    }
-
-    @Test
-    public void testDeleteChar() {
-        kv.set(KEY, CHAR_1);
-
-        boolean success = kv.delete(KEY);
-        assertThat(success).isTrue();
-    }
-
-    @Test
-    public void testDeleteDouble() {
-        kv.set(KEY, DOUBLE_1);
-
-        boolean success = kv.delete(KEY);
-        assertThat(success).isTrue();
-    }
-
-    @Test
-    public void testDeleteFloat() {
-        kv.set(KEY, FLOAT_1);
 
         boolean success = kv.delete(KEY);
         assertThat(success).isTrue();
@@ -769,32 +429,6 @@ public class AfloatDBClientKVTest
     }
 
     @Test
-    public void testRemoveBoolean() {
-        kv.set(KEY, true);
-
-        assertThat(kv.remove(KEY, false)).isFalse();
-        assertThat(kv.remove(KEY, true)).isTrue();
-
-        kv.set(KEY, false);
-
-        boolean b = kv.remove(KEY);
-        assertThat(b).isFalse();
-    }
-
-    @Test
-    public void testRemoveByte() {
-        kv.set(KEY, BYTE_1);
-
-        assertThat(kv.remove(KEY, BYTE_2)).isFalse();
-        assertThat(kv.remove(KEY, BYTE_1)).isTrue();
-
-        kv.set(KEY, BYTE_2);
-
-        byte b = kv.remove(KEY);
-        assertThat(b).isEqualTo(BYTE_2);
-    }
-
-    @Test
     public void testRemoveByteArray() {
         kv.set(KEY, BYTES_1);
 
@@ -805,45 +439,6 @@ public class AfloatDBClientKVTest
 
         byte[] b = kv.remove(KEY);
         assertThat(b).isEqualTo(BYTES_2);
-    }
-
-    @Test
-    public void testRemoveChar() {
-        kv.set(KEY, CHAR_1);
-
-        assertThat(kv.remove(KEY, CHAR_2)).isFalse();
-        assertThat(kv.remove(KEY, CHAR_1)).isTrue();
-
-        kv.set(KEY, CHAR_2);
-
-        char c = kv.remove(KEY);
-        assertThat(c).isEqualTo(CHAR_2);
-    }
-
-    @Test
-    public void testRemoveDouble() {
-        kv.set(KEY, DOUBLE_1);
-
-        assertThat(kv.remove(KEY, DOUBLE_2)).isFalse();
-        assertThat(kv.remove(KEY, DOUBLE_1)).isTrue();
-
-        kv.set(KEY, DOUBLE_2);
-
-        double d = kv.remove(KEY);
-        assertThat(d).isEqualTo(DOUBLE_2);
-    }
-
-    @Test
-    public void testRemoveFloat() {
-        kv.set(KEY, FLOAT_1);
-
-        assertThat(kv.remove(KEY, FLOAT_2)).isFalse();
-        assertThat(kv.remove(KEY, FLOAT_1)).isTrue();
-
-        kv.set(KEY, FLOAT_2);
-
-        float f = kv.remove(KEY);
-        assertThat(f).isEqualTo(FLOAT_2);
     }
 
     @Test
@@ -870,19 +465,6 @@ public class AfloatDBClientKVTest
 
         long l = kv.remove(KEY);
         assertThat(l).isEqualTo(LONG_2);
-    }
-
-    @Test
-    public void testRemoveShort() {
-        kv.set(KEY, SHORT_1);
-
-        assertThat(kv.remove(KEY, SHORT_2)).isFalse();
-        assertThat(kv.remove(KEY, SHORT_1)).isTrue();
-
-        kv.set(KEY, SHORT_2);
-
-        short s = kv.remove(KEY);
-        assertThat(s).isEqualTo(SHORT_2);
     }
 
     @Test
@@ -914,26 +496,6 @@ public class AfloatDBClientKVTest
     }
 
     @Test
-    public void testReplaceBoolean() {
-        kv.set(KEY, false);
-
-        assertThat(kv.replace(KEY, true, false)).isFalse();
-        assertThat(kv.replace(KEY, true, STRING_1)).isFalse();
-        assertThat(kv.replace(KEY, false, true)).isTrue();
-        assertThat(kv.replace(KEY, true, STRING_1)).isTrue();
-    }
-
-    @Test
-    public void testReplaceByte() {
-        kv.set(KEY, BYTE_1);
-
-        assertThat(kv.replace(KEY, BYTE_2, BYTE_1)).isFalse();
-        assertThat(kv.replace(KEY, BYTE_2, STRING_1)).isFalse();
-        assertThat(kv.replace(KEY, BYTE_1, BYTE_2)).isTrue();
-        assertThat(kv.replace(KEY, BYTE_2, STRING_1)).isTrue();
-    }
-
-    @Test
     public void testReplaceByteArray() {
         kv.set(KEY, BYTES_1);
 
@@ -941,36 +503,6 @@ public class AfloatDBClientKVTest
         assertThat(kv.replace(KEY, BYTES_2, STRING_1)).isFalse();
         assertThat(kv.replace(KEY, BYTES_1, BYTES_2)).isTrue();
         assertThat(kv.replace(KEY, BYTES_2, STRING_1)).isTrue();
-    }
-
-    @Test
-    public void testReplaceChar() {
-        kv.set(KEY, CHAR_1);
-
-        assertThat(kv.replace(KEY, CHAR_2, CHAR_1)).isFalse();
-        assertThat(kv.replace(KEY, CHAR_2, STRING_1)).isFalse();
-        assertThat(kv.replace(KEY, CHAR_1, CHAR_2)).isTrue();
-        assertThat(kv.replace(KEY, CHAR_2, STRING_1)).isTrue();
-    }
-
-    @Test
-    public void testReplaceDouble() {
-        kv.set(KEY, DOUBLE_1);
-
-        assertThat(kv.replace(KEY, DOUBLE_2, DOUBLE_1)).isFalse();
-        assertThat(kv.replace(KEY, DOUBLE_2, STRING_1)).isFalse();
-        assertThat(kv.replace(KEY, DOUBLE_1, DOUBLE_2)).isTrue();
-        assertThat(kv.replace(KEY, DOUBLE_2, STRING_1)).isTrue();
-    }
-
-    @Test
-    public void testReplaceFloat() {
-        kv.set(KEY, FLOAT_1);
-
-        assertThat(kv.replace(KEY, FLOAT_2, FLOAT_1)).isFalse();
-        assertThat(kv.replace(KEY, FLOAT_2, STRING_1)).isFalse();
-        assertThat(kv.replace(KEY, FLOAT_1, FLOAT_2)).isTrue();
-        assertThat(kv.replace(KEY, FLOAT_2, STRING_1)).isTrue();
     }
 
     @Test
@@ -991,16 +523,6 @@ public class AfloatDBClientKVTest
         assertThat(kv.replace(KEY, LONG_2, STRING_1)).isFalse();
         assertThat(kv.replace(KEY, LONG_1, LONG_2)).isTrue();
         assertThat(kv.replace(KEY, LONG_2, STRING_1)).isTrue();
-    }
-
-    @Test
-    public void testReplaceShort() {
-        kv.set(KEY, SHORT_1);
-
-        assertThat(kv.replace(KEY, SHORT_2, SHORT_1)).isFalse();
-        assertThat(kv.replace(KEY, SHORT_2, STRING_1)).isFalse();
-        assertThat(kv.replace(KEY, SHORT_1, SHORT_2)).isTrue();
-        assertThat(kv.replace(KEY, SHORT_2, STRING_1)).isTrue();
     }
 
     @Test

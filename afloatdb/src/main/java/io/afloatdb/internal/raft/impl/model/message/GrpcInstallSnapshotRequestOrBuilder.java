@@ -29,7 +29,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
 public class GrpcInstallSnapshotRequestOrBuilder
@@ -63,7 +62,6 @@ public class GrpcInstallSnapshotRequestOrBuilder
     @Nonnull
     @Override
     public InstallSnapshotRequestBuilder setGroupId(@Nonnull Object groupId) {
-        requireNonNull(groupId);
         builder.setGroupId((String) groupId);
         return this;
     }
@@ -125,7 +123,6 @@ public class GrpcInstallSnapshotRequestOrBuilder
     @Nonnull
     @Override
     public InstallSnapshotRequestBuilder setSnapshottedMembers(@Nonnull Collection<RaftEndpoint> snapshottedMembers) {
-        requireNonNull(snapshottedMembers);
         snapshottedMembers.stream().map(AfloatDBEndpoint::extract).forEach(builder::addSnapshottedMember);
         this.snapshottedMembers = snapshottedMembers;
         return this;
@@ -141,7 +138,6 @@ public class GrpcInstallSnapshotRequestOrBuilder
     @Nonnull
     @Override
     public InstallSnapshotRequestBuilder setGroupMembers(@Nonnull Collection<RaftEndpoint> groupMembers) {
-        requireNonNull(groupMembers);
         groupMembers.stream().map(AfloatDBEndpoint::extract).forEach(builder::addGroupMember);
         this.groupMembers = groupMembers;
         return this;

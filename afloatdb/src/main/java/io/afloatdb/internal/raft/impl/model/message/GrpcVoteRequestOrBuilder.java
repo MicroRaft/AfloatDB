@@ -25,8 +25,6 @@ import io.microraft.model.message.VoteRequest.VoteRequestBuilder;
 
 import javax.annotation.Nonnull;
 
-import static java.util.Objects.requireNonNull;
-
 public class GrpcVoteRequestOrBuilder
         implements VoteRequest, VoteRequestBuilder, GrpcRaftMessage {
 
@@ -50,7 +48,6 @@ public class GrpcVoteRequestOrBuilder
     @Nonnull
     @Override
     public VoteRequestBuilder setGroupId(@Nonnull Object groupId) {
-        requireNonNull(groupId);
         builder.setGroupId((String) groupId);
         return this;
     }

@@ -42,9 +42,9 @@ import io.afloatdb.management.proto.ManagementServiceGrpc.ManagementServiceImplB
 import io.afloatdb.raft.proto.RaftMessageServiceGrpc.RaftMessageServiceImplBase;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
-import io.microraft.integration.RaftNodeRuntime;
-import io.microraft.integration.StateMachine;
 import io.microraft.model.RaftModelFactory;
+import io.microraft.runtime.RaftNodeRuntime;
+import io.microraft.statemachine.StateMachine;
 
 import java.util.Collection;
 import java.util.List;

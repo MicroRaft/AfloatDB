@@ -20,9 +20,9 @@ import io.afloatdb.internal.raft.RaftNodeReportObserver;
 import io.afloatdb.internal.rpc.RaftRpcStub;
 import io.afloatdb.internal.rpc.RaftRpcStubManager;
 import io.microraft.RaftEndpoint;
-import io.microraft.integration.RaftNodeRuntime;
 import io.microraft.model.message.RaftMessage;
 import io.microraft.report.RaftNodeReport;
+import io.microraft.runtime.RaftNodeRuntime;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -82,7 +82,7 @@ public class AfloatDBRaftNodeRuntime
     }
 
     @Override
-    public void onRaftNodeReport(@Nonnull RaftNodeReport report) {
+    public void handleRaftNodeReport(@Nonnull RaftNodeReport report) {
         raftNodeReportObserver.onRaftNodeReport(report);
     }
 

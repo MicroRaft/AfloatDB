@@ -21,7 +21,7 @@ import com.typesafe.config.ConfigFactory;
 import io.afloatdb.AfloatDBException;
 import io.afloatdb.config.AfloatDBConfig.AfloatDBConfigBuilder;
 import io.microraft.RaftConfig;
-import io.microraft.impl.util.BaseTest;
+import io.microraft.test.util.BaseTest;
 import org.junit.Test;
 
 import java.util.List;

@@ -27,7 +27,7 @@ import io.microraft.report.RaftGroupMembers;
 import java.util.List;
 
 import static com.typesafe.config.ConfigFactory.load;
-import static io.microraft.impl.util.AssertionUtils.eventually;
+import static io.microraft.test.util.AssertionUtils.eventually;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 

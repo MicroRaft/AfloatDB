@@ -19,7 +19,7 @@ package io.afloatdb.config;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.afloatdb.AfloatDBException;
-import io.microraft.impl.util.BaseTest;
+import io.microraft.test.util.BaseTest;
 import org.junit.Test;
 
 import java.util.Arrays;

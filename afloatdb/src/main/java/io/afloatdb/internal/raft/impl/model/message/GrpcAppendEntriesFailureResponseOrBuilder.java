@@ -25,8 +25,6 @@ import io.microraft.model.message.AppendEntriesFailureResponse.AppendEntriesFail
 
 import javax.annotation.Nonnull;
 
-import static java.util.Objects.requireNonNull;
-
 public class GrpcAppendEntriesFailureResponseOrBuilder
         implements AppendEntriesFailureResponse, AppendEntriesFailureResponseBuilder, GrpcRaftMessage {
 
@@ -55,7 +53,6 @@ public class GrpcAppendEntriesFailureResponseOrBuilder
     @Nonnull
     @Override
     public AppendEntriesFailureResponseBuilder setGroupId(@Nonnull Object groupId) {
-        requireNonNull(groupId);
         builder.setGroupId((String) groupId);
         return this;
     }

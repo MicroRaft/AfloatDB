@@ -31,8 +31,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.requireNonNull;
-
 public class GrpcUpdateRaftGroupMembersOpOrBuilder
         implements UpdateRaftGroupMembersOp, UpdateRaftGroupMembersOpBuilder {
 
@@ -82,7 +80,6 @@ public class GrpcUpdateRaftGroupMembersOpOrBuilder
     @Nonnull
     @Override
     public UpdateRaftGroupMembersOpBuilder setMembers(@Nonnull Collection<RaftEndpoint> members) {
-        requireNonNull(members);
         members.stream().map(AfloatDBEndpoint::extract).forEach(builder::addGroupMember);
         this.members = members;
         return this;

@@ -84,6 +84,7 @@ public class RaftInvocationManagerImpl
     public <T> CompletableFuture<Ordered<T>> invoke(@Nonnull ProtoOperation operation) {
         requireNonNull(operation);
 
+        // TODO [basri] create the req only if invoking remotely...
         ProtoReplicateRequest request = ProtoReplicateRequest.newBuilder().setOperation(operation).build();
         Invocation<ProtoReplicateRequest, T> invocation = new ReplicateInvocation<>(request);
         invocation.invoke();
@@ -97,6 +98,7 @@ public class RaftInvocationManagerImpl
         requireNonNull(operation);
         requireNonNull(queryPolicy);
 
+        // TODO [basri] create the req only if invoking remotely...
         ProtoQueryRequest request = ProtoQueryRequest.newBuilder().setOperation(operation).setQueryPolicy(toProto(queryPolicy))
                                                      .setMinCommitIndex(minCommitRequest).build();
 

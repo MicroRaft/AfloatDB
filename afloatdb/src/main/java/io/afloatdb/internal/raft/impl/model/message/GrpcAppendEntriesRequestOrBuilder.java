@@ -28,7 +28,6 @@ import io.microraft.model.message.AppendEntriesRequest.AppendEntriesRequestBuild
 import javax.annotation.Nonnull;
 import java.util.List;
 
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
 public class GrpcAppendEntriesRequestOrBuilder
@@ -61,7 +60,6 @@ public class GrpcAppendEntriesRequestOrBuilder
     @Nonnull
     @Override
     public AppendEntriesRequestBuilder setGroupId(@Nonnull Object groupId) {
-        requireNonNull(groupId);
         builder.setGroupId((String) groupId);
         return this;
     }

@@ -17,10 +17,10 @@ import javax.inject.Singleton;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static io.afloatdb.client.internal.di.AfloatDBClientModule.CONFIG_KEY;
+import static java.util.Objects.requireNonNull;
 
 @Singleton
 public class ChannelManagerImpl
@@ -41,7 +41,7 @@ public class ChannelManagerImpl
     @Nonnull
     @Override
     public ManagedChannel getOrCreateChannel(@Nonnull String address) {
-        Objects.requireNonNull(address);
+        requireNonNull(address);
 
         ManagedChannel channel = channels.get(address);
         if (channel != null) {
