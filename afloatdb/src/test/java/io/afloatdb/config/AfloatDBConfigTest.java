@@ -50,7 +50,7 @@ public class AfloatDBConfigTest
                         + "    raft: {\n" + "        leader-election-timeout-millis : 2000\n"
                         + "        leader-heartbeat-period-secs: 5\n" + "        leader-heartbeat-timeout-secs: 15\n"
                         + "        append-entries-request-batch-size: 1000\n" + "        commit-count-to-take-snapshot: "
-                        + "50000\n" + "        max-uncommitted-log-entry-count: 1000\n"
+                        + "50000\n" + "        max-pending-log-entry-count: 1000\n"
                         + "        raft-node-report-publish-period-secs: 10\n" + "    }\n" + "\n" + "}\n");
 
         AfloatDBConfig.from(config);
@@ -63,7 +63,7 @@ public class AfloatDBConfigTest
                         + "    raft: {\n" + "        leader-election-timeout-millis: 2000\n"
                         + "        leader-heartbeat-period-secs: 5\n" + "        leader-heartbeat-timeout-secs: 15\n"
                         + "        append-entries-request-batch-size: 1000\n" + "        commit-count-to-take-snapshot: "
-                        + "50000\n" + "        max-uncommitted-log-entry-count: 1000\n"
+                        + "50000\n" + "        max-pending-log-entry-count: 1000\n"
                         + "        raft-node-report-publish-period-secs: 10\n" + "    }\n" + "\n" + "}\n");
 
         AfloatDBConfig.from(config);
@@ -106,7 +106,7 @@ public class AfloatDBConfigTest
                         + "    raft: {\n" + "        leader-election-timeout-millis: 2500\n"
                         + "        leader-heartbeat-period-secs: 4\n" + "        leader-heartbeat-timeout-secs: 8\n"
                         + "        append-entries-request-batch-size: 150\n" + "        commit-count-to-take-snapshot: "
-                        + "1000\n" + "        max-uncommitted-log-entry-count: 50\n"
+                        + "1000\n" + "        max-pending-log-entry-count: 50\n"
                         + "        raft-node-report-publish-period-secs: 30\n"
                         + "transfer-snapshots-from-followers-enabled: false\n" + "    }\n" + "\n" + "}\n");
 
@@ -129,7 +129,7 @@ public class AfloatDBConfigTest
         assertThat(afloatDBConfig.getRaftConfig().getLeaderHeartbeatTimeoutSecs()).isEqualTo(8L);
         assertThat(afloatDBConfig.getRaftConfig().getAppendEntriesRequestBatchSize()).isEqualTo(150);
         assertThat(afloatDBConfig.getRaftConfig().getCommitCountToTakeSnapshot()).isEqualTo(1000);
-        assertThat(afloatDBConfig.getRaftConfig().getMaxUncommittedLogEntryCount()).isEqualTo(50);
+        assertThat(afloatDBConfig.getRaftConfig().getMaxPendingLogEntryCount()).isEqualTo(50);
         assertThat(afloatDBConfig.getRaftConfig().getRaftNodeReportPublishPeriodSecs()).isEqualTo(30);
         assertThat(afloatDBConfig.getRaftConfig().isTransferSnapshotsFromFollowersEnabled()).isFalse();
     }
