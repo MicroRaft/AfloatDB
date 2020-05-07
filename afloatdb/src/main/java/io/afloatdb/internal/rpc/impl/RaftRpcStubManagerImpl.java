@@ -16,8 +16,6 @@
 
 package io.afloatdb.internal.rpc.impl;
 
-import io.afloatdb.config.AfloatDBConfig;
-import io.afloatdb.internal.di.AfloatDBModule;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.afloatdb.internal.rpc.RaftRpcStub;
 import io.afloatdb.internal.rpc.RaftRpcStubManager;
@@ -50,11 +48,11 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static io.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.RAFT_ENDPOINT_ADDRESSES_KEY;
-import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_EXECUTOR_KEY;
 import static io.afloatdb.internal.utils.Exceptions.runSilently;
 import static io.afloatdb.internal.utils.Serialization.wrap;
 import static io.afloatdb.raft.proto.RaftMessageServiceGrpc.newStub;
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Singleton
@@ -66,23 +64,18 @@ public class RaftRpcStubManagerImpl
 
     private final RaftEndpoint localEndpoint;
     private final Map<RaftEndpoint, String> addresses;
-    private final AfloatDBConfig config;
     private final Map<RaftEndpoint, ChannelContext> channels = new ConcurrentHashMap<>();
     private final Set<RaftEndpoint> initializingEndpoints = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final ProcessTerminationLogger processTerminationLogger;
-    private final ScheduledExecutorService executor;
+    private final ScheduledExecutorService executor = newSingleThreadScheduledExecutor();
 
     @Inject
     public RaftRpcStubManagerImpl(@Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
                                   @Named(RAFT_ENDPOINT_ADDRESSES_KEY) Map<RaftEndpoint, String> addresses,
-                                  @Named(AfloatDBModule.CONFIG_KEY) AfloatDBConfig config,
-                                  ProcessTerminationLogger processTerminationLogger,
-                                  @Named(RAFT_NODE_EXECUTOR_KEY) ScheduledExecutorService executor) {
+                                  ProcessTerminationLogger processTerminationLogger) {
         this.localEndpoint = localEndpoint;
         this.addresses = new ConcurrentHashMap<>(addresses);
-        this.config = config;
         this.processTerminationLogger = processTerminationLogger;
-        this.executor = executor;
     }
 
     @PreDestroy

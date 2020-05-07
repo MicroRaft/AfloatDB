@@ -12,7 +12,7 @@ message ProtoRaftGroupMembers {
     repeated io.afloatdb.raft.proto.ProtoRaftEndpoint member = 2;
 }
 
-message ProtoRaftGroupTerm {
+message ProtoRaftTerm {
     int32 term = 1;
     io.afloatdb.raft.proto.ProtoRaftEndpoint leaderEndpoint = 2;
     io.afloatdb.raft.proto.ProtoRaftEndpoint votedEndpoint = 3;
@@ -61,7 +61,7 @@ message ProtoRaftNodeReport {
     ProtoRaftGroupMembers effectiveMembers = 6;
     ProtoRaftRole role = 7;
     ProtoRaftNodeStatus status = 8;
-    ProtoRaftGroupTerm term = 9;
+    ProtoRaftTerm term = 9;
     ProtoRaftLogStats log = 10;
 }
 

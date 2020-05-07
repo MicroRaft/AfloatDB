@@ -17,12 +17,11 @@
 package io.afloatdb.internal.raft;
 
 import io.microraft.report.RaftNodeReport;
+import io.microraft.report.RaftNodeReportListener;
 
 import java.util.function.Supplier;
 
 public interface RaftNodeReportObserver
-        extends Supplier<RaftNodeReport> {
-
-    void onRaftNodeReport(RaftNodeReport report);
+        extends RaftNodeReportListener, Supplier<RaftNodeReport> {
 
 }

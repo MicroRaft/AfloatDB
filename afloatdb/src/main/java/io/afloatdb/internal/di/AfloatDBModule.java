@@ -25,10 +25,9 @@ import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.afloatdb.internal.lifecycle.impl.ProcessTerminationLoggerImpl;
 import io.afloatdb.internal.raft.RaftNodeReportObserver;
 import io.afloatdb.internal.raft.impl.AfloatDBClusterEndpointsPublisher;
-import io.afloatdb.internal.raft.impl.AfloatDBRaftNodeRuntime;
+import io.afloatdb.internal.raft.impl.GrpcTransport;
 import io.afloatdb.internal.raft.impl.KVStoreStateMachine;
 import io.afloatdb.internal.raft.impl.RaftNodeSupplier;
-import io.afloatdb.internal.raft.impl.RaftNodeThread;
 import io.afloatdb.internal.raft.impl.model.GrpcRaftModelFactory;
 import io.afloatdb.internal.rpc.RaftRpcStubManager;
 import io.afloatdb.internal.rpc.RpcServer;
@@ -43,18 +42,16 @@ import io.afloatdb.raft.proto.RaftMessageServiceGrpc.RaftMessageServiceImplBase;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.model.RaftModelFactory;
-import io.microraft.runtime.RaftNodeRuntime;
 import io.microraft.statemachine.StateMachine;
+import io.microraft.transport.Transport;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import static com.google.inject.name.Names.named;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 
 public class AfloatDBModule
         extends AbstractModule {
@@ -63,7 +60,6 @@ public class AfloatDBModule
     public static final String LOCAL_ENDPOINT_KEY = "LocalEndpoint";
     public static final String INITIAL_ENDPOINTS_KEY = "InitialEndpoints";
     public static final String RAFT_ENDPOINT_ADDRESSES_KEY = "RaftEndpointAddresses";
-    public static final String RAFT_NODE_EXECUTOR_KEY = "RaftNodeExecutor";
     public static final String RAFT_NODE_SUPPLIER_KEY = "RaftNodeSupplier";
     public static final String PROCESS_TERMINATION_FLAG_KEY = "ProcessTerminationFlag";
 
@@ -84,11 +80,6 @@ public class AfloatDBModule
 
     @Override
     protected void configure() {
-        ThreadGroup raftNodeThreadGroup = new ThreadGroup("RaftNodeThread");
-        ScheduledExecutorService raftNodeExecutor = newSingleThreadScheduledExecutor(
-                runnable -> new RaftNodeThread(raftNodeThreadGroup, runnable));
-        bind(ScheduledExecutorService.class).annotatedWith(named(RAFT_NODE_EXECUTOR_KEY)).toInstance(raftNodeExecutor);
-
         bind(AtomicBoolean.class).annotatedWith(named(PROCESS_TERMINATION_FLAG_KEY)).toInstance(processTerminationFlag);
         bind(ProcessTerminationLogger.class).to(ProcessTerminationLoggerImpl.class);
 
@@ -99,7 +90,8 @@ public class AfloatDBModule
         bind(new TypeLiteral<Map<RaftEndpoint, String>>() {
         }).annotatedWith(named(RAFT_ENDPOINT_ADDRESSES_KEY)).toInstance(addresses);
 
-        bind(RaftNodeRuntime.class).to(AfloatDBRaftNodeRuntime.class);
+        bind(RaftNodeReportObserver.class).to(AfloatDBClusterEndpointsPublisher.class);
+        bind(Transport.class).to(GrpcTransport.class);
         bind(StateMachine.class).to(KVStoreStateMachine.class);
         bind(RaftModelFactory.class).to(GrpcRaftModelFactory.class);
         bind(RaftMessageServiceImplBase.class).to(RaftMessageHandler.class);
@@ -107,7 +99,6 @@ public class AfloatDBModule
         bind(RaftRpcStubManager.class).to(RaftRpcStubManagerImpl.class);
         bind(KVServiceImplBase.class).to(KVRequestHandler.class);
         bind(ManagementServiceImplBase.class).to(ManagementRequestHandler.class);
-        bind(RaftNodeReportObserver.class).to(AfloatDBClusterEndpointsPublisher.class);
         bind(RaftInvocationManager.class).to(RaftInvocationManagerImpl.class);
 
         bind(new TypeLiteral<Supplier<RaftNode>>() {

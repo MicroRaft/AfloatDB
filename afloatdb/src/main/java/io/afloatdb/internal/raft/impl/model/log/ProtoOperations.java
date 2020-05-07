@@ -16,7 +16,6 @@
 
 package io.afloatdb.internal.raft.impl.model.log;
 
-import io.afloatdb.internal.raft.impl.model.groupop.GrpcTerminateRaftGroupOpOrBuilder;
 import io.afloatdb.internal.raft.impl.model.groupop.GrpcUpdateRaftGroupMembersOpOrBuilder;
 import io.afloatdb.raft.proto.ProtoOperation;
 
@@ -26,14 +25,11 @@ public final class ProtoOperations {
     }
 
     public static Object extract(ProtoOperation operation) {
-        switch (operation.getOperationCase()) {
-            case TERMINATERAFTGROUPOP:
-                return new GrpcTerminateRaftGroupOpOrBuilder(operation.getTerminateRaftGroupOp());
-            case UPDATERAFTGROUPMEMBERSOP:
-                return new GrpcUpdateRaftGroupMembersOpOrBuilder(operation.getUpdateRaftGroupMembersOp());
-            default:
-                return operation;
+        if (operation.getOperationCase() == ProtoOperation.OperationCase.UPDATERAFTGROUPMEMBERSOP) {
+            return new GrpcUpdateRaftGroupMembersOpOrBuilder(operation.getUpdateRaftGroupMembersOp());
         }
+
+        return operation;
     }
 
     public static ProtoOperation wrap(Object operation) {
@@ -42,9 +38,7 @@ public final class ProtoOperations {
         }
 
         ProtoOperation.Builder protoBuilder = ProtoOperation.newBuilder();
-        if (operation instanceof GrpcTerminateRaftGroupOpOrBuilder) {
-            protoBuilder.setTerminateRaftGroupOp(((GrpcTerminateRaftGroupOpOrBuilder) operation).getOp());
-        } else if (operation instanceof GrpcUpdateRaftGroupMembersOpOrBuilder) {
+        if (operation instanceof GrpcUpdateRaftGroupMembersOpOrBuilder) {
             protoBuilder.setUpdateRaftGroupMembersOp(((GrpcUpdateRaftGroupMembersOpOrBuilder) operation).getOp());
         } else {
             throw new IllegalArgumentException("Invalid operation: " + operation);

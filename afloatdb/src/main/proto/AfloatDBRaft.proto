@@ -10,9 +10,6 @@ message ProtoRaftEndpoint {
     string id = 1;
 }
 
-message ProtoTerminateRaftGroupOp {
-}
-
 message ProtoUpdateRaftGroupMembersOp {
     repeated ProtoRaftEndpoint groupMember = 1;
     ProtoRaftEndpoint endpoint = 2;
@@ -30,18 +27,17 @@ message ProtoStartNewTermOp {
 
 message ProtoOperation {
     oneof operation {
-        ProtoTerminateRaftGroupOp terminateRaftGroupOp = 1;
-        ProtoUpdateRaftGroupMembersOp updateRaftGroupMembersOp = 2;
-        ProtoStartNewTermOp startNewTermOp = 3;
-        io.afloatdb.kv.proto.PutRequest putRequest = 4;
-        io.afloatdb.kv.proto.SetRequest setRequest = 5;
-        io.afloatdb.kv.proto.GetRequest getRequest = 6;
-        io.afloatdb.kv.proto.ContainsRequest containsRequest = 7;
-        io.afloatdb.kv.proto.DeleteRequest deleteRequest = 8;
-        io.afloatdb.kv.proto.RemoveRequest removeRequest = 9;
-        io.afloatdb.kv.proto.ReplaceRequest replaceRequest = 10;
-        io.afloatdb.kv.proto.SizeRequest sizeRequest = 11;
-        io.afloatdb.kv.proto.ClearRequest clearRequest = 12;
+        ProtoUpdateRaftGroupMembersOp updateRaftGroupMembersOp = 1;
+        ProtoStartNewTermOp startNewTermOp = 2;
+        io.afloatdb.kv.proto.PutRequest putRequest = 3;
+        io.afloatdb.kv.proto.SetRequest setRequest = 4;
+        io.afloatdb.kv.proto.GetRequest getRequest = 5;
+        io.afloatdb.kv.proto.ContainsRequest containsRequest = 6;
+        io.afloatdb.kv.proto.DeleteRequest deleteRequest = 7;
+        io.afloatdb.kv.proto.RemoveRequest removeRequest = 8;
+        io.afloatdb.kv.proto.ReplaceRequest replaceRequest = 9;
+        io.afloatdb.kv.proto.SizeRequest sizeRequest = 10;
+        io.afloatdb.kv.proto.ClearRequest clearRequest = 11;
     }
 }
 

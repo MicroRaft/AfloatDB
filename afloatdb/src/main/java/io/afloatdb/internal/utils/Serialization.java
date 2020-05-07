@@ -29,12 +29,12 @@ import io.afloatdb.internal.raft.impl.model.message.GrpcTriggerLeaderElectionReq
 import io.afloatdb.internal.raft.impl.model.message.GrpcVoteRequestOrBuilder;
 import io.afloatdb.internal.raft.impl.model.message.GrpcVoteResponseOrBuilder;
 import io.afloatdb.management.proto.ProtoRaftGroupMembers;
-import io.afloatdb.management.proto.ProtoRaftGroupTerm;
 import io.afloatdb.management.proto.ProtoRaftLogStats;
 import io.afloatdb.management.proto.ProtoRaftNodeReport;
 import io.afloatdb.management.proto.ProtoRaftNodeReportReason;
 import io.afloatdb.management.proto.ProtoRaftNodeStatus;
 import io.afloatdb.management.proto.ProtoRaftRole;
+import io.afloatdb.management.proto.ProtoRaftTerm;
 import io.afloatdb.raft.proto.ProtoOperationResponse;
 import io.afloatdb.raft.proto.ProtoQueryRequest.QUERY_POLICY;
 import io.afloatdb.raft.proto.ProtoRaftMessage;
@@ -43,10 +43,10 @@ import io.microraft.RaftNodeStatus;
 import io.microraft.RaftRole;
 import io.microraft.model.message.RaftMessage;
 import io.microraft.report.RaftGroupMembers;
-import io.microraft.report.RaftGroupTerm;
 import io.microraft.report.RaftLogStats;
 import io.microraft.report.RaftNodeReport;
 import io.microraft.report.RaftNodeReport.RaftNodeReportReason;
+import io.microraft.report.RaftTerm;
 
 import javax.annotation.Nonnull;
 
@@ -118,8 +118,6 @@ public final class Serialization {
                 return ProtoRaftNodeStatus.ACTIVE;
             case UPDATING_RAFT_GROUP_MEMBER_LIST:
                 return ProtoRaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST;
-            case TERMINATING_RAFT_GROUP:
-                return ProtoRaftNodeStatus.TERMINATING_RAFT_GROUP;
             case TERMINATED:
                 return ProtoRaftNodeStatus.TERMINATED;
             default:
@@ -127,8 +125,8 @@ public final class Serialization {
         }
     }
 
-    public static ProtoRaftGroupTerm toProto(RaftGroupTerm term) {
-        ProtoRaftGroupTerm.Builder builder = ProtoRaftGroupTerm.newBuilder();
+    public static ProtoRaftTerm toProto(RaftTerm term) {
+        ProtoRaftTerm.Builder builder = ProtoRaftTerm.newBuilder();
 
         builder.setTerm(term.getTerm());
 

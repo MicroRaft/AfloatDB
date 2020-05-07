@@ -30,6 +30,7 @@ import io.microraft.report.RaftNodeReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -104,7 +105,7 @@ public class AfloatDBClusterEndpointsPublisher
     }
 
     @Override
-    public void onRaftNodeReport(RaftNodeReport report) {
+    public void accept(@Nonnull RaftNodeReport report) {
         long now = System.currentTimeMillis();
         boolean publishForIdleState = now - raftNodeReportIdlePublishTimestamp >= CLUSTER_ENDPOINTS_IDLE_PUBLISH_DURATION_MILLIS;
         if (publishForIdleState) {

@@ -16,7 +16,6 @@
 
 package io.afloatdb.internal.raft.impl.model;
 
-import io.afloatdb.internal.raft.impl.model.groupop.GrpcTerminateRaftGroupOpOrBuilder;
 import io.afloatdb.internal.raft.impl.model.groupop.GrpcUpdateRaftGroupMembersOpOrBuilder;
 import io.afloatdb.internal.raft.impl.model.log.GrpcLogEntryOrBuilder;
 import io.afloatdb.internal.raft.impl.model.log.GrpcSnapshotChunkOrBuilder;
@@ -32,7 +31,6 @@ import io.afloatdb.internal.raft.impl.model.message.GrpcTriggerLeaderElectionReq
 import io.afloatdb.internal.raft.impl.model.message.GrpcVoteRequestOrBuilder;
 import io.afloatdb.internal.raft.impl.model.message.GrpcVoteResponseOrBuilder;
 import io.microraft.model.RaftModelFactory;
-import io.microraft.model.groupop.TerminateRaftGroupOp.TerminateRaftGroupOpBuilder;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMembersOpBuilder;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
 import io.microraft.model.log.SnapshotChunk;
@@ -131,12 +129,6 @@ public class GrpcRaftModelFactory
     @Override
     public VoteResponseBuilder createVoteResponseBuilder() {
         return new GrpcVoteResponseOrBuilder();
-    }
-
-    @Nonnull
-    @Override
-    public TerminateRaftGroupOpBuilder createTerminateRaftGroupOpBuilder() {
-        return new GrpcTerminateRaftGroupOpOrBuilder();
     }
 
     @Nonnull

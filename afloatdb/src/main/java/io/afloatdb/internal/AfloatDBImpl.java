@@ -51,13 +51,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import static com.google.inject.name.Names.named;
-import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_EXECUTOR_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_SUPPLIER_KEY;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -71,7 +69,6 @@ public class AfloatDBImpl
     private final RaftEndpoint localEndpoint;
     private final Injector injector;
     private final LifecycleManager lifecycleManager;
-    private final ScheduledExecutorService executor;
     private final RaftNode raftNode;
     private final Supplier<RaftNodeReport> raftNodeReportSupplier;
     private final AtomicReference<Status> status = new AtomicReference<>(Status.LATENT);
@@ -87,7 +84,6 @@ public class AfloatDBImpl
                     processTerminationFlag);
             this.injector = LifecycleInjector.builder().withModules(module).build().createInjector();
             this.lifecycleManager = injector.getInstance(LifecycleManager.class);
-            this.executor = injector.getInstance(Key.get(ScheduledExecutorService.class, named(RAFT_NODE_EXECUTOR_KEY)));
 
             lifecycleManager.start();
             status.set(Status.RUNNING);
@@ -143,7 +139,6 @@ public class AfloatDBImpl
         if (status.compareAndSet(Status.RUNNING, Status.SHUTTING_DOWN)) {
             try {
                 lifecycleManager.close();
-                executor.shutdownNow();
             } finally {
                 status.set(Status.SHUT_DOWN);
             }
