@@ -82,11 +82,7 @@ public class RaftInvocationManagerImpl
 
     @Override
     public <T> CompletableFuture<Ordered<T>> invoke(@Nonnull Operation operation) {
-        requireNonNull(operation);
-
-        // TODO [basri] create the req only if invoking remotely...
-        ReplicateRequest request = ReplicateRequest.newBuilder().setOperation(operation).build();
-        Invocation<ReplicateRequest, T> invocation = new ReplicateInvocation<>(request);
+        Invocation<T> invocation = new ReplicateInvocation<T>(operation);
         invocation.invoke();
 
         return invocation;
@@ -94,15 +90,8 @@ public class RaftInvocationManagerImpl
 
     @Override
     public <T> CompletableFuture<Ordered<T>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy,
-                                                   long minCommitRequest) {
-        requireNonNull(operation);
-        requireNonNull(queryPolicy);
-
-        // TODO [basri] create the req only if invoking remotely...
-        QueryRequest request = QueryRequest.newBuilder().setOperation(operation).setQueryPolicy(toProto(queryPolicy))
-                                           .setMinCommitIndex(minCommitRequest).build();
-
-        QueryInvocation<T> invocation = new QueryInvocation<>(request, queryPolicy);
+                                                   long minCommitIndex) {
+        QueryInvocation<T> invocation = new QueryInvocation<>(operation, queryPolicy, minCommitIndex);
         invocation.invoke();
 
         return invocation;
@@ -120,15 +109,15 @@ public class RaftInvocationManagerImpl
         }
     }
 
-    abstract class Invocation<Req, Resp>
+    abstract class Invocation<Resp>
             extends OrderedFuture<Resp>
             implements StreamObserver<OperationResponse>, BiConsumer<Ordered<Resp>, Throwable> {
 
-        final Req request;
+        final Operation operation;
         volatile int tryCount;
 
-        Invocation(Req request) {
-            this.request = request;
+        Invocation(Operation operation) {
+            this.operation = requireNonNull(operation);
         }
 
         final void retry() {
@@ -200,15 +189,20 @@ public class RaftInvocationManagerImpl
     }
 
     class ReplicateInvocation<Resp>
-            extends Invocation<ReplicateRequest, Resp> {
-        ReplicateInvocation(ReplicateRequest request) {
-            super(request);
+            extends Invocation<Resp> {
+
+        // no need to make it volatile.
+        // it is ok for multiple threads to create it redundantly
+        ReplicateRequest request;
+
+        ReplicateInvocation(Operation operation) {
+            super(operation);
         }
 
         @Override
         boolean invokeLocally() {
             if (raftNode.getLocalEndpoint().equals(raftNode.getTerm().getLeaderEndpoint())) {
-                raftNode.<Resp>replicate(request.getOperation()).whenComplete(this);
+                raftNode.<Resp>replicate(operation).whenComplete(this);
                 return true;
             }
 
@@ -217,25 +211,35 @@ public class RaftInvocationManagerImpl
 
         @Override
         protected void doInvokeRemotely(RaftRpcStub stub) {
+            if (request == null) {
+                request = ReplicateRequest.newBuilder().setOperation(operation).build();
+            }
             // TODO [basri] offload to IO thread...
             stub.replicate(request, this);
         }
     }
 
     class QueryInvocation<Resp>
-            extends Invocation<QueryRequest, Resp> {
-        final QueryPolicy queryPolicy;
+            extends Invocation<Resp> {
 
-        QueryInvocation(QueryRequest request, QueryPolicy queryPolicy) {
-            super(request);
-            this.queryPolicy = queryPolicy;
+        final QueryPolicy queryPolicy;
+        final long minCommitIndex;
+
+        // no need to make it volatile.
+        // it is ok for multiple threads to create it redundantly
+        QueryRequest request;
+
+        QueryInvocation(Operation operation, QueryPolicy queryPolicy, long minCommitIndex) {
+            super(operation);
+            this.queryPolicy = requireNonNull(queryPolicy);
+            this.minCommitIndex = minCommitIndex;
         }
 
         @Override
         boolean invokeLocally() {
             if (queryPolicy == QueryPolicy.ANY_LOCAL || raftNode.getLocalEndpoint()
                                                                 .equals(raftNode.getTerm().getLeaderEndpoint())) {
-                raftNode.<Resp>query(request.getOperation(), queryPolicy, request.getMinCommitIndex()).whenComplete(this);
+                raftNode.<Resp>query(operation, queryPolicy, minCommitIndex).whenComplete(this);
                 return true;
             }
 
@@ -244,6 +248,10 @@ public class RaftInvocationManagerImpl
 
         @Override
         void doInvokeRemotely(RaftRpcStub stub) {
+            if (request == null) {
+                request = QueryRequest.newBuilder().setOperation(operation).setQueryPolicy(toProto(queryPolicy))
+                                      .setMinCommitIndex(minCommitIndex).build();
+            }
             // TODO [basri] offload to IO thread...
             stub.query(request, this);
         }

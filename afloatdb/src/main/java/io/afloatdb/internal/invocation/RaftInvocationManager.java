@@ -27,6 +27,5 @@ public interface RaftInvocationManager {
 
     <T> CompletableFuture<Ordered<T>> invoke(@Nonnull Operation operation);
 
-    <T> CompletableFuture<Ordered<T>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy,
-                                            long minCommitRequest);
+    <T> CompletableFuture<Ordered<T>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy, long minCommitIndex);
 }
