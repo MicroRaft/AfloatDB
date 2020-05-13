@@ -22,7 +22,7 @@ import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.internal.serialization.Serialization;
 import io.afloatdb.kv.proto.PutRequest;
 import io.afloatdb.kv.proto.TypedValue;
-import io.afloatdb.raft.proto.ProtoOperation;
+import io.afloatdb.raft.proto.Operation;
 import io.microraft.RaftNode;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -67,7 +67,7 @@ public class AfloatDBBenchmark {
         TypedValue typedValue = TypedValue.newBuilder().setType(Serialization.STRING_TYPE).setValue(ByteString.copyFromUtf8(key))
                                           .build();
         PutRequest request = PutRequest.newBuilder().setKey(key).setValue(typedValue).build();
-        context.leader.replicate(ProtoOperation.newBuilder().setPutRequest(request).build()).join();
+        context.leader.replicate(Operation.newBuilder().setPutRequest(request).build()).join();
     }
 
     @State(Scope.Benchmark)

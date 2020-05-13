@@ -17,10 +17,10 @@
 package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.internal.raft.impl.model.log.GrpcSnapshotChunkOrBuilder;
-import io.afloatdb.raft.proto.ProtoInstallSnapshotRequest;
-import io.afloatdb.raft.proto.ProtoKVSnapshotChunk;
-import io.afloatdb.raft.proto.ProtoRaftMessage;
+import io.afloatdb.internal.raft.impl.model.log.SnapshotChunkOrBuilder;
+import io.afloatdb.raft.proto.InstallSnapshotRequestProto;
+import io.afloatdb.raft.proto.KVSnapshotChunk;
+import io.afloatdb.raft.proto.RaftMessageProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.message.InstallSnapshotRequest;
@@ -31,31 +31,31 @@ import java.util.Collection;
 
 import static java.util.stream.Collectors.toList;
 
-public class GrpcInstallSnapshotRequestOrBuilder
-        implements InstallSnapshotRequest, InstallSnapshotRequest.InstallSnapshotRequestBuilder, GrpcRaftMessage {
+public class InstallSnapshotRequestOrBuilder
+        implements InstallSnapshotRequest, InstallSnapshotRequest.InstallSnapshotRequestBuilder, RaftMessageProtoAware {
 
-    private ProtoInstallSnapshotRequest.Builder builder;
-    private ProtoInstallSnapshotRequest request;
+    private InstallSnapshotRequestProto.Builder builder;
+    private InstallSnapshotRequestProto request;
     private RaftEndpoint sender;
     private SnapshotChunk snapshotChunk;
     private Collection<RaftEndpoint> snapshottedMembers;
     private Collection<RaftEndpoint> groupMembers;
 
-    public GrpcInstallSnapshotRequestOrBuilder() {
-        this.builder = ProtoInstallSnapshotRequest.newBuilder();
+    public InstallSnapshotRequestOrBuilder() {
+        this.builder = InstallSnapshotRequestProto.newBuilder();
     }
 
-    public GrpcInstallSnapshotRequestOrBuilder(ProtoInstallSnapshotRequest request) {
+    public InstallSnapshotRequestOrBuilder(InstallSnapshotRequestProto request) {
         this.request = request;
         this.sender = AfloatDBEndpoint.wrap(request.getSender());
-        if (!request.getSnapshotChunk().equals(ProtoKVSnapshotChunk.getDefaultInstance())) {
-            this.snapshotChunk = new GrpcSnapshotChunkOrBuilder(request.getSnapshotChunk());
+        if (!request.getSnapshotChunk().equals(KVSnapshotChunk.getDefaultInstance())) {
+            this.snapshotChunk = new SnapshotChunkOrBuilder(request.getSnapshotChunk());
         }
         this.snapshottedMembers = request.getSnapshottedMemberList().stream().map(AfloatDBEndpoint::wrap).collect(toList());
         this.groupMembers = request.getGroupMemberList().stream().map(AfloatDBEndpoint::wrap).collect(toList());
     }
 
-    public ProtoInstallSnapshotRequest getRequest() {
+    public InstallSnapshotRequestProto getRequest() {
         return request;
     }
 
@@ -113,7 +113,7 @@ public class GrpcInstallSnapshotRequestOrBuilder
     @Override
     public InstallSnapshotRequestBuilder setSnapshotChunk(@Nullable SnapshotChunk snapshotChunk) {
         if (snapshotChunk != null) {
-            builder.setSnapshotChunk(((GrpcSnapshotChunkOrBuilder) snapshotChunk).getSnapshotChunk());
+            builder.setSnapshotChunk(((SnapshotChunkOrBuilder) snapshotChunk).getSnapshotChunk());
         }
 
         this.snapshotChunk = snapshotChunk;
@@ -166,7 +166,7 @@ public class GrpcInstallSnapshotRequestOrBuilder
     }
 
     @Override
-    public void populate(ProtoRaftMessage.Builder builder) {
+    public void populate(RaftMessageProto.Builder builder) {
         builder.setInstallSnapshotRequest(request);
     }
 

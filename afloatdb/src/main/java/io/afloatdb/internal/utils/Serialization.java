@@ -17,27 +17,27 @@
 package io.afloatdb.internal.utils;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.internal.raft.impl.model.message.GrpcAppendEntriesFailureResponseOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcAppendEntriesRequestOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcAppendEntriesSuccessResponseOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcInstallSnapshotRequestOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcInstallSnapshotResponseOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcPreVoteRequestOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcPreVoteResponseOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcRaftMessage;
-import io.afloatdb.internal.raft.impl.model.message.GrpcTriggerLeaderElectionRequestOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcVoteRequestOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcVoteResponseOrBuilder;
-import io.afloatdb.management.proto.ProtoRaftGroupMembers;
-import io.afloatdb.management.proto.ProtoRaftLogStats;
-import io.afloatdb.management.proto.ProtoRaftNodeReport;
-import io.afloatdb.management.proto.ProtoRaftNodeReportReason;
-import io.afloatdb.management.proto.ProtoRaftNodeStatus;
-import io.afloatdb.management.proto.ProtoRaftRole;
-import io.afloatdb.management.proto.ProtoRaftTerm;
-import io.afloatdb.raft.proto.ProtoOperationResponse;
-import io.afloatdb.raft.proto.ProtoQueryRequest.QUERY_POLICY;
-import io.afloatdb.raft.proto.ProtoRaftMessage;
+import io.afloatdb.internal.raft.impl.model.message.AppendEntriesFailureResponseOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.AppendEntriesRequestOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.AppendEntriesSuccessResponseOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.InstallSnapshotRequestOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.InstallSnapshotResponseOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.PreVoteRequestOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.PreVoteResponseOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.RaftMessageProtoAware;
+import io.afloatdb.internal.raft.impl.model.message.TriggerLeaderElectionRequestOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.VoteRequestOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.VoteResponseOrBuilder;
+import io.afloatdb.management.proto.RaftGroupMembersProto;
+import io.afloatdb.management.proto.RaftLogStatsProto;
+import io.afloatdb.management.proto.RaftNodeReportProto;
+import io.afloatdb.management.proto.RaftNodeReportReasonProto;
+import io.afloatdb.management.proto.RaftNodeStatusProto;
+import io.afloatdb.management.proto.RaftRoleProto;
+import io.afloatdb.management.proto.RaftTermProto;
+import io.afloatdb.raft.proto.OperationResponse;
+import io.afloatdb.raft.proto.QueryRequest.QUERY_POLICY;
+import io.afloatdb.raft.proto.RaftMessageProto;
 import io.microraft.QueryPolicy;
 import io.microraft.RaftNodeStatus;
 import io.microraft.RaftRole;
@@ -57,8 +57,8 @@ public final class Serialization {
     private Serialization() {
     }
 
-    public static ProtoRaftNodeReport toProto(RaftNodeReport report) {
-        return ProtoRaftNodeReport.newBuilder().setReason(toProto(report.getReason())).setGroupId((String) report.getGroupId())
+    public static RaftNodeReportProto toProto(RaftNodeReport report) {
+        return RaftNodeReportProto.newBuilder().setReason(toProto(report.getReason())).setGroupId((String) report.getGroupId())
                                   .setEndpoint(AfloatDBEndpoint.extract(report.getEndpoint()))
                                   .setInitialMembers(toProto(report.getInitialMembers()))
                                   .setCommittedMembers(toProto(report.getCommittedMembers()))
@@ -67,29 +67,29 @@ public final class Serialization {
                                   .setLog(toProto(report.getLog())).build();
     }
 
-    public static ProtoRaftNodeReportReason toProto(RaftNodeReportReason reason) {
+    public static RaftNodeReportReasonProto toProto(RaftNodeReportReason reason) {
         switch (reason) {
             case STATUS_CHANGE:
-                return ProtoRaftNodeReportReason.STATUS_CHANGE;
+                return RaftNodeReportReasonProto.STATUS_CHANGE;
             case ROLE_CHANGE:
-                return ProtoRaftNodeReportReason.ROLE_CHANGE;
+                return RaftNodeReportReasonProto.ROLE_CHANGE;
             case GROUP_MEMBERS_CHANGE:
-                return ProtoRaftNodeReportReason.GROUP_MEMBERS_CHANGE;
+                return RaftNodeReportReasonProto.GROUP_MEMBERS_CHANGE;
             case TAKE_SNAPSHOT:
-                return ProtoRaftNodeReportReason.TAKE_SNAPSHOT;
+                return RaftNodeReportReasonProto.TAKE_SNAPSHOT;
             case INSTALL_SNAPSHOT:
-                return ProtoRaftNodeReportReason.INSTALL_SNAPSHOT;
+                return RaftNodeReportReasonProto.INSTALL_SNAPSHOT;
             case PERIODIC:
-                return ProtoRaftNodeReportReason.PERIODIC;
+                return RaftNodeReportReasonProto.PERIODIC;
             case API_CALL:
-                return ProtoRaftNodeReportReason.API_CALL;
+                return RaftNodeReportReasonProto.API_CALL;
             default:
                 throw new IllegalArgumentException("Invalid RaftNodeReportReason: " + reason);
         }
     }
 
-    public static ProtoRaftGroupMembers toProto(RaftGroupMembers groupMembers) {
-        ProtoRaftGroupMembers.Builder builder = ProtoRaftGroupMembers.newBuilder();
+    public static RaftGroupMembersProto toProto(RaftGroupMembers groupMembers) {
+        RaftGroupMembersProto.Builder builder = RaftGroupMembersProto.newBuilder();
         builder.setLogIndex(groupMembers.getLogIndex());
 
         groupMembers.getMembers().stream().map(AfloatDBEndpoint::extract).forEach(builder::addMember);
@@ -97,36 +97,36 @@ public final class Serialization {
         return builder.build();
     }
 
-    public static ProtoRaftRole toProto(RaftRole role) {
+    public static RaftRoleProto toProto(RaftRole role) {
         switch (role) {
             case FOLLOWER:
-                return ProtoRaftRole.FOLLOWER;
+                return RaftRoleProto.FOLLOWER;
             case CANDIDATE:
-                return ProtoRaftRole.CANDIDATE;
+                return RaftRoleProto.CANDIDATE;
             case LEADER:
-                return ProtoRaftRole.LEADER;
+                return RaftRoleProto.LEADER;
             default:
                 throw new IllegalArgumentException("Invalid RaftRole: " + role);
         }
     }
 
-    public static ProtoRaftNodeStatus toProto(RaftNodeStatus status) {
+    public static RaftNodeStatusProto toProto(RaftNodeStatus status) {
         switch (status) {
             case INITIAL:
-                return ProtoRaftNodeStatus.INITIAL;
+                return RaftNodeStatusProto.INITIAL;
             case ACTIVE:
-                return ProtoRaftNodeStatus.ACTIVE;
+                return RaftNodeStatusProto.ACTIVE;
             case UPDATING_RAFT_GROUP_MEMBER_LIST:
-                return ProtoRaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST;
+                return RaftNodeStatusProto.UPDATING_RAFT_GROUP_MEMBER_LIST;
             case TERMINATED:
-                return ProtoRaftNodeStatus.TERMINATED;
+                return RaftNodeStatusProto.TERMINATED;
             default:
                 throw new IllegalArgumentException("Invalid RaftNodeStatus: " + status);
         }
     }
 
-    public static ProtoRaftTerm toProto(RaftTerm term) {
-        ProtoRaftTerm.Builder builder = ProtoRaftTerm.newBuilder();
+    public static RaftTermProto toProto(RaftTerm term) {
+        RaftTermProto.Builder builder = RaftTermProto.newBuilder();
 
         builder.setTerm(term.getTerm());
 
@@ -141,8 +141,8 @@ public final class Serialization {
         return builder.build();
     }
 
-    public static ProtoRaftLogStats toProto(RaftLogStats log) {
-        return ProtoRaftLogStats.newBuilder().setCommitIndex(log.getCommitIndex())
+    public static RaftLogStatsProto toProto(RaftLogStats log) {
+        return RaftLogStatsProto.newBuilder().setCommitIndex(log.getCommitIndex())
                                 .setLastLogOrSnapshotIndex(log.getLastLogOrSnapshotIndex())
                                 .setLastLogOrSnapshotTerm(log.getLastLogOrSnapshotTerm())
                                 .setSnapshotIndex(log.getLastSnapshotIndex()).setSnapshotTerm(log.getLastSnapshotTerm())
@@ -150,7 +150,7 @@ public final class Serialization {
                                 .setInstallSnapshotCount(log.getInstallSnapshotCount()).build();
     }
 
-    public static Object unwrapResponse(ProtoOperationResponse response) {
+    public static Object unwrapResponse(OperationResponse response) {
         switch (response.getResponseCase()) {
             case PUTRESPONSE:
                 return response.getPutResponse();
@@ -201,42 +201,40 @@ public final class Serialization {
         }
     }
 
-    public static RaftMessage unwrap(@Nonnull ProtoRaftMessage proto) {
-        requireNonNull(proto);
-
+    public static RaftMessage unwrap(@Nonnull RaftMessageProto proto) {
         switch (proto.getMessageCase()) {
             case VOTEREQUEST:
-                return new GrpcVoteRequestOrBuilder(proto.getVoteRequest());
+                return new VoteRequestOrBuilder(proto.getVoteRequest());
             case VOTERESPONSE:
-                return new GrpcVoteResponseOrBuilder(proto.getVoteResponse());
+                return new VoteResponseOrBuilder(proto.getVoteResponse());
             case APPENDENTRIESREQUEST:
-                return new GrpcAppendEntriesRequestOrBuilder(proto.getAppendEntriesRequest());
+                return new AppendEntriesRequestOrBuilder(proto.getAppendEntriesRequest());
             case APPENDENTRIESSUCCESSRESPONSE:
-                return new GrpcAppendEntriesSuccessResponseOrBuilder(proto.getAppendEntriesSuccessResponse());
+                return new AppendEntriesSuccessResponseOrBuilder(proto.getAppendEntriesSuccessResponse());
             case APPENDENTRIESFAILURERESPONSE:
-                return new GrpcAppendEntriesFailureResponseOrBuilder(proto.getAppendEntriesFailureResponse());
+                return new AppendEntriesFailureResponseOrBuilder(proto.getAppendEntriesFailureResponse());
             case INSTALLSNAPSHOTREQUEST:
-                return new GrpcInstallSnapshotRequestOrBuilder(proto.getInstallSnapshotRequest());
+                return new InstallSnapshotRequestOrBuilder(proto.getInstallSnapshotRequest());
             case INSTALLSNAPSHOTRESPONSE:
-                return new GrpcInstallSnapshotResponseOrBuilder(proto.getInstallSnapshotResponse());
+                return new InstallSnapshotResponseOrBuilder(proto.getInstallSnapshotResponse());
             case PREVOTEREQUEST:
-                return new GrpcPreVoteRequestOrBuilder(proto.getPreVoteRequest());
+                return new PreVoteRequestOrBuilder(proto.getPreVoteRequest());
             case PREVOTERESPONSE:
-                return new GrpcPreVoteResponseOrBuilder(proto.getPreVoteResponse());
+                return new PreVoteResponseOrBuilder(proto.getPreVoteResponse());
             case TRIGGERLEADERELECTIONREQUEST:
-                return new GrpcTriggerLeaderElectionRequestOrBuilder(proto.getTriggerLeaderElectionRequest());
+                return new TriggerLeaderElectionRequestOrBuilder(proto.getTriggerLeaderElectionRequest());
             default:
-                throw new IllegalArgumentException("Invalid proto msg: " + proto);
+                throw new IllegalArgumentException("Invalid proto: " + proto);
         }
     }
 
-    public static ProtoRaftMessage wrap(@Nonnull RaftMessage message) {
+    public static RaftMessageProto wrap(@Nonnull RaftMessage message) {
         requireNonNull(message);
 
-        ProtoRaftMessage.Builder builder = ProtoRaftMessage.newBuilder();
+        RaftMessageProto.Builder builder = RaftMessageProto.newBuilder();
 
-        if (message instanceof GrpcRaftMessage) {
-            ((GrpcRaftMessage) message).populate(builder);
+        if (message instanceof RaftMessageProtoAware) {
+            ((RaftMessageProtoAware) message).populate(builder);
         } else {
             throw new IllegalArgumentException("Cannot convert " + message + " to proto");
         }

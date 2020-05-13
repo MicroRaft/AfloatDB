@@ -1,8 +1,8 @@
 package io.afloatdb.internal.raft.impl.model.log;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.ProtoKVSnapshotChunk;
-import io.afloatdb.raft.proto.ProtoKVSnapshotChunkObject;
+import io.afloatdb.raft.proto.KVSnapshotChunk;
+import io.afloatdb.raft.proto.KVSnapshotChunkData;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotChunk.SnapshotChunkBuilder;
@@ -11,24 +11,24 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
-public class GrpcSnapshotChunkOrBuilder
+public class SnapshotChunkOrBuilder
         implements SnapshotChunk, SnapshotChunkBuilder {
 
-    private ProtoKVSnapshotChunk.Builder builder;
-    private ProtoKVSnapshotChunk snapshotChunk;
+    private KVSnapshotChunk.Builder builder;
+    private KVSnapshotChunk snapshotChunk;
     private Collection<RaftEndpoint> groupMembers;
 
-    public GrpcSnapshotChunkOrBuilder() {
-        this.builder = ProtoKVSnapshotChunk.newBuilder();
+    public SnapshotChunkOrBuilder() {
+        this.builder = KVSnapshotChunk.newBuilder();
     }
 
-    public GrpcSnapshotChunkOrBuilder(ProtoKVSnapshotChunk snapshotChunk) {
+    public SnapshotChunkOrBuilder(KVSnapshotChunk snapshotChunk) {
         this.snapshotChunk = snapshotChunk;
         this.groupMembers = new LinkedHashSet<>();
         snapshotChunk.getGroupMemberList().stream().map(AfloatDBEndpoint::wrap).forEach(groupMembers::add);
     }
 
-    public ProtoKVSnapshotChunk getSnapshotChunk() {
+    public KVSnapshotChunk getSnapshotChunk() {
         return snapshotChunk;
     }
 
@@ -49,7 +49,7 @@ public class GrpcSnapshotChunkOrBuilder
     @Nonnull
     @Override
     public SnapshotChunkBuilder setOperation(@Nonnull Object operation) {
-        builder.setOperation((ProtoKVSnapshotChunkObject) operation);
+        builder.setOperation((KVSnapshotChunkData) operation);
         return this;
     }
 

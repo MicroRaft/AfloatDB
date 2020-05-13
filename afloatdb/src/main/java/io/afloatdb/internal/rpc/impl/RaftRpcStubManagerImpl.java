@@ -19,12 +19,12 @@ package io.afloatdb.internal.rpc.impl;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.afloatdb.internal.rpc.RaftRpcStub;
 import io.afloatdb.internal.rpc.RaftRpcStubManager;
-import io.afloatdb.raft.proto.ProtoOperationResponse;
-import io.afloatdb.raft.proto.ProtoQueryRequest;
-import io.afloatdb.raft.proto.ProtoRaftMessage;
-import io.afloatdb.raft.proto.ProtoRaftResponse;
-import io.afloatdb.raft.proto.ProtoReplicateRequest;
+import io.afloatdb.raft.proto.OperationResponse;
+import io.afloatdb.raft.proto.QueryRequest;
+import io.afloatdb.raft.proto.RaftMessageProto;
 import io.afloatdb.raft.proto.RaftMessageServiceGrpc.RaftMessageServiceStub;
+import io.afloatdb.raft.proto.RaftResponse;
+import io.afloatdb.raft.proto.ReplicateRequest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
@@ -180,7 +180,7 @@ public class RaftRpcStubManagerImpl
         final RaftEndpoint targetEndpoint;
         final ManagedChannel channel;
         final RaftMessageServiceStub invocationStub;
-        StreamObserver<ProtoRaftMessage> raftMessageSender;
+        StreamObserver<RaftMessageProto> raftMessageSender;
 
         ChannelContext(RaftEndpoint targetEndpoint, ManagedChannel channel, RaftMessageServiceStub invocationStub) {
             this.targetEndpoint = targetEndpoint;
@@ -209,18 +209,18 @@ public class RaftRpcStubManagerImpl
         }
 
         @Override
-        public void replicate(ProtoReplicateRequest request, StreamObserver<ProtoOperationResponse> responseObserver) {
+        public void replicate(ReplicateRequest request, StreamObserver<OperationResponse> responseObserver) {
             invocationStub.replicate(request, responseObserver);
         }
 
         @Override
-        public void query(ProtoQueryRequest request, StreamObserver<ProtoOperationResponse> responseObserver) {
+        public void query(QueryRequest request, StreamObserver<OperationResponse> responseObserver) {
             invocationStub.query(request, responseObserver);
         }
     }
 
     private class ResponseStreamObserver
-            implements StreamObserver<ProtoRaftResponse> {
+            implements StreamObserver<RaftResponse> {
         final ChannelContext context;
 
         private ResponseStreamObserver(ChannelContext context) {
@@ -228,9 +228,9 @@ public class RaftRpcStubManagerImpl
         }
 
         @Override
-        public void onNext(ProtoRaftResponse response) {
+        public void onNext(RaftResponse response) {
             LOGGER.warn("{} received {} from Raft RPC stream to {}", localEndpoint.getId(), response,
-                    context.targetEndpoint.getId());
+                        context.targetEndpoint.getId());
         }
 
         @Override

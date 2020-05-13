@@ -17,31 +17,31 @@
 package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.ProtoPreVoteResponse;
-import io.afloatdb.raft.proto.ProtoRaftMessage;
+import io.afloatdb.raft.proto.PreVoteResponseProto;
+import io.afloatdb.raft.proto.RaftMessageProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.PreVoteResponse;
 import io.microraft.model.message.PreVoteResponse.PreVoteResponseBuilder;
 
 import javax.annotation.Nonnull;
 
-public class GrpcPreVoteResponseOrBuilder
-        implements PreVoteResponse, PreVoteResponseBuilder, GrpcRaftMessage {
+public class PreVoteResponseOrBuilder
+        implements PreVoteResponse, PreVoteResponseBuilder, RaftMessageProtoAware {
 
-    private ProtoPreVoteResponse.Builder builder;
-    private ProtoPreVoteResponse response;
+    private PreVoteResponseProto.Builder builder;
+    private PreVoteResponseProto response;
     private RaftEndpoint sender;
 
-    public GrpcPreVoteResponseOrBuilder() {
-        this.builder = ProtoPreVoteResponse.newBuilder();
+    public PreVoteResponseOrBuilder() {
+        this.builder = PreVoteResponseProto.newBuilder();
     }
 
-    public GrpcPreVoteResponseOrBuilder(ProtoPreVoteResponse response) {
+    public PreVoteResponseOrBuilder(PreVoteResponseProto response) {
         this.response = response;
         this.sender = AfloatDBEndpoint.wrap(response.getSender());
     }
 
-    public ProtoPreVoteResponse getResponse() {
+    public PreVoteResponseProto getResponse() {
         return response;
     }
 
@@ -83,7 +83,7 @@ public class GrpcPreVoteResponseOrBuilder
     }
 
     @Override
-    public void populate(ProtoRaftMessage.Builder builder) {
+    public void populate(RaftMessageProto.Builder builder) {
         builder.setPreVoteResponse(response);
     }
 

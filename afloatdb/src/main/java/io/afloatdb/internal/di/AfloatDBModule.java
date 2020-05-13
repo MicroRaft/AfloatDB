@@ -28,7 +28,7 @@ import io.afloatdb.internal.raft.impl.AfloatDBClusterEndpointsPublisher;
 import io.afloatdb.internal.raft.impl.GrpcTransport;
 import io.afloatdb.internal.raft.impl.KVStoreStateMachine;
 import io.afloatdb.internal.raft.impl.RaftNodeSupplier;
-import io.afloatdb.internal.raft.impl.model.GrpcRaftModelFactory;
+import io.afloatdb.internal.raft.impl.model.ProtoRaftModelFactory;
 import io.afloatdb.internal.rpc.RaftRpcStubManager;
 import io.afloatdb.internal.rpc.RpcServer;
 import io.afloatdb.internal.rpc.impl.KVRequestHandler;
@@ -93,7 +93,7 @@ public class AfloatDBModule
         bind(RaftNodeReportObserver.class).to(AfloatDBClusterEndpointsPublisher.class);
         bind(Transport.class).to(GrpcTransport.class);
         bind(StateMachine.class).to(KVStoreStateMachine.class);
-        bind(RaftModelFactory.class).to(GrpcRaftModelFactory.class);
+        bind(RaftModelFactory.class).to(ProtoRaftModelFactory.class);
         bind(RaftMessageServiceImplBase.class).to(RaftMessageHandler.class);
         bind(RpcServer.class).to(RpcServerImpl.class);
         bind(RaftRpcStubManager.class).to(RaftRpcStubManagerImpl.class);

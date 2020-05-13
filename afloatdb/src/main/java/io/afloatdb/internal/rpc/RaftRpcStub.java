@@ -16,9 +16,9 @@
 
 package io.afloatdb.internal.rpc;
 
-import io.afloatdb.raft.proto.ProtoOperationResponse;
-import io.afloatdb.raft.proto.ProtoQueryRequest;
-import io.afloatdb.raft.proto.ProtoReplicateRequest;
+import io.afloatdb.raft.proto.OperationResponse;
+import io.afloatdb.raft.proto.QueryRequest;
+import io.afloatdb.raft.proto.ReplicateRequest;
 import io.grpc.stub.StreamObserver;
 import io.microraft.model.message.RaftMessage;
 
@@ -28,8 +28,8 @@ public interface RaftRpcStub {
 
     void send(@Nonnull RaftMessage message);
 
-    void replicate(ProtoReplicateRequest request, StreamObserver<ProtoOperationResponse> responseObserver);
+    void replicate(ReplicateRequest request, StreamObserver<OperationResponse> responseObserver);
 
-    void query(ProtoQueryRequest request, StreamObserver<ProtoOperationResponse> responseObserver);
+    void query(QueryRequest request, StreamObserver<OperationResponse> responseObserver);
 
 }

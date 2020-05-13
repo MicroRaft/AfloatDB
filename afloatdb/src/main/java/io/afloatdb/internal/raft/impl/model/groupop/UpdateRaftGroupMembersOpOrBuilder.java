@@ -18,8 +18,8 @@ package io.afloatdb.internal.raft.impl.model.groupop;
 
 import io.afloatdb.AfloatDBException;
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.ProtoUpdateRaftGroupMembersOp;
-import io.afloatdb.raft.proto.ProtoUpdateRaftGroupMembersOp.ProtoMembershipChangeMode;
+import io.afloatdb.raft.proto.UpdateRaftGroupMembersOpProto;
+import io.afloatdb.raft.proto.UpdateRaftGroupMembersOpProto.MembershipChangeModeProto;
 import io.microraft.MembershipChangeMode;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp;
@@ -31,26 +31,26 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class GrpcUpdateRaftGroupMembersOpOrBuilder
+public class UpdateRaftGroupMembersOpOrBuilder
         implements UpdateRaftGroupMembersOp, UpdateRaftGroupMembersOpBuilder {
 
-    private ProtoUpdateRaftGroupMembersOp.Builder builder;
-    private ProtoUpdateRaftGroupMembersOp op;
+    private UpdateRaftGroupMembersOpProto.Builder builder;
+    private UpdateRaftGroupMembersOpProto op;
     private Collection<RaftEndpoint> members;
     private RaftEndpoint endpoint;
 
-    public GrpcUpdateRaftGroupMembersOpOrBuilder() {
-        this.builder = ProtoUpdateRaftGroupMembersOp.newBuilder();
+    public UpdateRaftGroupMembersOpOrBuilder() {
+        this.builder = UpdateRaftGroupMembersOpProto.newBuilder();
     }
 
-    public GrpcUpdateRaftGroupMembersOpOrBuilder(ProtoUpdateRaftGroupMembersOp op) {
+    public UpdateRaftGroupMembersOpOrBuilder(UpdateRaftGroupMembersOpProto op) {
         this.op = op;
         this.members = new LinkedHashSet<>();
         op.getGroupMemberList().stream().map(AfloatDBEndpoint::wrap).forEach(members::add);
         this.endpoint = AfloatDBEndpoint.wrap(op.getEndpoint());
     }
 
-    public ProtoUpdateRaftGroupMembersOp getOp() {
+    public UpdateRaftGroupMembersOpProto getOp() {
         return op;
     }
 
@@ -69,9 +69,9 @@ public class GrpcUpdateRaftGroupMembersOpOrBuilder
     @Nonnull
     @Override
     public MembershipChangeMode getMode() {
-        if (op.getMode() == ProtoMembershipChangeMode.ADD) {
+        if (op.getMode() == MembershipChangeModeProto.ADD) {
             return MembershipChangeMode.ADD;
-        } else if (op.getMode() == ProtoMembershipChangeMode.REMOVE) {
+        } else if (op.getMode() == MembershipChangeModeProto.REMOVE) {
             return MembershipChangeMode.REMOVE;
         }
         throw new IllegalStateException();
@@ -97,10 +97,10 @@ public class GrpcUpdateRaftGroupMembersOpOrBuilder
     @Override
     public UpdateRaftGroupMembersOpBuilder setMode(@Nonnull MembershipChangeMode mode) {
         if (mode == MembershipChangeMode.ADD) {
-            builder.setMode(ProtoMembershipChangeMode.ADD);
+            builder.setMode(MembershipChangeModeProto.ADD);
             return this;
         } else if (mode == MembershipChangeMode.REMOVE) {
-            builder.setMode(ProtoMembershipChangeMode.REMOVE);
+            builder.setMode(MembershipChangeModeProto.REMOVE);
             return this;
         }
 

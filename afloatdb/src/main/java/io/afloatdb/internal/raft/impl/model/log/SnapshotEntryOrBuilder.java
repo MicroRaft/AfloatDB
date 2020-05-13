@@ -17,40 +17,30 @@
 package io.afloatdb.internal.raft.impl.model.log;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.ProtoSnapshotEntry;
+import io.afloatdb.raft.proto.SnapshotEntryProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 
-public class GrpcSnapshotEntryOrBuilder
+public class SnapshotEntryOrBuilder
         implements SnapshotEntry, SnapshotEntryBuilder {
 
-    private ProtoSnapshotEntry.Builder builder;
-    private ProtoSnapshotEntry entry;
+    private SnapshotEntryProto.Builder builder;
+    private SnapshotEntryProto entry;
     private List<SnapshotChunk> snapshotChunks;
     private Collection<RaftEndpoint> groupMembers;
 
-    public GrpcSnapshotEntryOrBuilder() {
-        this.builder = ProtoSnapshotEntry.newBuilder();
-    }
-
-    public GrpcSnapshotEntryOrBuilder(ProtoSnapshotEntry entry) {
-        this.entry = entry;
-        this.snapshotChunks = new ArrayList<>();
-        this.groupMembers = new LinkedHashSet<>();
-        entry.getSnapshotChunkList().stream().map(GrpcSnapshotChunkOrBuilder::new).forEach(snapshotChunks::add);
-        entry.getGroupMemberList().stream().map(AfloatDBEndpoint::wrap).forEach(groupMembers::add);
+    public SnapshotEntryOrBuilder() {
+        this.builder = SnapshotEntryProto.newBuilder();
     }
 
     @Nonnull
-    public ProtoSnapshotEntry getEntry() {
+    public SnapshotEntryProto getEntry() {
         return entry;
     }
 
@@ -87,7 +77,7 @@ public class GrpcSnapshotEntryOrBuilder
     @Nonnull
     @Override
     public SnapshotEntryBuilder setSnapshotChunks(@Nonnull List<SnapshotChunk> snapshotChunks) {
-        snapshotChunks.stream().map(chunk -> ((GrpcSnapshotChunkOrBuilder) chunk).getSnapshotChunk())
+        snapshotChunks.stream().map(chunk -> ((SnapshotChunkOrBuilder) chunk).getSnapshotChunk())
                       .forEach(builder::addSnapshotChunk);
         this.snapshotChunks = snapshotChunks;
         return this;

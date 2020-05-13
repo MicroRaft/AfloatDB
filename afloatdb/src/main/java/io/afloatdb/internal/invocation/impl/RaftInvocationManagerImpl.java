@@ -21,10 +21,10 @@ import io.afloatdb.internal.raft.RaftNodeReportObserver;
 import io.afloatdb.internal.rpc.RaftRpcStub;
 import io.afloatdb.internal.rpc.RaftRpcStubManager;
 import io.afloatdb.internal.utils.Exceptions;
-import io.afloatdb.raft.proto.ProtoOperation;
-import io.afloatdb.raft.proto.ProtoOperationResponse;
-import io.afloatdb.raft.proto.ProtoQueryRequest;
-import io.afloatdb.raft.proto.ProtoReplicateRequest;
+import io.afloatdb.raft.proto.Operation;
+import io.afloatdb.raft.proto.OperationResponse;
+import io.afloatdb.raft.proto.QueryRequest;
+import io.afloatdb.raft.proto.ReplicateRequest;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
@@ -81,26 +81,26 @@ public class RaftInvocationManagerImpl
     }
 
     @Override
-    public <T> CompletableFuture<Ordered<T>> invoke(@Nonnull ProtoOperation operation) {
+    public <T> CompletableFuture<Ordered<T>> invoke(@Nonnull Operation operation) {
         requireNonNull(operation);
 
         // TODO [basri] create the req only if invoking remotely...
-        ProtoReplicateRequest request = ProtoReplicateRequest.newBuilder().setOperation(operation).build();
-        Invocation<ProtoReplicateRequest, T> invocation = new ReplicateInvocation<>(request);
+        ReplicateRequest request = ReplicateRequest.newBuilder().setOperation(operation).build();
+        Invocation<ReplicateRequest, T> invocation = new ReplicateInvocation<>(request);
         invocation.invoke();
 
         return invocation;
     }
 
     @Override
-    public <T> CompletableFuture<Ordered<T>> query(@Nonnull ProtoOperation operation, @Nonnull QueryPolicy queryPolicy,
+    public <T> CompletableFuture<Ordered<T>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy,
                                                    long minCommitRequest) {
         requireNonNull(operation);
         requireNonNull(queryPolicy);
 
         // TODO [basri] create the req only if invoking remotely...
-        ProtoQueryRequest request = ProtoQueryRequest.newBuilder().setOperation(operation).setQueryPolicy(toProto(queryPolicy))
-                                                     .setMinCommitIndex(minCommitRequest).build();
+        QueryRequest request = QueryRequest.newBuilder().setOperation(operation).setQueryPolicy(toProto(queryPolicy))
+                                           .setMinCommitIndex(minCommitRequest).build();
 
         QueryInvocation<T> invocation = new QueryInvocation<>(request, queryPolicy);
         invocation.invoke();
@@ -122,7 +122,7 @@ public class RaftInvocationManagerImpl
 
     abstract class Invocation<Req, Resp>
             extends OrderedFuture<Resp>
-            implements StreamObserver<ProtoOperationResponse>, BiConsumer<Ordered<Resp>, Throwable> {
+            implements StreamObserver<OperationResponse>, BiConsumer<Ordered<Resp>, Throwable> {
 
         final Req request;
         volatile int tryCount;
@@ -145,7 +145,7 @@ public class RaftInvocationManagerImpl
         }
 
         @Override
-        public final void onNext(ProtoOperationResponse response) {
+        public final void onNext(OperationResponse response) {
             complete(response.getCommitIndex(), (Resp) unwrapResponse(response));
         }
 
@@ -200,8 +200,8 @@ public class RaftInvocationManagerImpl
     }
 
     class ReplicateInvocation<Resp>
-            extends Invocation<ProtoReplicateRequest, Resp> {
-        ReplicateInvocation(ProtoReplicateRequest request) {
+            extends Invocation<ReplicateRequest, Resp> {
+        ReplicateInvocation(ReplicateRequest request) {
             super(request);
         }
 
@@ -223,10 +223,10 @@ public class RaftInvocationManagerImpl
     }
 
     class QueryInvocation<Resp>
-            extends Invocation<ProtoQueryRequest, Resp> {
+            extends Invocation<QueryRequest, Resp> {
         final QueryPolicy queryPolicy;
 
-        QueryInvocation(ProtoQueryRequest request, QueryPolicy queryPolicy) {
+        QueryInvocation(QueryRequest request, QueryPolicy queryPolicy) {
             super(request);
             this.queryPolicy = queryPolicy;
         }

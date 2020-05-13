@@ -17,44 +17,49 @@
 package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.ProtoAppendEntriesSuccessResponse;
-import io.afloatdb.raft.proto.ProtoRaftMessage;
+import io.afloatdb.raft.proto.AppendEntriesFailureResponseProto;
+import io.afloatdb.raft.proto.RaftMessageProto;
 import io.microraft.RaftEndpoint;
-import io.microraft.model.message.AppendEntriesSuccessResponse;
+import io.microraft.model.message.AppendEntriesFailureResponse;
+import io.microraft.model.message.AppendEntriesFailureResponse.AppendEntriesFailureResponseBuilder;
 
 import javax.annotation.Nonnull;
 
-public class GrpcAppendEntriesSuccessResponseOrBuilder
-        implements AppendEntriesSuccessResponse, AppendEntriesSuccessResponse.AppendEntriesSuccessResponseBuilder,
-                   GrpcRaftMessage {
+public class AppendEntriesFailureResponseOrBuilder
+        implements AppendEntriesFailureResponse, AppendEntriesFailureResponseBuilder, RaftMessageProtoAware {
 
-    private ProtoAppendEntriesSuccessResponse.Builder builder;
-    private ProtoAppendEntriesSuccessResponse response;
+    private AppendEntriesFailureResponseProto.Builder builder;
+    private AppendEntriesFailureResponseProto response;
     private RaftEndpoint sender;
 
-    public GrpcAppendEntriesSuccessResponseOrBuilder() {
-        this.builder = ProtoAppendEntriesSuccessResponse.newBuilder();
+    public AppendEntriesFailureResponseOrBuilder() {
+        this.builder = AppendEntriesFailureResponseProto.newBuilder();
     }
 
-    public GrpcAppendEntriesSuccessResponseOrBuilder(ProtoAppendEntriesSuccessResponse response) {
+    public AppendEntriesFailureResponseOrBuilder(AppendEntriesFailureResponseProto response) {
         this.response = response;
         this.sender = AfloatDBEndpoint.wrap(response.getSender());
     }
 
-    public ProtoAppendEntriesSuccessResponse getResponse() {
+    public AppendEntriesFailureResponseProto getResponse() {
         return response;
+    }
+
+    @Override
+    public void populate(RaftMessageProto.Builder builder) {
+        builder.setAppendEntriesFailureResponse(response);
     }
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponseBuilder setGroupId(@Nonnull Object groupId) {
+    public AppendEntriesFailureResponseBuilder setGroupId(@Nonnull Object groupId) {
         builder.setGroupId((String) groupId);
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponseBuilder setSender(@Nonnull RaftEndpoint sender) {
+    public AppendEntriesFailureResponseBuilder setSender(@Nonnull RaftEndpoint sender) {
         builder.setSender(AfloatDBEndpoint.extract(sender));
         this.sender = sender;
         return this;
@@ -62,48 +67,43 @@ public class GrpcAppendEntriesSuccessResponseOrBuilder
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponseBuilder setTerm(int term) {
+    public AppendEntriesFailureResponseBuilder setTerm(int term) {
         builder.setTerm(term);
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponseBuilder setLastLogIndex(long lastLogIndex) {
-        builder.setLastLogIndex(lastLogIndex);
+    public AppendEntriesFailureResponseBuilder setExpectedNextIndex(long expectedNextIndex) {
+        builder.setExpectedNextIndex(expectedNextIndex);
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponseBuilder setQuerySeqNo(long querySeqNo) {
+    public AppendEntriesFailureResponseBuilder setQuerySeqNo(long querySeqNo) {
         builder.setQuerySeqNo(querySeqNo);
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponseBuilder setFlowControlSeqNo(long flowControlSeqNo) {
+    public AppendEntriesFailureResponseBuilder setFlowControlSeqNo(long flowControlSeqNo) {
         builder.setFlowControlSeqNo(flowControlSeqNo);
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponse build() {
+    public AppendEntriesFailureResponse build() {
         response = builder.build();
         builder = null;
         return this;
     }
 
     @Override
-    public void populate(ProtoRaftMessage.Builder builder) {
-        builder.setAppendEntriesSuccessResponse(response);
-    }
-
-    @Override
-    public long getLastLogIndex() {
-        return response.getLastLogIndex();
+    public long getExpectedNextIndex() {
+        return response.getExpectedNextIndex();
     }
 
     @Override
@@ -138,9 +138,9 @@ public class GrpcAppendEntriesSuccessResponseOrBuilder
             return "GrpcAppendEntriesFailureResponseBuilder{builder=" + builder + "}";
         }
 
-        return "GrpcAppendEntriesSuccessResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", " + "term="
-                + getTerm() + ", lastLogIndex=" + getLastLogIndex() + ", querySeqNo=" + getQuerySeqNo() + ", flowControlSeqNo="
-                + getFlowControlSeqNo() + '}';
+        return "GrpcAppendEntriesFailureResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", " + "term="
+                + getTerm() + ", expectedNextIndex=" + getExpectedNextIndex() + ", querySeqNo=" + getQuerySeqNo()
+                + ", flowControlSeqNo=" + getFlowControlSeqNo() + '}';
     }
 
 }

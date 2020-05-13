@@ -17,9 +17,9 @@
 package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.internal.raft.impl.model.log.GrpcLogEntryOrBuilder;
-import io.afloatdb.raft.proto.ProtoAppendEntriesRequest;
-import io.afloatdb.raft.proto.ProtoRaftMessage;
+import io.afloatdb.internal.raft.impl.model.log.LogEntryOrBuilder;
+import io.afloatdb.raft.proto.AppendEntriesRequestProto;
+import io.afloatdb.raft.proto.RaftMessageProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.message.AppendEntriesRequest;
@@ -30,30 +30,30 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
-public class GrpcAppendEntriesRequestOrBuilder
-        implements AppendEntriesRequest, AppendEntriesRequestBuilder, GrpcRaftMessage {
+public class AppendEntriesRequestOrBuilder
+        implements AppendEntriesRequest, AppendEntriesRequestBuilder, RaftMessageProtoAware {
 
-    private ProtoAppendEntriesRequest.Builder builder;
-    private ProtoAppendEntriesRequest request;
+    private AppendEntriesRequestProto.Builder builder;
+    private AppendEntriesRequestProto request;
     private RaftEndpoint sender;
     private List<LogEntry> logEntries;
 
-    public GrpcAppendEntriesRequestOrBuilder() {
-        builder = ProtoAppendEntriesRequest.newBuilder();
+    public AppendEntriesRequestOrBuilder() {
+        builder = AppendEntriesRequestProto.newBuilder();
     }
 
-    public GrpcAppendEntriesRequestOrBuilder(ProtoAppendEntriesRequest request) {
+    public AppendEntriesRequestOrBuilder(AppendEntriesRequestProto request) {
         this.request = request;
         this.sender = AfloatDBEndpoint.wrap(request.getSender());
-        this.logEntries = request.getEntryList().stream().map(GrpcLogEntryOrBuilder::new).collect(toList());
+        this.logEntries = request.getEntryList().stream().map(LogEntryOrBuilder::new).collect(toList());
     }
 
-    public ProtoAppendEntriesRequest getRequest() {
+    public AppendEntriesRequestProto getRequest() {
         return request;
     }
 
     @Override
-    public void populate(ProtoRaftMessage.Builder builder) {
+    public void populate(RaftMessageProto.Builder builder) {
         builder.setAppendEntriesRequest(request);
     }
 
@@ -104,7 +104,7 @@ public class GrpcAppendEntriesRequestOrBuilder
     @Override
     public AppendEntriesRequestBuilder setLogEntries(@Nonnull List<LogEntry> logEntries) {
         for (LogEntry entry : logEntries) {
-            builder.addEntry(((GrpcLogEntryOrBuilder) entry).getEntry());
+            builder.addEntry(((LogEntryOrBuilder) entry).getEntry());
         }
 
         this.logEntries = logEntries;

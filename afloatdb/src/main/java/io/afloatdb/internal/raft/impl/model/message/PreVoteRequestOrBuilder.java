@@ -17,31 +17,31 @@
 package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.ProtoPreVoteRequest;
-import io.afloatdb.raft.proto.ProtoRaftMessage;
+import io.afloatdb.raft.proto.PreVoteRequestProto;
+import io.afloatdb.raft.proto.RaftMessageProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.PreVoteRequest;
 import io.microraft.model.message.PreVoteRequest.PreVoteRequestBuilder;
 
 import javax.annotation.Nonnull;
 
-public class GrpcPreVoteRequestOrBuilder
-        implements PreVoteRequest, PreVoteRequestBuilder, GrpcRaftMessage {
+public class PreVoteRequestOrBuilder
+        implements PreVoteRequest, PreVoteRequestBuilder, RaftMessageProtoAware {
 
-    private ProtoPreVoteRequest.Builder builder;
-    private ProtoPreVoteRequest request;
+    private PreVoteRequestProto.Builder builder;
+    private PreVoteRequestProto request;
     private RaftEndpoint sender;
 
-    public GrpcPreVoteRequestOrBuilder() {
-        this.builder = ProtoPreVoteRequest.newBuilder();
+    public PreVoteRequestOrBuilder() {
+        this.builder = PreVoteRequestProto.newBuilder();
     }
 
-    public GrpcPreVoteRequestOrBuilder(ProtoPreVoteRequest request) {
+    public PreVoteRequestOrBuilder(PreVoteRequestProto request) {
         this.request = request;
         this.sender = AfloatDBEndpoint.wrap(request.getSender());
     }
 
-    public ProtoPreVoteRequest getRequest() {
+    public PreVoteRequestProto getRequest() {
         return request;
     }
 
@@ -90,7 +90,7 @@ public class GrpcPreVoteRequestOrBuilder
     }
 
     @Override
-    public void populate(ProtoRaftMessage.Builder builder) {
+    public void populate(RaftMessageProto.Builder builder) {
         builder.setPreVoteRequest(request);
     }
 

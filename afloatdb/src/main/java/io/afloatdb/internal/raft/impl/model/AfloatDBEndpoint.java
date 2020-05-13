@@ -16,7 +16,7 @@
 
 package io.afloatdb.internal.raft.impl.model;
 
-import io.afloatdb.raft.proto.ProtoRaftEndpoint;
+import io.afloatdb.raft.proto.RaftEndpointProto;
 import io.microraft.RaftEndpoint;
 
 import javax.annotation.Nonnull;
@@ -28,21 +28,21 @@ public class AfloatDBEndpoint
         implements RaftEndpoint {
 
     private static final ConcurrentMap<String, AfloatDBEndpoint> cache = new ConcurrentHashMap<>();
-    private ProtoRaftEndpoint endpoint;
+    private RaftEndpointProto endpoint;
 
-    public AfloatDBEndpoint(ProtoRaftEndpoint endpoint) {
+    public AfloatDBEndpoint(RaftEndpointProto endpoint) {
         this.endpoint = endpoint;
     }
 
-    public static AfloatDBEndpoint wrap(@Nonnull ProtoRaftEndpoint endpoint) {
+    public static AfloatDBEndpoint wrap(@Nonnull RaftEndpointProto endpoint) {
         return cache.computeIfAbsent(endpoint.getId(), id -> new AfloatDBEndpoint(endpoint));
     }
 
-    public static ProtoRaftEndpoint extract(@Nullable RaftEndpoint endpoint) {
+    public static RaftEndpointProto extract(@Nullable RaftEndpoint endpoint) {
         return endpoint != null ? ((AfloatDBEndpoint) endpoint).getEndpoint() : null;
     }
 
-    public ProtoRaftEndpoint getEndpoint() {
+    public RaftEndpointProto getEndpoint() {
         return endpoint;
     }
 

@@ -16,27 +16,27 @@
 
 package io.afloatdb.internal.raft.impl.model.log;
 
-import io.afloatdb.raft.proto.ProtoLogEntry;
+import io.afloatdb.raft.proto.LogEntryProto;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
 
 import javax.annotation.Nonnull;
 
-public class GrpcLogEntryOrBuilder
+public class LogEntryOrBuilder
         implements LogEntry, LogEntryBuilder {
 
-    private ProtoLogEntry.Builder builder;
-    private ProtoLogEntry entry;
+    private LogEntryProto.Builder builder;
+    private LogEntryProto entry;
 
-    public GrpcLogEntryOrBuilder() {
-        this.builder = ProtoLogEntry.newBuilder();
+    public LogEntryOrBuilder() {
+        this.builder = LogEntryProto.newBuilder();
     }
 
-    public GrpcLogEntryOrBuilder(ProtoLogEntry entry) {
+    public LogEntryOrBuilder(LogEntryProto entry) {
         this.entry = entry;
     }
 
-    public ProtoLogEntry getEntry() {
+    public LogEntryProto getEntry() {
         return entry;
     }
 
@@ -57,7 +57,7 @@ public class GrpcLogEntryOrBuilder
     @Nonnull
     @Override
     public LogEntryBuilder setOperation(@Nonnull Object operation) {
-        builder.setOperation(ProtoOperations.wrap(operation));
+        builder.setOperation(Operations.wrap(operation));
         return this;
     }
 
@@ -91,7 +91,7 @@ public class GrpcLogEntryOrBuilder
     @Nonnull
     @Override
     public Object getOperation() {
-        return ProtoOperations.extract(entry.getOperation());
+        return Operations.extract(entry.getOperation());
     }
 
 }

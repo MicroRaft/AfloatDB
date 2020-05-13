@@ -17,31 +17,31 @@
 package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.ProtoRaftMessage;
-import io.afloatdb.raft.proto.ProtoVoteRequest;
+import io.afloatdb.raft.proto.RaftMessageProto;
+import io.afloatdb.raft.proto.VoteRequestProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.VoteRequest;
 import io.microraft.model.message.VoteRequest.VoteRequestBuilder;
 
 import javax.annotation.Nonnull;
 
-public class GrpcVoteRequestOrBuilder
-        implements VoteRequest, VoteRequestBuilder, GrpcRaftMessage {
+public class VoteRequestOrBuilder
+        implements VoteRequest, VoteRequestBuilder, RaftMessageProtoAware {
 
-    private ProtoVoteRequest.Builder builder;
-    private ProtoVoteRequest request;
+    private VoteRequestProto.Builder builder;
+    private VoteRequestProto request;
     private RaftEndpoint sender;
 
-    public GrpcVoteRequestOrBuilder() {
-        this.builder = ProtoVoteRequest.newBuilder();
+    public VoteRequestOrBuilder() {
+        this.builder = VoteRequestProto.newBuilder();
     }
 
-    public GrpcVoteRequestOrBuilder(ProtoVoteRequest request) {
+    public VoteRequestOrBuilder(VoteRequestProto request) {
         this.request = request;
         this.sender = AfloatDBEndpoint.wrap(request.getSender());
     }
 
-    public ProtoVoteRequest getRequest() {
+    public VoteRequestProto getRequest() {
         return request;
     }
 
@@ -97,7 +97,7 @@ public class GrpcVoteRequestOrBuilder
     }
 
     @Override
-    public void populate(ProtoRaftMessage.Builder builder) {
+    public void populate(RaftMessageProto.Builder builder) {
         builder.setVoteRequest(request);
     }
 

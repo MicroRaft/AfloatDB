@@ -17,31 +17,31 @@
 package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.ProtoRaftMessage;
-import io.afloatdb.raft.proto.ProtoTriggerLeaderElectionRequest;
+import io.afloatdb.raft.proto.RaftMessageProto;
+import io.afloatdb.raft.proto.TriggerLeaderElectionRequestProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.TriggerLeaderElectionRequest;
 import io.microraft.model.message.TriggerLeaderElectionRequest.TriggerLeaderElectionRequestBuilder;
 
 import javax.annotation.Nonnull;
 
-public class GrpcTriggerLeaderElectionRequestOrBuilder
-        implements TriggerLeaderElectionRequest, TriggerLeaderElectionRequestBuilder, GrpcRaftMessage {
+public class TriggerLeaderElectionRequestOrBuilder
+        implements TriggerLeaderElectionRequest, TriggerLeaderElectionRequestBuilder, RaftMessageProtoAware {
 
-    private ProtoTriggerLeaderElectionRequest.Builder builder;
-    private ProtoTriggerLeaderElectionRequest request;
+    private TriggerLeaderElectionRequestProto.Builder builder;
+    private TriggerLeaderElectionRequestProto request;
     private RaftEndpoint sender;
 
-    public GrpcTriggerLeaderElectionRequestOrBuilder() {
-        this.builder = ProtoTriggerLeaderElectionRequest.newBuilder();
+    public TriggerLeaderElectionRequestOrBuilder() {
+        this.builder = TriggerLeaderElectionRequestProto.newBuilder();
     }
 
-    public GrpcTriggerLeaderElectionRequestOrBuilder(ProtoTriggerLeaderElectionRequest request) {
+    public TriggerLeaderElectionRequestOrBuilder(TriggerLeaderElectionRequestProto request) {
         this.request = request;
         this.sender = AfloatDBEndpoint.wrap(request.getSender());
     }
 
-    public ProtoTriggerLeaderElectionRequest getRequest() {
+    public TriggerLeaderElectionRequestProto getRequest() {
         return request;
     }
 
@@ -90,7 +90,7 @@ public class GrpcTriggerLeaderElectionRequestOrBuilder
     }
 
     @Override
-    public void populate(ProtoRaftMessage.Builder builder) {
+    public void populate(RaftMessageProto.Builder builder) {
         builder.setTriggerLeaderElectionRequest(request);
     }
 

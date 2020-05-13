@@ -16,7 +16,7 @@
 
 package io.afloatdb.internal.invocation;
 
-import io.afloatdb.raft.proto.ProtoOperation;
+import io.afloatdb.raft.proto.Operation;
 import io.microraft.Ordered;
 import io.microraft.QueryPolicy;
 
@@ -25,8 +25,8 @@ import java.util.concurrent.CompletableFuture;
 
 public interface RaftInvocationManager {
 
-    <T> CompletableFuture<Ordered<T>> invoke(@Nonnull ProtoOperation operation);
+    <T> CompletableFuture<Ordered<T>> invoke(@Nonnull Operation operation);
 
-    <T> CompletableFuture<Ordered<T>> query(@Nonnull ProtoOperation operation, @Nonnull QueryPolicy queryPolicy,
+    <T> CompletableFuture<Ordered<T>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy,
                                             long minCommitRequest);
 }

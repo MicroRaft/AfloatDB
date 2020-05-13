@@ -24,7 +24,7 @@ import io.afloatdb.kv.proto.PutResponse;
 import io.afloatdb.kv.proto.SizeRequest;
 import io.afloatdb.kv.proto.SizeResponse;
 import io.afloatdb.kv.proto.TypedValue;
-import io.afloatdb.raft.proto.ProtoOperation;
+import io.afloatdb.raft.proto.Operation;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.microraft.Ordered;
@@ -137,7 +137,7 @@ public class RaftInvocationManagerTest
         AfloatDB follower = getAnyFollower(servers);
 
         RaftInvocationManager invocationManager = getRaftInvocationManager(follower);
-        ProtoOperation request = ProtoOperation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
+        Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
         CompletableFuture<Ordered<SizeResponse>> future = invocationManager.query(request, LINEARIZABLE, 0);
 
         Ordered<SizeResponse> result = future.join();
@@ -151,7 +151,7 @@ public class RaftInvocationManagerTest
         invokePutRequest(leader).join();
 
         RaftInvocationManager invocationManager = getRaftInvocationManager(leader);
-        ProtoOperation request = ProtoOperation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
+        Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
         CompletableFuture<Ordered<SizeResponse>> future = invocationManager.query(request, LINEARIZABLE, 0);
 
         Ordered<SizeResponse> result = future.join();
@@ -167,7 +167,7 @@ public class RaftInvocationManagerTest
         AfloatDB follower = getAnyFollower(servers);
 
         RaftInvocationManager invocationManager = getRaftInvocationManager(follower);
-        ProtoOperation request = ProtoOperation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
+        Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
         CompletableFuture<Ordered<SizeResponse>> future = invocationManager.query(request, LEADER_LOCAL, 0);
 
         Ordered<SizeResponse> result = future.join();
@@ -181,7 +181,7 @@ public class RaftInvocationManagerTest
         invokePutRequest(leader).join();
 
         RaftInvocationManager invocationManager = getRaftInvocationManager(leader);
-        ProtoOperation request = ProtoOperation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
+        Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
         CompletableFuture<Ordered<SizeResponse>> future = invocationManager.query(request, LEADER_LOCAL, 0);
 
         Ordered<SizeResponse> result = future.join();
@@ -197,7 +197,7 @@ public class RaftInvocationManagerTest
         AfloatDB follower = getAnyFollower(servers);
 
         RaftInvocationManager invocationManager = getRaftInvocationManager(follower);
-        ProtoOperation request = ProtoOperation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
+        Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
         CompletableFuture<Ordered<SizeResponse>> future = invocationManager.query(request, ANY_LOCAL, 0);
 
         Ordered<SizeResponse> result = future.join();
@@ -211,7 +211,7 @@ public class RaftInvocationManagerTest
         invokePutRequest(leader).join();
 
         RaftInvocationManager invocationManager = getRaftInvocationManager(leader);
-        ProtoOperation request = ProtoOperation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
+        Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
         CompletableFuture<Ordered<SizeResponse>> future = invocationManager.query(request, ANY_LOCAL, 0);
 
         Ordered<SizeResponse> result = future.join();
@@ -223,7 +223,7 @@ public class RaftInvocationManagerTest
         RaftInvocationManager invocationManager = getRaftInvocationManager(server);
         TypedValue val = TypedValue.newBuilder().setValue(ByteString.copyFromUtf8("val")).build();
         PutRequest request = PutRequest.newBuilder().setKey("key").setValue(val).build();
-        ProtoOperation operation = ProtoOperation.newBuilder().setPutRequest(request).build();
+        Operation operation = Operation.newBuilder().setPutRequest(request).build();
 
         return invocationManager.invoke(operation);
     }

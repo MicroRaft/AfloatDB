@@ -35,9 +35,9 @@ import io.afloatdb.management.proto.AddRaftEndpointRequest;
 import io.afloatdb.management.proto.GetRaftNodeReportRequest;
 import io.afloatdb.management.proto.GetRaftNodeReportResponse;
 import io.afloatdb.management.proto.ManagementServiceGrpc;
-import io.afloatdb.management.proto.ProtoRaftNodeReport;
-import io.afloatdb.management.proto.ProtoRaftNodeStatus;
-import io.afloatdb.raft.proto.ProtoRaftEndpoint;
+import io.afloatdb.management.proto.RaftNodeReportProto;
+import io.afloatdb.management.proto.RaftNodeStatusProto;
+import io.afloatdb.raft.proto.RaftEndpointProto;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.microraft.RaftEndpoint;
@@ -100,8 +100,8 @@ public class AfloatDBImpl
         }
     }
 
-    private static ProtoRaftEndpoint toProtoRaftEndpoint(AfloatDBEndpointConfig endpointConfig) {
-        return ProtoRaftEndpoint.newBuilder().setId(endpointConfig.getId()).build();
+    private static RaftEndpointProto toProtoRaftEndpoint(AfloatDBEndpointConfig endpointConfig) {
+        return RaftEndpointProto.newBuilder().setId(endpointConfig.getId()).build();
     }
 
     private void registerShutdownHook() {
@@ -186,7 +186,7 @@ public class AfloatDBImpl
 
         @Override
         public AfloatDBImpl get() {
-            ProtoRaftEndpoint localEndpoint = toProtoRaftEndpoint(config.getLocalEndpointConfig());
+            RaftEndpointProto localEndpoint = toProtoRaftEndpoint(config.getLocalEndpointConfig());
             List<RaftEndpoint> initialEndpoints = getInitialEndpoints(config);
             Map<RaftEndpoint, String> endpointAddresses = getEndpointAddresses(config);
             return new AfloatDBImpl(config, AfloatDBEndpoint.wrap(localEndpoint), initialEndpoints, endpointAddresses);
@@ -217,7 +217,7 @@ public class AfloatDBImpl
         final AfloatDBConfig config;
         final List<RaftEndpoint> initialMembers = new ArrayList<>();
         final Map<RaftEndpoint, String> endpointAddresses = new HashMap<>();
-        final ProtoRaftEndpoint localEndpoint;
+        final RaftEndpointProto localEndpoint;
 
         public AfloatDBJoiner(AfloatDBConfig config) {
             this.config = config;
@@ -249,7 +249,7 @@ public class AfloatDBImpl
             AddRaftEndpointAddressRequest request = AddRaftEndpointAddressRequest.newBuilder().setEndpoint(localEndpoint)
                                                                                  .setAddress(localAddress).build();
 
-            for (ProtoRaftEndpoint endpoint : reportResponse.getReport().getEffectiveMembers().getMemberList()) {
+            for (RaftEndpointProto endpoint : reportResponse.getReport().getEffectiveMembers().getMemberList()) {
                 String address = reportResponse.getEndpointAddressOrDefault(endpoint.getId(), null);
                 broadcastLocalAddress(request, endpoint, address);
             }
@@ -280,8 +280,8 @@ public class AfloatDBImpl
         }
 
         private void verifyReport(String joinAddress, GetRaftNodeReportResponse reportResponse) {
-            ProtoRaftNodeReport report = reportResponse.getReport();
-            if (report.getStatus() != ProtoRaftNodeStatus.ACTIVE) {
+            RaftNodeReportProto report = reportResponse.getReport();
+            if (report.getStatus() != RaftNodeStatusProto.ACTIVE) {
                 throw new AfloatDBException(
                         "Cannot join via " + joinAddress + " because the Raft node status is " + report.getStatus());
             }
@@ -291,7 +291,7 @@ public class AfloatDBImpl
                         "Cannot join via " + joinAddress + " because there is another ongoing " + "membership change!");
             }
 
-            for (ProtoRaftEndpoint endpoint : report.getEffectiveMembers().getMemberList()) {
+            for (RaftEndpointProto endpoint : report.getEffectiveMembers().getMemberList()) {
                 if (reportResponse.getEndpointAddressOrDefault(endpoint.getId(), null) == null) {
                     throw new AfloatDBException(
                             "Cannot join via " + joinAddress + " because the address of the Raft " + "endpoint: " + endpoint
@@ -304,10 +304,10 @@ public class AfloatDBImpl
             }
         }
 
-        private void broadcastLocalAddress(AddRaftEndpointAddressRequest request, ProtoRaftEndpoint target,
+        private void broadcastLocalAddress(AddRaftEndpointAddressRequest request, RaftEndpointProto target,
                                            String targetAddress) {
             LOGGER.debug("{} adding local address: {} to {} at {}", localEndpoint.getId(), request.getAddress(), target,
-                    targetAddress);
+                         targetAddress);
             ManagedChannel channel = createChannel(targetAddress);
             try {
                 ManagementServiceGrpc.newBlockingStub(channel).addRaftEndpointAddress(request);
@@ -319,14 +319,14 @@ public class AfloatDBImpl
         }
 
         private void addRaftEndpoint(GetRaftNodeReportResponse reportResponse) {
-            ProtoRaftNodeReport report = reportResponse.getReport();
-            ProtoRaftEndpoint leaderEndpoint = report.getTerm().getLeaderEndpoint();
+            RaftNodeReportProto report = reportResponse.getReport();
+            RaftEndpointProto leaderEndpoint = report.getTerm().getLeaderEndpoint();
             String leaderAddress = reportResponse.getEndpointAddressOrDefault(leaderEndpoint.getId(), null);
             ManagedChannel leaderChannel = createChannel(leaderAddress);
             long groupMembersCommitIndex = report.getCommittedMembers().getLogIndex();
 
             LOGGER.info("{} adding Raft endpoint at group members commit index: {} via the Raft leader: {} at {}",
-                    localEndpoint.getId(), groupMembersCommitIndex, leaderEndpoint.getId(), leaderAddress);
+                        localEndpoint.getId(), groupMembersCommitIndex, leaderEndpoint.getId(), leaderAddress);
 
             AddRaftEndpointRequest request = AddRaftEndpointRequest.newBuilder().setEndpoint(localEndpoint)
                                                                    .setGroupMembersCommitIndex(groupMembersCommitIndex).build();
@@ -344,11 +344,11 @@ public class AfloatDBImpl
         }
 
         private void populateDBInitState(GetRaftNodeReportResponse reportResponse) {
-            for (ProtoRaftEndpoint endpoint : reportResponse.getReport().getInitialMembers().getMemberList()) {
+            for (RaftEndpointProto endpoint : reportResponse.getReport().getInitialMembers().getMemberList()) {
                 initialMembers.add(AfloatDBEndpoint.wrap(endpoint));
             }
 
-            for (ProtoRaftEndpoint endpoint : reportResponse.getReport().getEffectiveMembers().getMemberList()) {
+            for (RaftEndpointProto endpoint : reportResponse.getReport().getEffectiveMembers().getMemberList()) {
                 String address = reportResponse.getEndpointAddressOrDefault(endpoint.getId(), null);
                 endpointAddresses.put(AfloatDBEndpoint.wrap(endpoint), address);
             }

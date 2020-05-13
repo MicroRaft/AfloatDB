@@ -36,7 +36,7 @@ import io.afloatdb.kv.proto.SetRequest;
 import io.afloatdb.kv.proto.SetResponse;
 import io.afloatdb.kv.proto.SizeRequest;
 import io.afloatdb.kv.proto.SizeResponse;
-import io.afloatdb.raft.proto.ProtoOperation;
+import io.afloatdb.raft.proto.Operation;
 import io.grpc.stub.StreamObserver;
 import io.microraft.QueryPolicy;
 
@@ -58,50 +58,50 @@ public class KVRequestHandler
 
     @Override
     public void put(PutRequest request, StreamObserver<PutResponse> responseObserver) {
-        replicate(ProtoOperation.newBuilder().setPutRequest(request).build(), responseObserver);
+        replicate(Operation.newBuilder().setPutRequest(request).build(), responseObserver);
     }
 
     @Override
     public void set(SetRequest request, StreamObserver<SetResponse> responseObserver) {
-        replicate(ProtoOperation.newBuilder().setSetRequest(request).build(), responseObserver);
+        replicate(Operation.newBuilder().setSetRequest(request).build(), responseObserver);
     }
 
     @Override
     public void get(GetRequest request, StreamObserver<GetResponse> responseObserver) {
-        query(ProtoOperation.newBuilder().setGetRequest(request).build(), responseObserver);
+        query(Operation.newBuilder().setGetRequest(request).build(), responseObserver);
     }
 
     @Override
     public void contains(ContainsRequest request, StreamObserver<ContainsResponse> responseObserver) {
-        query(ProtoOperation.newBuilder().setContainsRequest(request).build(), responseObserver);
+        query(Operation.newBuilder().setContainsRequest(request).build(), responseObserver);
     }
 
     @Override
     public void delete(DeleteRequest request, StreamObserver<DeleteResponse> responseObserver) {
-        replicate(ProtoOperation.newBuilder().setDeleteRequest(request).build(), responseObserver);
+        replicate(Operation.newBuilder().setDeleteRequest(request).build(), responseObserver);
     }
 
     @Override
     public void remove(RemoveRequest request, StreamObserver<RemoveResponse> responseObserver) {
-        replicate(ProtoOperation.newBuilder().setRemoveRequest(request).build(), responseObserver);
+        replicate(Operation.newBuilder().setRemoveRequest(request).build(), responseObserver);
     }
 
     @Override
     public void replace(ReplaceRequest request, StreamObserver<ReplaceResponse> responseObserver) {
-        replicate(ProtoOperation.newBuilder().setReplaceRequest(request).build(), responseObserver);
+        replicate(Operation.newBuilder().setReplaceRequest(request).build(), responseObserver);
     }
 
     @Override
     public void size(SizeRequest request, StreamObserver<SizeResponse> responseObserver) {
-        query(ProtoOperation.newBuilder().setSizeRequest(request).build(), responseObserver);
+        query(Operation.newBuilder().setSizeRequest(request).build(), responseObserver);
     }
 
     @Override
     public void clear(ClearRequest request, StreamObserver<ClearResponse> responseObserver) {
-        replicate(ProtoOperation.newBuilder().setClearRequest(request).build(), responseObserver);
+        replicate(Operation.newBuilder().setClearRequest(request).build(), responseObserver);
     }
 
-    private <T> void replicate(ProtoOperation request, StreamObserver<T> responseObserver) {
+    private <T> void replicate(Operation request, StreamObserver<T> responseObserver) {
         raftInvocationManager.<T>invoke(request).whenComplete((response, throwable) -> {
             // TODO [basri] bottleneck. offload to IO thread...
             if (throwable == null) {
@@ -113,7 +113,7 @@ public class KVRequestHandler
         });
     }
 
-    private <T> void query(ProtoOperation request, StreamObserver<T> responseObserver) {
+    private <T> void query(Operation request, StreamObserver<T> responseObserver) {
         raftInvocationManager.<T>query(request, QueryPolicy.LINEARIZABLE, 0).whenComplete((response, throwable) -> {
             // TODO [basri] bottleneck. offload to IO thread...
             if (throwable == null) {

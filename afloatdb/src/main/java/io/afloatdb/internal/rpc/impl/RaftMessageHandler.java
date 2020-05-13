@@ -26,12 +26,12 @@ import io.afloatdb.kv.proto.RemoveResponse;
 import io.afloatdb.kv.proto.ReplaceResponse;
 import io.afloatdb.kv.proto.SetResponse;
 import io.afloatdb.kv.proto.SizeResponse;
-import io.afloatdb.raft.proto.ProtoOperationResponse;
-import io.afloatdb.raft.proto.ProtoQueryRequest;
-import io.afloatdb.raft.proto.ProtoRaftMessage;
-import io.afloatdb.raft.proto.ProtoRaftResponse;
-import io.afloatdb.raft.proto.ProtoReplicateRequest;
+import io.afloatdb.raft.proto.OperationResponse;
+import io.afloatdb.raft.proto.QueryRequest;
+import io.afloatdb.raft.proto.RaftMessageProto;
 import io.afloatdb.raft.proto.RaftMessageServiceGrpc.RaftMessageServiceImplBase;
+import io.afloatdb.raft.proto.RaftResponse;
+import io.afloatdb.raft.proto.ReplicateRequest;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
@@ -85,7 +85,7 @@ public class RaftMessageHandler
     }
 
     @Override
-    public void replicate(ProtoReplicateRequest request, StreamObserver<ProtoOperationResponse> responseObserver) {
+    public void replicate(ReplicateRequest request, StreamObserver<OperationResponse> responseObserver) {
         raftNode.replicate(request.getOperation()).whenComplete((response, throwable) -> {
             if (throwable == null) {
                 responseObserver.onNext(createProtoOperationResponse(response));
@@ -97,7 +97,7 @@ public class RaftMessageHandler
     }
 
     @Override
-    public void query(ProtoQueryRequest request, StreamObserver<ProtoOperationResponse> responseObserver) {
+    public void query(QueryRequest request, StreamObserver<OperationResponse> responseObserver) {
         QueryPolicy queryPolicy = fromProto(request.getQueryPolicy());
         if (queryPolicy == null) {
             responseObserver.onError(new StatusRuntimeException(Status.INVALID_ARGUMENT));
@@ -115,8 +115,8 @@ public class RaftMessageHandler
         });
     }
 
-    private ProtoOperationResponse createProtoOperationResponse(Ordered<Object> ordered) {
-        ProtoOperationResponse.Builder builder = ProtoOperationResponse.newBuilder();
+    private OperationResponse createProtoOperationResponse(Ordered<Object> ordered) {
+        OperationResponse.Builder builder = OperationResponse.newBuilder();
         builder.setCommitIndex(ordered.getCommitIndex());
 
         Object result = ordered.getResult();
@@ -146,19 +146,19 @@ public class RaftMessageHandler
     }
 
     @Override
-    public StreamObserver<ProtoRaftMessage> handle(StreamObserver<ProtoRaftResponse> responseObserver) {
+    public StreamObserver<RaftMessageProto> handle(StreamObserver<RaftResponse> responseObserver) {
         RaftMessageStreamObserver observer = new RaftMessageStreamObserver();
         streamObservers.add(observer);
         return observer;
     }
 
     private class RaftMessageStreamObserver
-            implements StreamObserver<ProtoRaftMessage> {
+            implements StreamObserver<RaftMessageProto> {
 
         private volatile RaftEndpoint sender;
 
         @Override
-        public void onNext(ProtoRaftMessage proto) {
+        public void onNext(RaftMessageProto proto) {
             RaftMessage message = unwrap(proto);
             if (sender == null) {
                 sender = message.getSender();

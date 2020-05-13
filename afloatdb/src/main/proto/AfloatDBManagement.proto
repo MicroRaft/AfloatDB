@@ -7,24 +7,24 @@ import "AfloatDBRaft.proto";
 option java_multiple_files = true;
 
 
-message ProtoRaftGroupMembers {
+message RaftGroupMembersProto {
     int64 logIndex = 1;
-    repeated io.afloatdb.raft.proto.ProtoRaftEndpoint member = 2;
+    repeated io.afloatdb.raft.proto.RaftEndpointProto member = 2;
 }
 
-message ProtoRaftTerm {
+message RaftTermProto {
     int32 term = 1;
-    io.afloatdb.raft.proto.ProtoRaftEndpoint leaderEndpoint = 2;
-    io.afloatdb.raft.proto.ProtoRaftEndpoint votedEndpoint = 3;
+    io.afloatdb.raft.proto.RaftEndpointProto leaderEndpoint = 2;
+    io.afloatdb.raft.proto.RaftEndpointProto votedEndpoint = 3;
 }
 
-enum ProtoRaftRole {
+enum RaftRoleProto {
     FOLLOWER = 0;
     CANDIDATE = 1;
     LEADER = 2;
 }
 
-enum ProtoRaftNodeReportReason {
+enum RaftNodeReportReasonProto {
     STATUS_CHANGE = 0;
     ROLE_CHANGE = 1;
     GROUP_MEMBERS_CHANGE = 2;
@@ -34,7 +34,7 @@ enum ProtoRaftNodeReportReason {
     API_CALL = 6;
 }
 
-enum ProtoRaftNodeStatus {
+enum RaftNodeStatusProto {
     INITIAL = 0;
     ACTIVE = 1;
     UPDATING_RAFT_GROUP_MEMBER_LIST = 2;
@@ -42,7 +42,7 @@ enum ProtoRaftNodeStatus {
     TERMINATED = 4;
 }
 
-message ProtoRaftLogStats {
+message RaftLogStatsProto {
     int64 commitIndex = 1;
     int64 lastLogOrSnapshotTerm = 2;
     int64 lastLogOrSnapshotIndex = 3;
@@ -52,21 +52,21 @@ message ProtoRaftLogStats {
     int32 installSnapshotCount = 7;
 }
 
-message ProtoRaftNodeReport {
-    ProtoRaftNodeReportReason reason = 1;
+message RaftNodeReportProto {
+    RaftNodeReportReasonProto reason = 1;
     string groupId = 2;
-    io.afloatdb.raft.proto.ProtoRaftEndpoint endpoint = 3;
-    ProtoRaftGroupMembers initialMembers = 4;
-    ProtoRaftGroupMembers committedMembers = 5;
-    ProtoRaftGroupMembers effectiveMembers = 6;
-    ProtoRaftRole role = 7;
-    ProtoRaftNodeStatus status = 8;
-    ProtoRaftTerm term = 9;
-    ProtoRaftLogStats log = 10;
+    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 3;
+    RaftGroupMembersProto initialMembers = 4;
+    RaftGroupMembersProto committedMembers = 5;
+    RaftGroupMembersProto effectiveMembers = 6;
+    RaftRoleProto role = 7;
+    RaftNodeStatusProto status = 8;
+    RaftTermProto term = 9;
+    RaftLogStatsProto log = 10;
 }
 
 message RemoveEndpointRequest {
-    io.afloatdb.raft.proto.ProtoRaftEndpoint endpoint = 1;
+    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
     int64 groupMembersCommitIndex = 2;
 }
 
@@ -78,12 +78,12 @@ message GetRaftNodeReportRequest {
 }
 
 message GetRaftNodeReportResponse {
-    ProtoRaftNodeReport report = 1;
+    RaftNodeReportProto report = 1;
     map<string, string> endpointAddress = 2;
 }
 
 message AddRaftEndpointAddressRequest {
-    io.afloatdb.raft.proto.ProtoRaftEndpoint endpoint = 1;
+    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
     string address = 2;
 }
 
@@ -91,7 +91,7 @@ message AddRaftEndpointAddressResponse {
 }
 
 message AddRaftEndpointRequest {
-    io.afloatdb.raft.proto.ProtoRaftEndpoint endpoint = 1;
+    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
     int64 groupMembersCommitIndex = 2;
 }
 

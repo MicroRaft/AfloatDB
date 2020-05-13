@@ -1,31 +1,31 @@
 package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.ProtoInstallSnapshotResponse;
-import io.afloatdb.raft.proto.ProtoRaftMessage;
+import io.afloatdb.raft.proto.InstallSnapshotResponseProto;
+import io.afloatdb.raft.proto.RaftMessageProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.InstallSnapshotResponse;
 import io.microraft.model.message.InstallSnapshotResponse.InstallSnapshotResponseBuilder;
 
 import javax.annotation.Nonnull;
 
-public class GrpcInstallSnapshotResponseOrBuilder
-        implements InstallSnapshotResponse, InstallSnapshotResponseBuilder, GrpcRaftMessage {
+public class InstallSnapshotResponseOrBuilder
+        implements InstallSnapshotResponse, InstallSnapshotResponseBuilder, RaftMessageProtoAware {
 
-    private ProtoInstallSnapshotResponse.Builder builder;
-    private ProtoInstallSnapshotResponse response;
+    private InstallSnapshotResponseProto.Builder builder;
+    private InstallSnapshotResponseProto response;
     private RaftEndpoint sender;
 
-    public GrpcInstallSnapshotResponseOrBuilder() {
-        this.builder = ProtoInstallSnapshotResponse.newBuilder();
+    public InstallSnapshotResponseOrBuilder() {
+        this.builder = InstallSnapshotResponseProto.newBuilder();
     }
 
-    public GrpcInstallSnapshotResponseOrBuilder(ProtoInstallSnapshotResponse response) {
+    public InstallSnapshotResponseOrBuilder(InstallSnapshotResponseProto response) {
         this.response = response;
         this.sender = AfloatDBEndpoint.wrap(response.getSender());
     }
 
-    public ProtoInstallSnapshotResponse getResponse() {
+    public InstallSnapshotResponseProto getResponse() {
         return response;
     }
 
@@ -88,7 +88,7 @@ public class GrpcInstallSnapshotResponseOrBuilder
     }
 
     @Override
-    public void populate(ProtoRaftMessage.Builder builder) {
+    public void populate(RaftMessageProto.Builder builder) {
         builder.setInstallSnapshotResponse(response);
     }
 

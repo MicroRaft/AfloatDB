@@ -16,20 +16,20 @@
 
 package io.afloatdb.internal.raft.impl.model;
 
-import io.afloatdb.internal.raft.impl.model.groupop.GrpcUpdateRaftGroupMembersOpOrBuilder;
-import io.afloatdb.internal.raft.impl.model.log.GrpcLogEntryOrBuilder;
-import io.afloatdb.internal.raft.impl.model.log.GrpcSnapshotChunkOrBuilder;
-import io.afloatdb.internal.raft.impl.model.log.GrpcSnapshotEntryOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcAppendEntriesFailureResponseOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcAppendEntriesRequestOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcAppendEntriesSuccessResponseOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcInstallSnapshotRequestOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcInstallSnapshotResponseOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcPreVoteRequestOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcPreVoteResponseOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcTriggerLeaderElectionRequestOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcVoteRequestOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.GrpcVoteResponseOrBuilder;
+import io.afloatdb.internal.raft.impl.model.groupop.UpdateRaftGroupMembersOpOrBuilder;
+import io.afloatdb.internal.raft.impl.model.log.LogEntryOrBuilder;
+import io.afloatdb.internal.raft.impl.model.log.SnapshotChunkOrBuilder;
+import io.afloatdb.internal.raft.impl.model.log.SnapshotEntryOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.AppendEntriesFailureResponseOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.AppendEntriesRequestOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.AppendEntriesSuccessResponseOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.InstallSnapshotRequestOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.InstallSnapshotResponseOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.PreVoteRequestOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.PreVoteResponseOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.TriggerLeaderElectionRequestOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.VoteRequestOrBuilder;
+import io.afloatdb.internal.raft.impl.model.message.VoteResponseOrBuilder;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMembersOpBuilder;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
@@ -50,91 +50,91 @@ import javax.annotation.Nonnull;
 import javax.inject.Singleton;
 
 @Singleton
-public class GrpcRaftModelFactory
+public class ProtoRaftModelFactory
         implements RaftModelFactory {
 
     @Nonnull
     @Override
     public LogEntryBuilder createLogEntryBuilder() {
-        return new GrpcLogEntryOrBuilder();
+        return new LogEntryOrBuilder();
     }
 
     @Nonnull
     @Override
     public SnapshotEntryBuilder createSnapshotEntryBuilder() {
-        return new GrpcSnapshotEntryOrBuilder();
+        return new SnapshotEntryOrBuilder();
     }
 
     @Nonnull
     @Override
     public SnapshotChunk.SnapshotChunkBuilder createSnapshotChunkBuilder() {
-        return new GrpcSnapshotChunkOrBuilder();
+        return new SnapshotChunkOrBuilder();
     }
 
     @Nonnull
     @Override
     public AppendEntriesRequestBuilder createAppendEntriesRequestBuilder() {
-        return new GrpcAppendEntriesRequestOrBuilder();
+        return new AppendEntriesRequestOrBuilder();
     }
 
     @Nonnull
     @Override
     public AppendEntriesSuccessResponseBuilder createAppendEntriesSuccessResponseBuilder() {
-        return new GrpcAppendEntriesSuccessResponseOrBuilder();
+        return new AppendEntriesSuccessResponseOrBuilder();
     }
 
     @Nonnull
     @Override
     public AppendEntriesFailureResponseBuilder createAppendEntriesFailureResponseBuilder() {
-        return new GrpcAppendEntriesFailureResponseOrBuilder();
+        return new AppendEntriesFailureResponseOrBuilder();
     }
 
     @Nonnull
     @Override
     public InstallSnapshotRequestBuilder createInstallSnapshotRequestBuilder() {
-        return new GrpcInstallSnapshotRequestOrBuilder();
+        return new InstallSnapshotRequestOrBuilder();
     }
 
     @Nonnull
     @Override
     public InstallSnapshotResponseBuilder createInstallSnapshotResponseBuilder() {
-        return new GrpcInstallSnapshotResponseOrBuilder();
+        return new InstallSnapshotResponseOrBuilder();
     }
 
     @Nonnull
     @Override
     public PreVoteRequestBuilder createPreVoteRequestBuilder() {
-        return new GrpcPreVoteRequestOrBuilder();
+        return new PreVoteRequestOrBuilder();
     }
 
     @Nonnull
     @Override
     public PreVoteResponseBuilder createPreVoteResponseBuilder() {
-        return new GrpcPreVoteResponseOrBuilder();
+        return new PreVoteResponseOrBuilder();
     }
 
     @Nonnull
     @Override
     public TriggerLeaderElectionRequestBuilder createTriggerLeaderElectionRequestBuilder() {
-        return new GrpcTriggerLeaderElectionRequestOrBuilder();
+        return new TriggerLeaderElectionRequestOrBuilder();
     }
 
     @Nonnull
     @Override
     public VoteRequestBuilder createVoteRequestBuilder() {
-        return new GrpcVoteRequestOrBuilder();
+        return new VoteRequestOrBuilder();
     }
 
     @Nonnull
     @Override
     public VoteResponseBuilder createVoteResponseBuilder() {
-        return new GrpcVoteResponseOrBuilder();
+        return new VoteResponseOrBuilder();
     }
 
     @Nonnull
     @Override
     public UpdateRaftGroupMembersOpBuilder createUpdateRaftGroupMembersOpBuilder() {
-        return new GrpcUpdateRaftGroupMembersOpOrBuilder();
+        return new UpdateRaftGroupMembersOpOrBuilder();
     }
 
 }

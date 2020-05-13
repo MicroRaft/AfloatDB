@@ -33,10 +33,10 @@ import io.afloatdb.kv.proto.SetRequest;
 import io.afloatdb.kv.proto.SetResponse;
 import io.afloatdb.kv.proto.SizeResponse;
 import io.afloatdb.kv.proto.TypedValue;
-import io.afloatdb.raft.proto.ProtoKVEntry;
-import io.afloatdb.raft.proto.ProtoKVSnapshotChunkObject;
-import io.afloatdb.raft.proto.ProtoOperation;
-import io.afloatdb.raft.proto.ProtoStartNewTermOp;
+import io.afloatdb.raft.proto.KVEntry;
+import io.afloatdb.raft.proto.KVSnapshotChunkData;
+import io.afloatdb.raft.proto.Operation;
+import io.afloatdb.raft.proto.StartNewTermOpProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.statemachine.StateMachine;
 import org.slf4j.Logger;
@@ -74,28 +74,28 @@ public class KVStoreStateMachine
 
     @Override
     public Object runOperation(long commitIndex, @Nonnull Object operation) {
-        if (!(operation instanceof ProtoOperation)) {
+        if (!(operation instanceof Operation)) {
             throw new IllegalArgumentException("Invalid operation: " + operation + " at commit index: " + commitIndex);
         }
 
-        ProtoOperation proto = (ProtoOperation) operation;
-        switch (proto.getOperationCase()) {
+        Operation o = (Operation) operation;
+        switch (o.getOperationCase()) {
             case STARTNEWTERMOP:
                 return null;
             case PUTREQUEST:
-                return put(proto.getPutRequest());
+                return put(o.getPutRequest());
             case SETREQUEST:
-                return set(proto.getSetRequest());
+                return set(o.getSetRequest());
             case GETREQUEST:
-                return get(proto.getGetRequest());
+                return get(o.getGetRequest());
             case CONTAINSREQUEST:
-                return contains(proto.getContainsRequest());
+                return contains(o.getContainsRequest());
             case DELETEREQUEST:
-                return delete(proto.getDeleteRequest());
+                return delete(o.getDeleteRequest());
             case REMOVEREQUEST:
-                return remove(proto.getRemoveRequest());
+                return remove(o.getRemoveRequest());
             case REPLACEREQUEST:
-                return replace(proto.getReplaceRequest());
+                return replace(o.getReplaceRequest());
             case SIZEREQUEST:
                 return size();
             case CLEARREQUEST:
@@ -188,16 +188,16 @@ public class KVStoreStateMachine
 
     @Override
     public void takeSnapshot(long commitIndex, Consumer<Object> snapshotChunkConsumer) {
-        ProtoKVSnapshotChunkObject.Builder chunkBuilder = ProtoKVSnapshotChunkObject.newBuilder();
+        KVSnapshotChunkData.Builder chunkBuilder = KVSnapshotChunkData.newBuilder();
 
         int chunkCount = 0, keyCount = 0;
-        for (Entry<String, TypedValue> entry : map.entrySet()) {
+        for (Entry<String, TypedValue> e : map.entrySet()) {
             keyCount++;
-            ProtoKVEntry protoEntry = ProtoKVEntry.newBuilder().setKey(entry.getKey()).setValue(entry.getValue()).build();
-            chunkBuilder.addEntry(protoEntry);
+            KVEntry kvEntry = KVEntry.newBuilder().setKey(e.getKey()).setValue(e.getValue()).build();
+            chunkBuilder.addEntry(kvEntry);
             if (chunkBuilder.getEntryCount() == 10000) {
                 snapshotChunkConsumer.accept(chunkBuilder.build());
-                chunkBuilder = ProtoKVSnapshotChunkObject.newBuilder();
+                chunkBuilder = KVSnapshotChunkData.newBuilder();
                 chunkCount++;
             }
         }
@@ -237,7 +237,7 @@ public class KVStoreStateMachine
         map.clear();
 
         for (Object chunk : snapshotChunks) {
-            for (ProtoKVEntry entry : ((ProtoKVSnapshotChunkObject) chunk).getEntryList()) {
+            for (KVEntry entry : ((KVSnapshotChunkData) chunk).getEntryList()) {
                 map.put(entry.getKey(), entry.getValue());
             }
         }
@@ -272,7 +272,7 @@ public class KVStoreStateMachine
     @Nullable
     @Override
     public Object getNewTermOperation() {
-        return ProtoOperation.newBuilder().setStartNewTermOp(ProtoStartNewTermOp.getDefaultInstance()).build();
+        return Operation.newBuilder().setStartNewTermOp(StartNewTermOpProto.getDefaultInstance()).build();
     }
 
 }
