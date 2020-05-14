@@ -41,9 +41,7 @@ public class ChannelManagerImpl
     @Nonnull
     @Override
     public ManagedChannel getOrCreateChannel(@Nonnull String address) {
-        requireNonNull(address);
-
-        ManagedChannel channel = channels.get(address);
+        ManagedChannel channel = channels.get(requireNonNull(address));
         if (channel != null) {
             if (channel.getState(true) != ConnectivityState.SHUTDOWN) {
                 return channel;
@@ -61,7 +59,8 @@ public class ChannelManagerImpl
 
     @Override
     public void checkChannel(String address, ManagedChannel channel) {
-        if (channel.getState(true) == ConnectivityState.SHUTDOWN && channels.remove(address, channel)) {
+        if (channel.getState(true) == ConnectivityState.SHUTDOWN && channels
+                .remove(requireNonNull(address), requireNonNull(channel))) {
             silentlyShutdownNow(channel);
             LOGGER.warn("{} removed the shutdown-channel to: {}.", config.getClientId(), address);
         }
@@ -69,7 +68,7 @@ public class ChannelManagerImpl
 
     @Override
     public void retainChannels(Collection<String> addresses) {
-        if (channels.keySet().retainAll(addresses)) {
+        if (channels.keySet().retainAll(requireNonNull(addresses))) {
             LOGGER.info("{} retained channels to addresses: {}.", config.getClientId(), addresses);
         }
 

@@ -22,7 +22,8 @@ import io.afloatdb.client.config.AfloatDBClientConfig;
 import io.afloatdb.client.internal.channel.ChannelManager;
 import io.afloatdb.client.internal.channel.impl.ChannelManagerImpl;
 import io.afloatdb.client.internal.kvstore.impl.KVSupplier;
-import io.afloatdb.client.internal.rpc.impl.KVServiceStubManager;
+import io.afloatdb.client.internal.rpc.impl.MultiKVServiceStubManager;
+import io.afloatdb.client.internal.rpc.impl.UniKVServiceStubManager;
 import io.afloatdb.client.kvstore.KV;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.afloatdb.internal.lifecycle.impl.ProcessTerminationLoggerImpl;
@@ -57,10 +58,12 @@ public class AfloatDBClientModule
         bind(AtomicBoolean.class).annotatedWith(named(PROCESS_TERMINATION_FLAG_KEY)).toInstance(processTerminationFlag);
         bind(ProcessTerminationLogger.class).to(ProcessTerminationLoggerImpl.class);
         bind(ChannelManager.class).to(ChannelManagerImpl.class);
-        bind(new TypeLiteral<Supplier<KVServiceBlockingStub>>() {
-        }).annotatedWith(named(KV_STUB_KEY)).to(KVServiceStubManager.class);
         bind(new TypeLiteral<Supplier<KV>>() {
         }).annotatedWith(named(KV_STORE_KEY)).to(KVSupplier.class);
+        Class<? extends Supplier<KVServiceBlockingStub>> kvStubSupplierClazz = config
+                .isSingleConnection() ? UniKVServiceStubManager.class : MultiKVServiceStubManager.class;
+        bind(new TypeLiteral<Supplier<KVServiceBlockingStub>>() {
+        }).annotatedWith(named(KV_STUB_KEY)).to(kvStubSupplierClazz);
     }
 
 }

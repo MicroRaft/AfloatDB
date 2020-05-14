@@ -22,12 +22,18 @@ import io.afloatdb.AfloatDB;
 import io.afloatdb.client.config.AfloatDBClientConfig;
 import io.afloatdb.client.kvstore.KV;
 import io.microraft.test.util.BaseTest;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static com.typesafe.config.ConfigFactory.load;
@@ -39,57 +45,64 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+@RunWith(Parameterized.class)
 public class AfloatDBClientKVTest
         extends BaseTest {
 
-    private static final byte BYTE_1 = 76;
-    private static final byte BYTE_2 = 67;
     private static final byte[] BYTES_1 = new byte[]{1, 2, 3, 4};
     private static final byte[] BYTES_2 = new byte[]{4, 3, 2, 1};
-    private static final char CHAR_1 = 'k';
-    private static final char CHAR_2 = 'j';
-    private static final double DOUBLE_1 = 306.23f;
-    private static final double DOUBLE_2 = 23781.91f;
-    private static final float FLOAT_1 = 8523.23f;
-    private static final float FLOAT_2 = 2958892.1f;
     private static final int INT_1 = 753;
     private static final int INT_2 = 1239;
     private static final long LONG_1 = 19238;
     private static final long LONG_2 = 4693;
-    private static final short SHORT_1 = 25;
-    private static final short SHORT_2 = 75;
     private static final String STRING_1 = "str1";
     private static final String STRING_2 = "str2";
     private static final String KEY = "key";
 
+    private AfloatDBClient client;
+
     private static List<AfloatDB> servers = new ArrayList<>();
-    private static AfloatDBClient client;
-    private static KV kv;
+    private KV kv;
+    private boolean singleConnection;
+
+    public AfloatDBClientKVTest(boolean singleConnection) {
+        this.singleConnection = singleConnection;
+    }
+
+    @Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{{false}, {true}});
+    }
 
     @BeforeClass
-    public static void init() {
+    public static void initCluster() {
         servers.add(AfloatDB.bootstrap(CONFIG_1));
         servers.add(AfloatDB.bootstrap(CONFIG_2));
         servers.add(AfloatDB.bootstrap(CONFIG_3));
-
-        String serverAddress = servers.get(getRandomInt(servers.size())).getConfig().getLocalEndpointConfig().getAddress();
-        Config config = ConfigFactory.parseString("afloatdb.client.server-address: \"" + serverAddress + "\"")
-                                     .withFallback(load("client.conf"));
-        client = AfloatDBClient.newInstance(AfloatDBClientConfig.from(config));
-        kv = client.getKV();
     }
 
     @AfterClass
-    public static void tearDown() {
+    public static void shutDownCluster() {
         servers.forEach(AfloatDB::shutdown);
-        if (client != null) {
-            client.shutdown();
-        }
     }
 
     @Before
-    public void beforeTest() {
+    public void initClient() {
+        String serverAddress = servers.get(getRandomInt(servers.size())).getConfig().getLocalEndpointConfig().getAddress();
+        Config config = ConfigFactory.parseString("afloatdb.client.server-address: \"" + serverAddress + "\"")
+                                     .withFallback(load("client.conf"));
+        AfloatDBClientConfig clientConfig = AfloatDBClientConfig.newBuilder().setConfig(config)
+                                                                .setSingleConnection(singleConnection).build();
+        client = AfloatDBClient.newInstance(clientConfig);
+        kv = client.getKV();
         kv.clear();
+    }
+
+    @After
+    public void shutDownClient() {
+        if (client != null) {
+            client.shutdown();
+        }
     }
 
     @Test(expected = NullPointerException.class)
@@ -396,14 +409,6 @@ public class AfloatDBClientKVTest
     @Test
     public void testDeleteLong() {
         kv.set(KEY, LONG_1);
-
-        boolean success = kv.delete(KEY);
-        assertThat(success).isTrue();
-    }
-
-    @Test
-    public void testDeleteShort() {
-        kv.set(KEY, SHORT_1);
 
         boolean success = kv.delete(KEY);
         assertThat(success).isTrue();

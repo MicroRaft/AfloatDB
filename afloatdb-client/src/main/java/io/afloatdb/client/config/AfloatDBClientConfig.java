@@ -31,6 +31,7 @@ public class AfloatDBClientConfig {
     private Config config;
     private String clientId;
     private String serverAddress;
+    private boolean singleConnection;
 
     private AfloatDBClientConfig() {
     }
@@ -57,9 +58,14 @@ public class AfloatDBClientConfig {
         return serverAddress;
     }
 
+    public boolean isSingleConnection() {
+        return singleConnection;
+    }
+
     public static class AfloatDBClientConfigBuilder {
 
         private AfloatDBClientConfig clientConfig = new AfloatDBClientConfig();
+        private boolean connectionModeSet;
 
         public AfloatDBClientConfigBuilder setConfig(Config config) {
             clientConfig.config = requireNonNull(config);
@@ -73,6 +79,12 @@ public class AfloatDBClientConfig {
 
         public AfloatDBClientConfigBuilder setServerAddress(String serverAddress) {
             clientConfig.serverAddress = requireNonNull(serverAddress);
+            return this;
+        }
+
+        public AfloatDBClientConfigBuilder setSingleConnection(boolean singleConnection) {
+            clientConfig.singleConnection = singleConnection;
+            connectionModeSet = true;
             return this;
         }
 
@@ -99,6 +111,10 @@ public class AfloatDBClientConfig {
 
                     if (clientConfig.serverAddress == null && config.hasPath("server-address")) {
                         clientConfig.serverAddress = config.getString("server-address");
+                    }
+
+                    if (!connectionModeSet && config.hasPath("single-connection")) {
+                        clientConfig.singleConnection = config.getBoolean("single-connection");
                     }
                 }
             } catch (Exception e) {

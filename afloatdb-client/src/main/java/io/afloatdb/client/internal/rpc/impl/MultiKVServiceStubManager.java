@@ -46,10 +46,10 @@ import static io.afloatdb.client.internal.di.AfloatDBClientModule.CONFIG_KEY;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Singleton
-public class KVServiceStubManager
+public class MultiKVServiceStubManager
         implements Supplier<KVServiceBlockingStub> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(KVServiceStubManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MultiKVServiceStubManager.class);
 
     private final AfloatDBClientConfig config;
     private final ChannelManager channelManager;
@@ -60,7 +60,7 @@ public class KVServiceStubManager
     private volatile KVServiceBlockingStub kvStub;
 
     @Inject
-    public KVServiceStubManager(@Named(CONFIG_KEY) AfloatDBClientConfig config, ChannelManager channelManager) {
+    public MultiKVServiceStubManager(@Named(CONFIG_KEY) AfloatDBClientConfig config, ChannelManager channelManager) {
         this.config = config;
         this.channelManager = channelManager;
     }
