@@ -2,7 +2,7 @@ package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.raft.proto.InstallSnapshotResponseProto;
-import io.afloatdb.raft.proto.RaftMessageProto;
+import io.afloatdb.raft.proto.RaftMessageRequest;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.InstallSnapshotResponse;
 import io.microraft.model.message.InstallSnapshotResponse.InstallSnapshotResponseBuilder;
@@ -10,7 +10,7 @@ import io.microraft.model.message.InstallSnapshotResponse.InstallSnapshotRespons
 import javax.annotation.Nonnull;
 
 public class InstallSnapshotResponseOrBuilder
-        implements InstallSnapshotResponse, InstallSnapshotResponseBuilder, RaftMessageProtoAware {
+        implements InstallSnapshotResponse, InstallSnapshotResponseBuilder, RaftMessageRequestAware {
 
     private InstallSnapshotResponseProto.Builder builder;
     private InstallSnapshotResponseProto response;
@@ -88,7 +88,7 @@ public class InstallSnapshotResponseOrBuilder
     }
 
     @Override
-    public void populate(RaftMessageProto.Builder builder) {
+    public void populate(RaftMessageRequest.Builder builder) {
         builder.setInstallSnapshotResponse(response);
     }
 

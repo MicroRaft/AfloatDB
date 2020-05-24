@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package io.afloatdb.internal.raft;
+package io.afloatdb.internal.rpc;
 
-import io.microraft.report.RaftNodeReport;
-import io.microraft.report.RaftNodeReportListener;
+import io.microraft.RaftEndpoint;
 
-import java.util.function.Supplier;
+import javax.annotation.Nonnull;
+import java.util.Map;
 
-public interface RaftNodeReportObserver
-        extends RaftNodeReportListener, Supplier<RaftNodeReport> {
+public interface RaftRpcService {
+
+    void addAddress(@Nonnull RaftEndpoint endpoint, @Nonnull String address);
+
+    Map<RaftEndpoint, String> getAddresses();
+
+    RaftRpc getRpcStub(RaftEndpoint endpoint);
 
 }

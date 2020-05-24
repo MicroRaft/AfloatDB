@@ -33,14 +33,14 @@ public final class AfloatDBConfig {
     private AfloatDBEndpointConfig localEndpointConfig;
     private RaftGroupConfig raftGroupConfig;
     private RaftConfig raftConfig;
+    private RpcConfig rpcConfig;
 
     private AfloatDBConfig() {
     }
 
     @Nonnull
     public static AfloatDBConfig from(@Nonnull Config config) {
-        requireNonNull(config);
-        return newBuilder().setConfig(config).build();
+        return newBuilder().setConfig(requireNonNull(config)).build();
     }
 
     @Nonnull
@@ -68,6 +68,17 @@ public final class AfloatDBConfig {
         return raftConfig;
     }
 
+    @Nonnull
+    public RpcConfig getRpcConfig() {
+        return rpcConfig;
+    }
+
+    @Override
+    public String toString() {
+        return "AfloatDBConfig{" + "config=" + config + ", localEndpointConfig=" + localEndpointConfig + ", raftGroupConfig="
+                + raftGroupConfig + ", raftConfig=" + raftConfig + ", rpcConfig=" + rpcConfig + '}';
+    }
+
     public static class AfloatDBConfigBuilder {
 
         private AfloatDBConfig afloatDBConfig = new AfloatDBConfig();
@@ -93,6 +104,12 @@ public final class AfloatDBConfig {
         @Nonnull
         public AfloatDBConfigBuilder setRaftConfig(@Nonnull RaftConfig raftConfig) {
             afloatDBConfig.raftConfig = requireNonNull(raftConfig);
+            return this;
+        }
+
+        @Nonnull
+        public AfloatDBConfigBuilder setRpcConfig(@Nonnull RpcConfig rpcConfig) {
+            afloatDBConfig.rpcConfig = requireNonNull(rpcConfig);
             return this;
         }
 
@@ -125,6 +142,10 @@ public final class AfloatDBConfig {
                     if (afloatDBConfig.raftConfig == null) {
                         afloatDBConfig.raftConfig = config.hasPath("raft") ? parseConfig(config) : DEFAULT_RAFT_CONFIG;
                     }
+
+                    if (afloatDBConfig.rpcConfig == null && config.hasPath("rpc")) {
+                        afloatDBConfig.rpcConfig = RpcConfig.from(config.getConfig("rpc"));
+                    }
                 }
             } catch (Exception e) {
                 if (e instanceof AfloatDBException) {
@@ -144,6 +165,10 @@ public final class AfloatDBConfig {
 
             if (afloatDBConfig.raftConfig == null) {
                 throw new AfloatDBException("Raft config is missing!");
+            }
+
+            if (afloatDBConfig.rpcConfig == null) {
+                afloatDBConfig.rpcConfig = RpcConfig.newBuilder().build();
             }
 
             AfloatDBConfig afloatDBConfig = this.afloatDBConfig;

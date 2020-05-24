@@ -24,14 +24,16 @@ import io.microraft.report.RaftNodeReport;
 
 import javax.annotation.Nonnull;
 
+import static java.util.Objects.requireNonNull;
+
 public interface AfloatDB {
 
     static AfloatDB bootstrap(AfloatDBConfig config) {
-        return new AfloatDBBootstrapper(config).get();
+        return new AfloatDBBootstrapper(requireNonNull(config)).get();
     }
 
     static AfloatDB join(AfloatDBConfig config) {
-        return new AfloatDBJoiner(config).get();
+        return new AfloatDBJoiner(requireNonNull(config)).get();
     }
 
     @Nonnull

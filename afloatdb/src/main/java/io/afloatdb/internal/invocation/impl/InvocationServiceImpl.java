@@ -16,18 +16,18 @@
 
 package io.afloatdb.internal.invocation.impl;
 
-import io.afloatdb.internal.invocation.RaftInvocationManager;
-import io.afloatdb.internal.raft.RaftNodeReportObserver;
-import io.afloatdb.internal.rpc.RaftRpcStub;
-import io.afloatdb.internal.rpc.RaftRpcStubManager;
+import com.google.common.util.concurrent.ListenableFuture;
+import io.afloatdb.config.AfloatDBConfig;
+import io.afloatdb.internal.invocation.InvocationService;
+import io.afloatdb.internal.raft.RaftNodeReportSupplier;
+import io.afloatdb.internal.rpc.RaftRpc;
+import io.afloatdb.internal.rpc.RaftRpcService;
 import io.afloatdb.internal.utils.Exceptions;
 import io.afloatdb.raft.proto.Operation;
 import io.afloatdb.raft.proto.OperationResponse;
 import io.afloatdb.raft.proto.QueryRequest;
 import io.afloatdb.raft.proto.ReplicateRequest;
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import io.grpc.stub.StreamObserver;
 import io.microraft.Ordered;
 import io.microraft.QueryPolicy;
 import io.microraft.RaftEndpoint;
@@ -41,13 +41,14 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import static io.afloatdb.internal.di.AfloatDBModule.CONFIG_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_SUPPLIER_KEY;
 import static io.afloatdb.internal.utils.Serialization.toProto;
-import static io.afloatdb.internal.utils.Serialization.unwrapResponse;
 import static io.grpc.Status.FAILED_PRECONDITION;
 import static io.grpc.Status.RESOURCE_EXHAUSTED;
 import static java.util.Objects.requireNonNull;
@@ -55,24 +56,24 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Singleton
-public class RaftInvocationManagerImpl
-        implements RaftInvocationManager {
-
-    // TODO [basri] make it configurable
-    private static final int RETRY_LIMIT = 10;
+public class InvocationServiceImpl
+        implements InvocationService {
 
     private final RaftNode raftNode;
     private final Supplier<RaftNodeReport> raftNodeReportSupplier;
-    private final RaftRpcStubManager raftRpcStubManager;
+    private final RaftRpcService raftRpcService;
     private final ScheduledExecutorService executor;
+    private final long retryLimit;
 
     @Inject
-    public RaftInvocationManagerImpl(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
-                                     RaftNodeReportObserver raftNodeReportObserver, RaftRpcStubManager raftRpcStubManager) {
+    public InvocationServiceImpl(@Named(CONFIG_KEY) AfloatDBConfig config,
+                                 @Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
+                                 RaftNodeReportSupplier raftNodeReportSupplier, RaftRpcService raftRpcService) {
         this.raftNode = raftNodeSupplier.get();
-        this.raftNodeReportSupplier = raftNodeReportObserver;
-        this.raftRpcStubManager = raftRpcStubManager;
+        this.raftNodeReportSupplier = raftNodeReportSupplier;
+        this.raftRpcService = raftRpcService;
         this.executor = newSingleThreadScheduledExecutor();
+        this.retryLimit = config.getRpcConfig().getRetryLimit();
     }
 
     @PreDestroy
@@ -81,89 +82,58 @@ public class RaftInvocationManagerImpl
     }
 
     @Override
-    public <T> CompletableFuture<Ordered<T>> invoke(@Nonnull Operation operation) {
-        Invocation<T> invocation = new ReplicateInvocation<T>(operation);
-        invocation.invoke();
-
-        return invocation;
+    public CompletableFuture<Ordered<OperationResponse>> invoke(@Nonnull Operation operation) {
+        return new ReplicateInvocation(operation).invoke();
     }
 
     @Override
-    public <T> CompletableFuture<Ordered<T>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy,
-                                                   long minCommitIndex) {
-        QueryInvocation<T> invocation = new QueryInvocation<>(operation, queryPolicy, minCommitIndex);
-        invocation.invoke();
-
-        return invocation;
+    public CompletableFuture<Ordered<OperationResponse>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy,
+                                                               long minCommitIndex) {
+        return new QueryInvocation(operation, queryPolicy, minCommitIndex).invoke();
     }
 
-    private <T> void failFutureIfNotRetryable(OrderedFuture<T> future, Throwable t) {
-        if (!t.getMessage().startsWith("RAFT") || !(t instanceof StatusRuntimeException)) {
-            future.fail(t);
-            return;
-        }
-
-        StatusRuntimeException ex = (StatusRuntimeException) t;
-        if (!(ex.getStatus() == FAILED_PRECONDITION || ex.getStatus() == RESOURCE_EXHAUSTED)) {
-            future.fail(t);
-        }
-    }
-
-    abstract class Invocation<Resp>
-            extends OrderedFuture<Resp>
-            implements StreamObserver<OperationResponse>, BiConsumer<Ordered<Resp>, Throwable> {
+    private abstract class Invocation
+            extends OrderedFuture<OperationResponse>
+            implements BiConsumer<Ordered<OperationResponse>, Throwable> {
 
         final Operation operation;
-        volatile int tryCount;
+        volatile int retryCount;
 
         Invocation(Operation operation) {
             this.operation = requireNonNull(operation);
         }
 
         final void retry() {
-            ++tryCount;
-            if (tryCount >= RETRY_LIMIT) {
-                fail(new StatusRuntimeException(Status.UNAVAILABLE));
-            } else if (tryCount > 5) {
+            ++retryCount;
+            if (retryCount > retryLimit) {
+                fail(new StatusRuntimeException(RESOURCE_EXHAUSTED)); // TODO [basri] status type...
+            } else if (retryCount > 5) {
                 executor.schedule(this::invoke, 500, MILLISECONDS);
-            } else if (tryCount > 3) {
+            } else if (retryCount > 3) {
                 executor.schedule(this::invoke, 100, MILLISECONDS);
             } else {
-                executor.schedule(this::invoke, 1, MILLISECONDS);
+                executor.schedule(this::invoke, 10, MILLISECONDS);
             }
         }
 
         @Override
-        public final void onNext(OperationResponse response) {
-            complete(response.getCommitIndex(), (Resp) unwrapResponse(response));
-        }
-
-        @Override
-        public final void onError(Throwable t) {
-            failFutureIfNotRetryable(this, Exceptions.wrap(t));
-        }
-
-        @Override
-        public final void onCompleted() {
-            if (!isDone()) {
-                retry();
-            }
-        }
-
-        @Override
-        public final void accept(Ordered<Resp> ordered, Throwable throwable) {
-            if (throwable == null) {
+        public final void accept(Ordered<OperationResponse> ordered, Throwable t) {
+            if (t == null) {
                 complete(ordered.getCommitIndex(), ordered.getResult());
             } else {
-                onError(throwable);
-                onCompleted();
+                failOrRetry(this, Exceptions.wrap(t));
             }
         }
 
-        final void invoke() {
-            if (!invokeLocally()) {
+        final CompletableFuture<Ordered<OperationResponse>> invoke() {
+            CompletableFuture<Ordered<OperationResponse>> f = tryInvokeLocally();
+            if (f != null) {
+                f.whenComplete(this);
+            } else {
                 invokeRemotely();
             }
+
+            return this;
         }
 
         final void invokeRemotely() {
@@ -171,9 +141,9 @@ public class RaftInvocationManagerImpl
             if (report != null) {
                 RaftEndpoint leader = report.getTerm().getLeaderEndpoint();
                 if (leader != null) {
-                    RaftRpcStub stub = raftRpcStubManager.getRpcStub(leader);
+                    RaftRpc stub = raftRpcService.getRpcStub(leader);
                     if (stub != null) {
-                        doInvokeRemotely(stub);
+                        handleResult(doInvokeRemotely(stub));
                         return;
                     }
                 }
@@ -182,14 +152,49 @@ public class RaftInvocationManagerImpl
             retry();
         }
 
-        abstract boolean invokeLocally();
+        private void handleResult(ListenableFuture<OperationResponse> future) {
+            future.addListener(() -> {
+                try {
+                    OperationResponse response = future.get();
+                    complete(response.getCommitIndex(), response);
+                } catch (Throwable t) {
+                    if (t instanceof InterruptedException) {
+                        Thread.currentThread().interrupt();
+                    }
 
-        abstract void doInvokeRemotely(RaftRpcStub stub);
+                    if (t instanceof ExecutionException) {
+                        t = t.getCause();
+                    }
+
+                    failOrRetry(this, Exceptions.wrap(t));
+                }
+
+            }, executor);
+        }
+
+        private <T> void failOrRetry(OrderedFuture<T> future, Throwable t) {
+            if (!t.getMessage().startsWith("RAFT") || !(t instanceof StatusRuntimeException)) {
+                future.fail(t);
+                return;
+            }
+
+            StatusRuntimeException ex = (StatusRuntimeException) t;
+            if (!(ex.getStatus() == FAILED_PRECONDITION || ex.getStatus() == RESOURCE_EXHAUSTED)) {
+                future.fail(t);
+                return;
+            }
+
+            retry();
+        }
+
+        abstract CompletableFuture<Ordered<OperationResponse>> tryInvokeLocally();
+
+        abstract ListenableFuture<OperationResponse> doInvokeRemotely(RaftRpc stub);
 
     }
 
-    class ReplicateInvocation<Resp>
-            extends Invocation<Resp> {
+    private class ReplicateInvocation
+            extends Invocation {
 
         // no need to make it volatile.
         // it is ok for multiple threads to create it redundantly
@@ -200,27 +205,27 @@ public class RaftInvocationManagerImpl
         }
 
         @Override
-        boolean invokeLocally() {
+        CompletableFuture<Ordered<OperationResponse>> tryInvokeLocally() {
             if (raftNode.getLocalEndpoint().equals(raftNode.getTerm().getLeaderEndpoint())) {
-                raftNode.<Resp>replicate(operation).whenComplete(this);
-                return true;
+                return raftNode.replicate(operation);
             }
 
-            return false;
+            return null;
         }
 
         @Override
-        protected void doInvokeRemotely(RaftRpcStub stub) {
+        protected ListenableFuture<OperationResponse> doInvokeRemotely(RaftRpc stub) {
             if (request == null) {
                 request = ReplicateRequest.newBuilder().setOperation(operation).build();
             }
+
             // TODO [basri] offload to IO thread...
-            stub.replicate(request, this);
+            return stub.replicate(request);
         }
     }
 
-    class QueryInvocation<Resp>
-            extends Invocation<Resp> {
+    private class QueryInvocation
+            extends Invocation {
 
         final QueryPolicy queryPolicy;
         final long minCommitIndex;
@@ -236,24 +241,23 @@ public class RaftInvocationManagerImpl
         }
 
         @Override
-        boolean invokeLocally() {
+        CompletableFuture<Ordered<OperationResponse>> tryInvokeLocally() {
             if (queryPolicy == QueryPolicy.ANY_LOCAL || raftNode.getLocalEndpoint()
                                                                 .equals(raftNode.getTerm().getLeaderEndpoint())) {
-                raftNode.<Resp>query(operation, queryPolicy, minCommitIndex).whenComplete(this);
-                return true;
+                return raftNode.query(operation, queryPolicy, minCommitIndex);
             }
 
-            return false;
+            return null;
         }
 
         @Override
-        void doInvokeRemotely(RaftRpcStub stub) {
+        ListenableFuture<OperationResponse> doInvokeRemotely(RaftRpc stub) {
             if (request == null) {
                 request = QueryRequest.newBuilder().setOperation(operation).setQueryPolicy(toProto(queryPolicy))
                                       .setMinCommitIndex(minCommitIndex).build();
             }
             // TODO [basri] offload to IO thread...
-            stub.query(request, this);
+            return stub.query(request);
         }
     }
 

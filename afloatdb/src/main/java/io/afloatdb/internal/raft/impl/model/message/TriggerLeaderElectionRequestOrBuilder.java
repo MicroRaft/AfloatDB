@@ -17,7 +17,7 @@
 package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.RaftMessageProto;
+import io.afloatdb.raft.proto.RaftMessageRequest;
 import io.afloatdb.raft.proto.TriggerLeaderElectionRequestProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.TriggerLeaderElectionRequest;
@@ -26,7 +26,7 @@ import io.microraft.model.message.TriggerLeaderElectionRequest.TriggerLeaderElec
 import javax.annotation.Nonnull;
 
 public class TriggerLeaderElectionRequestOrBuilder
-        implements TriggerLeaderElectionRequest, TriggerLeaderElectionRequestBuilder, RaftMessageProtoAware {
+        implements TriggerLeaderElectionRequest, TriggerLeaderElectionRequestBuilder, RaftMessageRequestAware {
 
     private TriggerLeaderElectionRequestProto.Builder builder;
     private TriggerLeaderElectionRequestProto request;
@@ -90,7 +90,7 @@ public class TriggerLeaderElectionRequestOrBuilder
     }
 
     @Override
-    public void populate(RaftMessageProto.Builder builder) {
+    public void populate(RaftMessageRequest.Builder builder) {
         builder.setTriggerLeaderElectionRequest(request);
     }
 

@@ -20,12 +20,13 @@ import io.afloatdb.kv.proto.TypedValue;
 import io.afloatdb.management.proto.AddRaftEndpointAddressRequest;
 import io.afloatdb.management.proto.AddRaftEndpointRequest;
 import io.afloatdb.management.proto.GetRaftNodeReportRequest;
-import io.afloatdb.management.proto.ManagementServiceGrpc;
-import io.afloatdb.management.proto.ManagementServiceGrpc.ManagementServiceBlockingStub;
+import io.afloatdb.management.proto.ManagementRequestHandlerGrpc;
+import io.afloatdb.management.proto.ManagementRequestHandlerGrpc.ManagementRequestHandlerBlockingStub;
 import io.afloatdb.management.proto.RaftNodeReportProto;
-import io.afloatdb.management.proto.RemoveEndpointRequest;
-import io.afloatdb.management.proto.RemoveEndpointResponse;
+import io.afloatdb.management.proto.RemoveRaftEndpointRequest;
+import io.afloatdb.management.proto.RemoveRaftEndpointResponse;
 import io.afloatdb.raft.proto.Operation;
+import io.afloatdb.raft.proto.OperationResponse;
 import io.afloatdb.raft.proto.RaftEndpointProto;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -105,8 +106,8 @@ public class AfloatDBTest
 
         eventually(() -> {
             for (AfloatDB server : servers) {
-                ManagementServiceBlockingStub stub = createManagementServiceStub(server);
-                RaftNodeReportProto report = stub.getReport(GetRaftNodeReportRequest.newBuilder().build()).getReport();
+                ManagementRequestHandlerBlockingStub stub = createManagementStub(server);
+                RaftNodeReportProto report = stub.getRaftNodeReport(GetRaftNodeReportRequest.newBuilder().build()).getReport();
 
                 assertThat(report.getEndpoint().getId()).isEqualTo(server.getLocalEndpoint().getId());
                 assertThat(report.getTerm().getTerm()).isEqualTo(term);
@@ -131,20 +132,19 @@ public class AfloatDBTest
         follower.shutdown();
         follower.awaitTermination();
 
-        ManagementServiceBlockingStub stub = createManagementServiceStub(leader);
-        RaftNodeReportProto report = stub.getReport(GetRaftNodeReportRequest.newBuilder().build()).getReport();
+        ManagementRequestHandlerBlockingStub stub = createManagementStub(leader);
+        RaftNodeReportProto report = stub.getRaftNodeReport(GetRaftNodeReportRequest.newBuilder().build()).getReport();
 
         long groupMembersCommitIndex = report.getCommittedMembers().getLogIndex();
 
-        RemoveEndpointRequest removeEndpointRequest = RemoveEndpointRequest.newBuilder()
-                                                                           .setGroupMembersCommitIndex(groupMembersCommitIndex)
-                                                                           .setEndpoint(followerEndpoint).build();
+        RemoveRaftEndpointRequest removeEndpointRequest = RemoveRaftEndpointRequest.newBuilder().setGroupMembersCommitIndex(
+                groupMembersCommitIndex).setEndpoint(followerEndpoint).build();
 
-        RemoveEndpointResponse removeEndpointResponse = stub.removeEndpoint(removeEndpointRequest);
+        RemoveRaftEndpointResponse removeEndpointResponse = stub.removeRaftEndpoint(removeEndpointRequest);
 
         assertThat(removeEndpointResponse.getGroupMembersCommitIndex()).isGreaterThan(groupMembersCommitIndex);
 
-        report = stub.getReport(GetRaftNodeReportRequest.newBuilder().build()).getReport();
+        report = stub.getRaftNodeReport(GetRaftNodeReportRequest.newBuilder().build()).getReport();
 
         assertThat(report.getCommittedMembers().getLogIndex()).isEqualTo(removeEndpointResponse.getGroupMembersCommitIndex());
         assertThat(report.getCommittedMembers().getMemberList()).doesNotContain(followerEndpoint);
@@ -156,15 +156,14 @@ public class AfloatDBTest
         AfloatDB follower = getAnyFollower(servers);
         RaftEndpointProto followerEndpoint = AfloatDBEndpoint.extract(follower.getLocalEndpoint());
 
-        ManagementServiceBlockingStub stub = createManagementServiceStub(follower);
-        RaftNodeReportProto report = stub.getReport(GetRaftNodeReportRequest.newBuilder().build()).getReport();
+        ManagementRequestHandlerBlockingStub stub = createManagementStub(follower);
+        RaftNodeReportProto report = stub.getRaftNodeReport(GetRaftNodeReportRequest.newBuilder().build()).getReport();
         long groupMembersCommitIndex = report.getCommittedMembers().getLogIndex();
 
-        RemoveEndpointRequest removeEndpointRequest = RemoveEndpointRequest.newBuilder()
-                                                                           .setGroupMembersCommitIndex(groupMembersCommitIndex)
-                                                                           .setEndpoint(followerEndpoint).build();
+        RemoveRaftEndpointRequest removeEndpointRequest = RemoveRaftEndpointRequest.newBuilder().setGroupMembersCommitIndex(
+                groupMembersCommitIndex).setEndpoint(followerEndpoint).build();
         try {
-            stub.removeEndpoint(removeEndpointRequest);
+            stub.removeRaftEndpoint(removeEndpointRequest);
             fail();
         } catch (StatusRuntimeException e) {
             assertThat(e.getStatus().getCode()).isSameAs(Status.FAILED_PRECONDITION.getCode());
@@ -177,10 +176,10 @@ public class AfloatDBTest
         AfloatDB follower = getAnyFollower(servers);
         RaftEndpointProto followerEndpoint = AfloatDBEndpoint.extract(follower.getLocalEndpoint());
 
-        RemoveEndpointRequest removeEndpointRequest = RemoveEndpointRequest.newBuilder().setGroupMembersCommitIndex(-1)
-                                                                           .setEndpoint(followerEndpoint).build();
+        RemoveRaftEndpointRequest removeEndpointRequest = RemoveRaftEndpointRequest.newBuilder().setGroupMembersCommitIndex(-1)
+                                                                                   .setEndpoint(followerEndpoint).build();
         try {
-            createManagementServiceStub(leader).removeEndpoint(removeEndpointRequest);
+            createManagementStub(leader).removeRaftEndpoint(removeEndpointRequest);
             fail();
         } catch (StatusRuntimeException e) {
             assertThat(e.getStatus().getCode()).isSameAs(Status.INVALID_ARGUMENT.getCode());
@@ -218,8 +217,8 @@ public class AfloatDBTest
 
         eventually(() -> {
             GetRequest request = GetRequest.newBuilder().setKey("key").build();
-            GetResponse response = (GetResponse) getRaftNode(newServer)
-                    .query(Operation.newBuilder().setGetRequest(request).build(), ANY_LOCAL, 0).join().getResult();
+            GetResponse response = getRaftNode(newServer).<OperationResponse>query(
+                    Operation.newBuilder().setGetRequest(request).build(), ANY_LOCAL, 0).join().getResult().getGetResponse();
             assertThat(response.getValue()).isEqualTo(putRequest.getValue());
         });
     }
@@ -252,10 +251,10 @@ public class AfloatDBTest
         crashedFollower.awaitTermination();
 
         RaftEndpointProto crashedFollowerEndpoint = AfloatDBEndpoint.extract(crashedFollower.getLocalEndpoint());
-        RemoveEndpointRequest removeEndpointRequest = RemoveEndpointRequest.newBuilder().setGroupMembersCommitIndex(0)
-                                                                           .setEndpoint(crashedFollowerEndpoint).build();
+        RemoveRaftEndpointRequest removeEndpointRequest = RemoveRaftEndpointRequest.newBuilder().setGroupMembersCommitIndex(0)
+                                                                                   .setEndpoint(crashedFollowerEndpoint).build();
 
-        createManagementServiceStub(leader).removeEndpoint(removeEndpointRequest);
+        createManagementStub(leader).removeRaftEndpoint(removeEndpointRequest);
 
         String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: " + "\"localhost:6704\"\n"
                 + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \"" + leader.getConfig().getLocalEndpointConfig()
@@ -290,12 +289,12 @@ public class AfloatDBTest
         for (AfloatDB server : servers) {
             AddRaftEndpointAddressRequest request = AddRaftEndpointAddressRequest.newBuilder().setEndpoint(newServerEndpoint)
                                                                                  .setAddress("localhost:6704").build();
-            createManagementServiceStub(server).addRaftEndpointAddress(request);
+            createManagementStub(server).addRaftEndpointAddress(request);
         }
 
         AddRaftEndpointRequest addRaftEndpointRequest = AddRaftEndpointRequest.newBuilder().setEndpoint(newServerEndpoint)
                                                                               .setGroupMembersCommitIndex(0).build();
-        createManagementServiceStub(leader).addRaftEndpoint(addRaftEndpointRequest);
+        createManagementStub(leader).addRaftEndpoint(addRaftEndpointRequest);
 
         RaftNodeReport leaderReport = leader.getRaftNodeReport();
         assertThat(leaderReport.getCommittedMembers().getMembers()).hasSize(4);
@@ -339,9 +338,10 @@ public class AfloatDBTest
         servers.add(newServer);
 
         eventually(() -> {
-            SizeResponse sizeResponse = (SizeResponse) getRaftNode(newServer)
-                    .query(Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build(), ANY_LOCAL, 0)
-                    .join().getResult();
+            SizeResponse sizeResponse = getRaftNode(newServer).<OperationResponse>query(
+                    Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build(), ANY_LOCAL, 0).join()
+                                                                                                                  .getResult()
+                                                                                                                  .getSizeResponse();
             assertThat(sizeResponse.getSize()).isEqualTo(keyCount);
         });
     }
@@ -372,7 +372,7 @@ public class AfloatDBTest
         CountDownLatch latch = new CountDownLatch(1);
 
         AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId("client1").build();
-        stub.observeClusterEndpoints(request, new StreamObserver<AfloatDBClusterEndpointsResponse>() {
+        stub.listenClusterEndpoints(request, new StreamObserver<AfloatDBClusterEndpointsResponse>() {
             @Override
             public void onNext(AfloatDBClusterEndpointsResponse response) {
                 endpointsRef.set(response.getEndpoints());
@@ -411,7 +411,7 @@ public class AfloatDBTest
         AtomicReference<AfloatDBClusterEndpoints> endpointsRef = new AtomicReference<>();
 
         AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId("client1").build();
-        stub.observeClusterEndpoints(request, new StreamObserver<AfloatDBClusterEndpointsResponse>() {
+        stub.listenClusterEndpoints(request, new StreamObserver<AfloatDBClusterEndpointsResponse>() {
             @Override
             public void onNext(AfloatDBClusterEndpointsResponse response) {
                 endpointsRef.set(response.getEndpoints());
@@ -432,8 +432,9 @@ public class AfloatDBTest
         follower.shutdown();
         follower.awaitTermination();
 
-        createManagementServiceStub(leader).removeEndpoint(
-                RemoveEndpointRequest.newBuilder().setEndpoint(AfloatDBEndpoint.extract(follower.getLocalEndpoint())).build());
+        createManagementStub(leader).removeRaftEndpoint(
+                RemoveRaftEndpointRequest.newBuilder().setEndpoint(AfloatDBEndpoint.extract(follower.getLocalEndpoint()))
+                                         .build());
 
         eventually(() -> {
             AfloatDBClusterEndpoints endpoints = endpointsRef.get();
@@ -452,7 +453,7 @@ public class AfloatDBTest
         AtomicReference<AfloatDBClusterEndpoints> endpointsRef = new AtomicReference<>();
 
         AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId("client1").build();
-        stub.observeClusterEndpoints(request, new StreamObserver<AfloatDBClusterEndpointsResponse>() {
+        stub.listenClusterEndpoints(request, new StreamObserver<AfloatDBClusterEndpointsResponse>() {
             @Override
             public void onNext(AfloatDBClusterEndpointsResponse response) {
                 endpointsRef.set(response.getEndpoints());
@@ -485,8 +486,9 @@ public class AfloatDBTest
         });
     }
 
-    private ManagementServiceBlockingStub createManagementServiceStub(AfloatDB server) {
-        return ManagementServiceGrpc.newBlockingStub(createChannel(server.getConfig().getLocalEndpointConfig().getAddress()));
+    private ManagementRequestHandlerBlockingStub createManagementStub(AfloatDB server) {
+        return ManagementRequestHandlerGrpc
+                .newBlockingStub(createChannel(server.getConfig().getLocalEndpointConfig().getAddress()));
     }
 
     private AfloatDBClusterServiceStub createAfloatDBClusterServiceStub(AfloatDB server) {

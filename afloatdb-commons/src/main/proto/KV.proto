@@ -86,7 +86,7 @@ message ClearResponse {
     int32 size = 1;
 }
 
-service KVService {
+service KVRequestHandler {
     rpc put (PutRequest) returns (PutResponse);
     rpc set (SetRequest) returns (SetResponse);
     rpc get (GetRequest) returns (GetResponse);

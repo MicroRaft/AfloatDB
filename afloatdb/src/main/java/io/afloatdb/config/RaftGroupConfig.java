@@ -89,6 +89,12 @@ public class RaftGroupConfig {
         return joinTo;
     }
 
+    @Override
+    public String toString() {
+        return "RaftGroupConfig{" + "id='" + id + '\'' + ", initialEndpoints=" + initialEndpoints + ", joinTo='" + joinTo + '\''
+                + '}';
+    }
+
     public static class RaftGroupConfigBuilder {
 
         private RaftGroupConfig config = new RaftGroupConfig();

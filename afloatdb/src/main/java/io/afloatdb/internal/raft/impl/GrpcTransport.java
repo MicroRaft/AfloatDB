@@ -16,8 +16,8 @@
 
 package io.afloatdb.internal.raft.impl;
 
-import io.afloatdb.internal.rpc.RaftRpcStub;
-import io.afloatdb.internal.rpc.RaftRpcStubManager;
+import io.afloatdb.internal.rpc.RaftRpc;
+import io.afloatdb.internal.rpc.RaftRpcService;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.RaftMessage;
 import io.microraft.transport.Transport;
@@ -30,16 +30,16 @@ import javax.inject.Singleton;
 public class GrpcTransport
         implements Transport {
 
-    private final RaftRpcStubManager raftRpcStubManager;
+    private final RaftRpcService raftRpcService;
 
     @Inject
-    public GrpcTransport(RaftRpcStubManager raftRpcStubManager) {
-        this.raftRpcStubManager = raftRpcStubManager;
+    public GrpcTransport(RaftRpcService raftRpcService) {
+        this.raftRpcService = raftRpcService;
     }
 
     @Override
     public void send(@Nonnull RaftEndpoint target, @Nonnull RaftMessage message) {
-        RaftRpcStub stub = raftRpcStubManager.getRpcStub(target);
+        RaftRpc stub = raftRpcService.getRpcStub(target);
         if (stub != null) {
             stub.send(message);
         }
@@ -47,7 +47,7 @@ public class GrpcTransport
 
     @Override
     public boolean isReachable(@Nonnull RaftEndpoint endpoint) {
-        return raftRpcStubManager.getRpcStub(endpoint) != null;
+        return raftRpcService.getRpcStub(endpoint) != null;
     }
 
 }

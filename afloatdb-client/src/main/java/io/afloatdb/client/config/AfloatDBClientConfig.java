@@ -28,10 +28,14 @@ import static java.util.Objects.requireNonNull;
 
 public class AfloatDBClientConfig {
 
+    public static final boolean DEFAULT_SINGLE_CONNECTION = false;
+    public static final int DEFAULT_RPC_TIMEOUT_SECS = 10;
+
     private Config config;
     private String clientId;
     private String serverAddress;
     private boolean singleConnection;
+    private int rpcTimeoutSecs;
 
     private AfloatDBClientConfig() {
     }
@@ -58,6 +62,16 @@ public class AfloatDBClientConfig {
         return serverAddress;
     }
 
+    public int getRpcTimeoutSecs() {
+        return rpcTimeoutSecs;
+    }
+
+    @Override
+    public String toString() {
+        return "AfloatDBClientConfig{" + "config=" + config + ", clientId='" + clientId + '\'' + ", serverAddress='"
+                + serverAddress + '\'' + ", singleConnection=" + singleConnection + ", rpcTimeoutSecs=" + rpcTimeoutSecs + '}';
+    }
+
     public boolean isSingleConnection() {
         return singleConnection;
     }
@@ -65,7 +79,8 @@ public class AfloatDBClientConfig {
     public static class AfloatDBClientConfigBuilder {
 
         private AfloatDBClientConfig clientConfig = new AfloatDBClientConfig();
-        private boolean connectionModeSet;
+        private Boolean singleConnection;
+        private Integer rpcTimeoutSecs;
 
         public AfloatDBClientConfigBuilder setConfig(Config config) {
             clientConfig.config = requireNonNull(config);
@@ -83,8 +98,15 @@ public class AfloatDBClientConfig {
         }
 
         public AfloatDBClientConfigBuilder setSingleConnection(boolean singleConnection) {
-            clientConfig.singleConnection = singleConnection;
-            connectionModeSet = true;
+            this.singleConnection = singleConnection;
+            return this;
+        }
+
+        public AfloatDBClientConfigBuilder setRpcTimeoutSecs(int rpcTimeoutSecs) {
+            if (rpcTimeoutSecs < 1) {
+                throw new IllegalArgumentException("Rpc timeout seconds: " + rpcTimeoutSecs + " cannot be non-positive!");
+            }
+            this.rpcTimeoutSecs = rpcTimeoutSecs;
             return this;
         }
 
@@ -113,8 +135,12 @@ public class AfloatDBClientConfig {
                         clientConfig.serverAddress = config.getString("server-address");
                     }
 
-                    if (!connectionModeSet && config.hasPath("single-connection")) {
-                        clientConfig.singleConnection = config.getBoolean("single-connection");
+                    if (singleConnection == null && config.hasPath("single-connection")) {
+                        singleConnection = config.getBoolean("single-connection");
+                    }
+
+                    if (rpcTimeoutSecs == null && config.hasPath("rpc-timeout-secs")) {
+                        rpcTimeoutSecs = config.getInt("rpc-timeout-secs");
                     }
                 }
             } catch (Exception e) {
@@ -132,6 +158,16 @@ public class AfloatDBClientConfig {
             if (clientConfig.serverAddress == null) {
                 throw new AfloatDBClientException("Server address is missing!");
             }
+
+            if (singleConnection == null) {
+                singleConnection = DEFAULT_SINGLE_CONNECTION;
+            }
+            clientConfig.singleConnection = singleConnection;
+
+            if (rpcTimeoutSecs == null) {
+                rpcTimeoutSecs = DEFAULT_RPC_TIMEOUT_SECS;
+            }
+            clientConfig.rpcTimeoutSecs = rpcTimeoutSecs;
 
             AfloatDBClientConfig clientConfig = this.clientConfig;
             this.clientConfig = null;

@@ -17,7 +17,7 @@
 package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.RaftMessageProto;
+import io.afloatdb.raft.proto.RaftMessageRequest;
 import io.afloatdb.raft.proto.VoteRequestProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.VoteRequest;
@@ -26,7 +26,7 @@ import io.microraft.model.message.VoteRequest.VoteRequestBuilder;
 import javax.annotation.Nonnull;
 
 public class VoteRequestOrBuilder
-        implements VoteRequest, VoteRequestBuilder, RaftMessageProtoAware {
+        implements VoteRequest, VoteRequestBuilder, RaftMessageRequestAware {
 
     private VoteRequestProto.Builder builder;
     private VoteRequestProto request;
@@ -97,7 +97,7 @@ public class VoteRequestOrBuilder
     }
 
     @Override
-    public void populate(RaftMessageProto.Builder builder) {
+    public void populate(RaftMessageRequest.Builder builder) {
         builder.setVoteRequest(request);
     }
 

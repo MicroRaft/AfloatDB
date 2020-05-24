@@ -16,20 +16,20 @@
 
 package io.afloatdb.internal.rpc;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import io.afloatdb.raft.proto.OperationResponse;
 import io.afloatdb.raft.proto.QueryRequest;
 import io.afloatdb.raft.proto.ReplicateRequest;
-import io.grpc.stub.StreamObserver;
 import io.microraft.model.message.RaftMessage;
 
 import javax.annotation.Nonnull;
 
-public interface RaftRpcStub {
+public interface RaftRpc {
 
     void send(@Nonnull RaftMessage message);
 
-    void replicate(ReplicateRequest request, StreamObserver<OperationResponse> responseObserver);
+    ListenableFuture<OperationResponse> replicate(ReplicateRequest request);
 
-    void query(QueryRequest request, StreamObserver<OperationResponse> responseObserver);
+    ListenableFuture<OperationResponse> query(QueryRequest request);
 
 }

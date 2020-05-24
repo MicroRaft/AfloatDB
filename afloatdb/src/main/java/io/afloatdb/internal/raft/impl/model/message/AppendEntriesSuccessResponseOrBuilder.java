@@ -18,7 +18,7 @@ package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.raft.proto.AppendEntriesSuccessResponseProto;
-import io.afloatdb.raft.proto.RaftMessageProto;
+import io.afloatdb.raft.proto.RaftMessageRequest;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.AppendEntriesSuccessResponse;
 
@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 
 public class AppendEntriesSuccessResponseOrBuilder
         implements AppendEntriesSuccessResponse, AppendEntriesSuccessResponse.AppendEntriesSuccessResponseBuilder,
-                   RaftMessageProtoAware {
+                   RaftMessageRequestAware {
 
     private AppendEntriesSuccessResponseProto.Builder builder;
     private AppendEntriesSuccessResponseProto response;
@@ -97,7 +97,7 @@ public class AppendEntriesSuccessResponseOrBuilder
     }
 
     @Override
-    public void populate(RaftMessageProto.Builder builder) {
+    public void populate(RaftMessageRequest.Builder builder) {
         builder.setAppendEntriesSuccessResponse(response);
     }
 

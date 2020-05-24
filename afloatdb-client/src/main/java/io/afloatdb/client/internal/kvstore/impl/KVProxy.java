@@ -26,7 +26,7 @@ import io.afloatdb.kv.proto.DeleteRequest;
 import io.afloatdb.kv.proto.DeleteResponse;
 import io.afloatdb.kv.proto.GetRequest;
 import io.afloatdb.kv.proto.GetResponse;
-import io.afloatdb.kv.proto.KVServiceGrpc.KVServiceBlockingStub;
+import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerBlockingStub;
 import io.afloatdb.kv.proto.PutRequest;
 import io.afloatdb.kv.proto.PutResponse;
 import io.afloatdb.kv.proto.RemoveRequest;
@@ -51,13 +51,12 @@ import static io.afloatdb.internal.serialization.Serialization.serializeLong;
 import static io.afloatdb.internal.serialization.Serialization.serializeString;
 import static java.util.Objects.requireNonNull;
 
-// TODO [basri] wrap grpc exceptions
 public class KVProxy
         implements KV {
 
-    private final Supplier<KVServiceBlockingStub> kvStubSupplier;
+    private final Supplier<KVRequestHandlerBlockingStub> kvStubSupplier;
 
-    public KVProxy(Supplier<KVServiceBlockingStub> kvStubSupplier) {
+    public KVProxy(Supplier<KVRequestHandlerBlockingStub> kvStubSupplier) {
         this.kvStubSupplier = kvStubSupplier;
     }
 

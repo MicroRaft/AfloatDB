@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package io.afloatdb.internal.invocation;
+package io.afloatdb.internal.raft;
 
-import io.afloatdb.raft.proto.Operation;
-import io.microraft.Ordered;
-import io.microraft.QueryPolicy;
+import io.microraft.report.RaftNodeReport;
+import io.microraft.report.RaftNodeReportListener;
 
-import javax.annotation.Nonnull;
-import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
-public interface RaftInvocationManager {
+public interface RaftNodeReportSupplier
+        extends RaftNodeReportListener, Supplier<RaftNodeReport> {
 
-    <T> CompletableFuture<Ordered<T>> invoke(@Nonnull Operation operation);
-
-    <T> CompletableFuture<Ordered<T>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy, long minCommitIndex);
 }

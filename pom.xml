@@ -14,7 +14,6 @@
         <module>afloatdb</module>
         <module>afloatdb-client</module>
     </modules>
-
     <developers>
         <developer>
             <id>metanet</id>

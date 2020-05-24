@@ -27,7 +27,7 @@ import io.afloatdb.client.internal.rpc.impl.UniKVServiceStubManager;
 import io.afloatdb.client.kvstore.KV;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.afloatdb.internal.lifecycle.impl.ProcessTerminationLoggerImpl;
-import io.afloatdb.kv.proto.KVServiceGrpc.KVServiceBlockingStub;
+import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerBlockingStub;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -60,9 +60,9 @@ public class AfloatDBClientModule
         bind(ChannelManager.class).to(ChannelManagerImpl.class);
         bind(new TypeLiteral<Supplier<KV>>() {
         }).annotatedWith(named(KV_STORE_KEY)).to(KVSupplier.class);
-        Class<? extends Supplier<KVServiceBlockingStub>> kvStubSupplierClazz = config
+        Class<? extends Supplier<KVRequestHandlerBlockingStub>> kvStubSupplierClazz = config
                 .isSingleConnection() ? UniKVServiceStubManager.class : MultiKVServiceStubManager.class;
-        bind(new TypeLiteral<Supplier<KVServiceBlockingStub>>() {
+        bind(new TypeLiteral<Supplier<KVRequestHandlerBlockingStub>>() {
         }).annotatedWith(named(KV_STUB_KEY)).to(kvStubSupplierClazz);
     }
 

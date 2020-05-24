@@ -17,7 +17,7 @@
 package io.afloatdb.client.internal.kvstore.impl;
 
 import io.afloatdb.client.kvstore.KV;
-import io.afloatdb.kv.proto.KVServiceGrpc.KVServiceBlockingStub;
+import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerBlockingStub;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -33,7 +33,7 @@ public class KVSupplier
     private final KV kv;
 
     @Inject
-    public KVSupplier(@Named(KV_STUB_KEY) Supplier<KVServiceBlockingStub> kvStubSupplier) {
+    public KVSupplier(@Named(KV_STUB_KEY) Supplier<KVRequestHandlerBlockingStub> kvStubSupplier) {
         this.kv = new KVProxy(kvStubSupplier);
     }
 

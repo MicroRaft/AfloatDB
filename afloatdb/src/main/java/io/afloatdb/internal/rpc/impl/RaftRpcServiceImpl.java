@@ -16,14 +16,19 @@
 
 package io.afloatdb.internal.rpc.impl;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
-import io.afloatdb.internal.rpc.RaftRpcStub;
-import io.afloatdb.internal.rpc.RaftRpcStubManager;
+import io.afloatdb.internal.rpc.RaftRpc;
+import io.afloatdb.internal.rpc.RaftRpcService;
 import io.afloatdb.raft.proto.OperationResponse;
 import io.afloatdb.raft.proto.QueryRequest;
-import io.afloatdb.raft.proto.RaftMessageProto;
-import io.afloatdb.raft.proto.RaftMessageServiceGrpc.RaftMessageServiceStub;
-import io.afloatdb.raft.proto.RaftResponse;
+import io.afloatdb.raft.proto.RaftInvocationHandlerGrpc;
+import io.afloatdb.raft.proto.RaftInvocationHandlerGrpc.RaftInvocationHandlerFutureStub;
+import io.afloatdb.raft.proto.RaftMessageHandlerGrpc;
+import io.afloatdb.raft.proto.RaftMessageHandlerGrpc.RaftMessageHandlerStub;
+import io.afloatdb.raft.proto.RaftMessageRequest;
+import io.afloatdb.raft.proto.RaftMessageResponse;
 import io.afloatdb.raft.proto.ReplicateRequest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -46,42 +51,43 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static io.afloatdb.internal.di.AfloatDBModule.CONFIG_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.RAFT_ENDPOINT_ADDRESSES_KEY;
 import static io.afloatdb.internal.utils.Exceptions.runSilently;
 import static io.afloatdb.internal.utils.Serialization.wrap;
-import static io.afloatdb.raft.proto.RaftMessageServiceGrpc.newStub;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Singleton
-public class RaftRpcStubManagerImpl
-        implements RaftRpcStubManager {
+public class RaftRpcServiceImpl
+        implements RaftRpcService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RaftRpcStubManager.class);
-    //    private static final long LEADER_HEARTBEAT_TIMEOUT_EXTENSION_MILLIS = 1000;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RaftRpcService.class);
 
     private final RaftEndpoint localEndpoint;
     private final Map<RaftEndpoint, String> addresses;
-    private final Map<RaftEndpoint, ChannelContext> channels = new ConcurrentHashMap<>();
+    private final Map<RaftEndpoint, RaftRpcContext> stubs = new ConcurrentHashMap<>();
     private final Set<RaftEndpoint> initializingEndpoints = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final ProcessTerminationLogger processTerminationLogger;
     private final ScheduledExecutorService executor = newSingleThreadScheduledExecutor();
+    private final long rpcTimeoutSecs;
 
     @Inject
-    public RaftRpcStubManagerImpl(@Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
-                                  @Named(RAFT_ENDPOINT_ADDRESSES_KEY) Map<RaftEndpoint, String> addresses,
-                                  ProcessTerminationLogger processTerminationLogger) {
+    public RaftRpcServiceImpl(@Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint, @Named(CONFIG_KEY) AfloatDBConfig config,
+                              @Named(RAFT_ENDPOINT_ADDRESSES_KEY) Map<RaftEndpoint, String> addresses,
+                              ProcessTerminationLogger processTerminationLogger) {
         this.localEndpoint = localEndpoint;
         this.addresses = new ConcurrentHashMap<>(addresses);
         this.processTerminationLogger = processTerminationLogger;
+        this.rpcTimeoutSecs = config.getRpcConfig().getRpcTimeoutSecs();
     }
 
     @PreDestroy
     public void shutdown() {
-        channels.values().forEach(ChannelContext::shutdownSilently);
-        channels.clear();
+        stubs.values().forEach(RaftRpcContext::shutdownSilently);
+        stubs.clear();
         executor.shutdownNow();
 
         processTerminationLogger.logInfo(LOGGER, localEndpoint.getId() + " RaftMessageDispatcher is shut down.");
@@ -107,18 +113,17 @@ public class RaftRpcStubManagerImpl
     }
 
     @Override
-    public RaftRpcStub getRpcStub(RaftEndpoint target) {
-        requireNonNull(target);
-        return getOrCreateChannel(target);
+    public RaftRpc getRpcStub(RaftEndpoint target) {
+        return getOrCreateStub(requireNonNull(target));
     }
 
-    private ChannelContext getOrCreateChannel(RaftEndpoint target) {
+    private RaftRpcContext getOrCreateStub(RaftEndpoint target) {
         if (localEndpoint.equals(target)) {
             LOGGER.error("{} cannot send Raft message to itself...", localEndpoint.getId());
             return null;
         }
 
-        ChannelContext context = channels.get(target);
+        RaftRpcContext context = stubs.get(target);
         if (context != null) {
             return context;
         } else if (!addresses.containsKey(target)) {
@@ -129,32 +134,31 @@ public class RaftRpcStubManagerImpl
         return connect(target);
     }
 
-    private ChannelContext connect(RaftEndpoint target) {
+    private RaftRpcContext connect(RaftEndpoint target) {
         if (!initializingEndpoints.add(target)) {
             return null;
         }
 
         String address = addresses.get(target);
 
-        ManagedChannel channel = ManagedChannelBuilder.forTarget(address).disableRetry().usePlaintext().directExecutor().build();
+        ManagedChannel channel = ManagedChannelBuilder.forTarget(address).disableRetry().usePlaintext()
+                                                      //                                                      .directExecutor()
+                                                      .build();
 
-        // TODO [basri] introduce deadline
-        //        RaftConfig raftConfig = config.getRaftConfig();
-        //        long deadline = raftConfig.getLeaderHeartbeatTimeoutMillis() + LEADER_HEARTBEAT_TIMEOUT_EXTENSION_MILLIS;
-        //        RaftMessageServiceStub invocationStub = newStub(channel).withDeadlineAfter(deadline, MILLISECONDS);
-        RaftMessageServiceStub invocationStub = newStub(channel);
+        RaftMessageHandlerStub replicationStub = RaftMessageHandlerGrpc.newStub(channel);
+        RaftInvocationHandlerFutureStub invocationStub = RaftInvocationHandlerGrpc.newFutureStub(channel);
 
-        ChannelContext context = new ChannelContext(target, channel, invocationStub);
-        context.raftMessageSender = invocationStub.handle(new ResponseStreamObserver(context));
+        RaftRpcContext context = new RaftRpcContext(target, channel, replicationStub, invocationStub);
+        context.raftMessageSender = replicationStub.handle(new ResponseStreamObserver(context));
 
-        channels.put(target, context);
+        stubs.put(target, context);
         initializingEndpoints.remove(target);
 
         return context;
     }
 
-    private void closeChannel(ChannelContext context) {
-        if (channels.remove(context.targetEndpoint, context)) {
+    private void checkChannel(RaftRpcContext context) {
+        if (stubs.remove(context.targetEndpoint, context)) {
             context.shutdownSilently();
         }
 
@@ -167,7 +171,7 @@ public class RaftRpcStubManagerImpl
             try {
                 executor.schedule(() -> {
                     initializingEndpoints.remove(target);
-                }, 5, SECONDS);
+                }, 1, SECONDS); // TODO [basri] improve this part
             } catch (RejectedExecutionException e) {
                 LOGGER.warn("{} could not schedule task for channel creation to: {}.", localEndpoint.getId(), target.getId());
                 initializingEndpoints.remove(target);
@@ -175,16 +179,19 @@ public class RaftRpcStubManagerImpl
         }
     }
 
-    private class ChannelContext
-            implements RaftRpcStub {
+    private class RaftRpcContext
+            implements RaftRpc {
         final RaftEndpoint targetEndpoint;
         final ManagedChannel channel;
-        final RaftMessageServiceStub invocationStub;
-        StreamObserver<RaftMessageProto> raftMessageSender;
+        final RaftMessageHandlerStub replicationStub;
+        final RaftInvocationHandlerFutureStub invocationStub;
+        StreamObserver<RaftMessageRequest> raftMessageSender;
 
-        ChannelContext(RaftEndpoint targetEndpoint, ManagedChannel channel, RaftMessageServiceStub invocationStub) {
+        RaftRpcContext(RaftEndpoint targetEndpoint, ManagedChannel channel, RaftMessageHandlerStub replicationStub,
+                       RaftInvocationHandlerFutureStub invocationStub) {
             this.targetEndpoint = targetEndpoint;
             this.channel = channel;
+            this.replicationStub = replicationStub;
             this.invocationStub = invocationStub;
         }
 
@@ -209,26 +216,26 @@ public class RaftRpcStubManagerImpl
         }
 
         @Override
-        public void replicate(ReplicateRequest request, StreamObserver<OperationResponse> responseObserver) {
-            invocationStub.replicate(request, responseObserver);
+        public ListenableFuture<OperationResponse> replicate(ReplicateRequest request) {
+            return invocationStub.withDeadlineAfter(rpcTimeoutSecs, SECONDS).replicate(request);
         }
 
         @Override
-        public void query(QueryRequest request, StreamObserver<OperationResponse> responseObserver) {
-            invocationStub.query(request, responseObserver);
+        public ListenableFuture<OperationResponse> query(QueryRequest request) {
+            return invocationStub.withDeadlineAfter(rpcTimeoutSecs, SECONDS).query(request);
         }
     }
 
     private class ResponseStreamObserver
-            implements StreamObserver<RaftResponse> {
-        final ChannelContext context;
+            implements StreamObserver<RaftMessageResponse> {
+        final RaftRpcContext context;
 
-        private ResponseStreamObserver(ChannelContext context) {
+        private ResponseStreamObserver(RaftRpcContext context) {
             this.context = context;
         }
 
         @Override
-        public void onNext(RaftResponse response) {
+        public void onNext(RaftMessageResponse response) {
             LOGGER.warn("{} received {} from Raft RPC stream to {}", localEndpoint.getId(), response,
                         context.targetEndpoint.getId());
         }
@@ -243,7 +250,7 @@ public class RaftRpcStubManagerImpl
                         context.targetEndpoint.getId(), t.getClass().getSimpleName(), t.getMessage());
             }
 
-            closeChannel(context);
+            checkChannel(context);
         }
 
         @Override

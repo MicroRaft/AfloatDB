@@ -19,7 +19,7 @@ package io.afloatdb.utils;
 import io.afloatdb.AfloatDB;
 import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.internal.AfloatDBImpl;
-import io.afloatdb.internal.invocation.RaftInvocationManager;
+import io.afloatdb.internal.invocation.InvocationService;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.report.RaftGroupMembers;
@@ -133,8 +133,8 @@ public final class AfloatDBTestUtils {
         return ((AfloatDBImpl) server).getRaftNode().getCommittedMembers();
     }
 
-    public static RaftInvocationManager getRaftInvocationManager(AfloatDB server) {
-        return ((AfloatDBImpl) server).getInjector().getInstance(RaftInvocationManager.class);
+    public static InvocationService getInvocationService(AfloatDB server) {
+        return ((AfloatDBImpl) server).getInjector().getInstance(InvocationService.class);
     }
 
 }

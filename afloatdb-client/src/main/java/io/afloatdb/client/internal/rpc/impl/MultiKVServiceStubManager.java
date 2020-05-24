@@ -24,8 +24,8 @@ import io.afloatdb.cluster.proto.AfloatDBClusterEndpointsRequest;
 import io.afloatdb.cluster.proto.AfloatDBClusterEndpointsResponse;
 import io.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc;
 import io.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc.AfloatDBClusterServiceStub;
-import io.afloatdb.kv.proto.KVServiceGrpc;
-import io.afloatdb.kv.proto.KVServiceGrpc.KVServiceBlockingStub;
+import io.afloatdb.kv.proto.KVRequestHandlerGrpc;
+import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerBlockingStub;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -47,40 +47,42 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Singleton
 public class MultiKVServiceStubManager
-        implements Supplier<KVServiceBlockingStub> {
+        implements Supplier<KVRequestHandlerBlockingStub> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MultiKVServiceStubManager.class);
+    private static final long START_TIMEOUT_SECONDS = 60;
 
     private final AfloatDBClientConfig config;
+    private final int rpcTimeoutSecs;
     private final ChannelManager channelManager;
     private final AtomicReference<AfloatDBClusterEndpoints> endpointsRef = new AtomicReference<>();
     private final ConcurrentMap<String, AfloatDBClusterServiceStub> clusterStubs = new ConcurrentHashMap<>();
     private final CountDownLatch startLatch = new CountDownLatch(1);
     private String kvStubServerId;
-    private volatile KVServiceBlockingStub kvStub;
+    private volatile KVRequestHandlerBlockingStub stub;
 
     @Inject
     public MultiKVServiceStubManager(@Named(CONFIG_KEY) AfloatDBClientConfig config, ChannelManager channelManager) {
         this.config = config;
+        this.rpcTimeoutSecs = config.getRpcTimeoutSecs();
         this.channelManager = channelManager;
     }
 
     @Override
-    public KVServiceBlockingStub get() {
-        return kvStub;
+    public KVRequestHandlerBlockingStub get() {
+        return stub.withDeadlineAfter(rpcTimeoutSecs, SECONDS);
     }
 
     @PostConstruct
     public void start() {
         createClusterStubIfAbsent(config.getServerAddress());
         try {
-            // TODO [basri] make it configurable
-            if (!startLatch.await(60, SECONDS)) {
-                throw new AfloatDBClientException("Could not connect to the AfloatDB cluster leader!");
+            if (!startLatch.await(START_TIMEOUT_SECONDS, SECONDS)) {
+                throw new AfloatDBClientException("Could not connect to the leader endpoint!");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new AfloatDBClientException("Could not connect to the AfloatDB cluster leader!", e);
+            throw new AfloatDBClientException("Could not connect to the leader endpoint because interrupted!");
         }
     }
 
@@ -119,7 +121,7 @@ public class MultiKVServiceStubManager
             LOGGER.info("{} switching the KV stub to the new leader: {}", config.getClientId(), newEndpoints.getLeaderId());
 
             String leaderAddress = newEndpoints.getEndpointMap().get(newEndpoints.getLeaderId());
-            kvStub = KVServiceGrpc.newBlockingStub(channelManager.getOrCreateChannel(leaderAddress));
+            stub = KVRequestHandlerGrpc.newBlockingStub(channelManager.getOrCreateChannel(leaderAddress));
             kvStubServerId = newEndpoints.getLeaderId();
             startLatch.countDown();
         }
@@ -136,7 +138,7 @@ public class MultiKVServiceStubManager
         LOGGER.info("{} created the cluster service stub for address: {}", config.getClientId(), address);
         AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId(config.getClientId())
                                                                                  .build();
-        stub.observeClusterEndpoints(request, new AfloatDBClusterEndpointsResponseObserver(address, channel, stub));
+        stub.listenClusterEndpoints(request, new AfloatDBClusterEndpointsResponseObserver(address, channel, stub));
     }
 
     private void removeClusterStub(String address, AfloatDBClusterServiceStub stub) {

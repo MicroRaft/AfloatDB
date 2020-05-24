@@ -19,7 +19,7 @@ package io.afloatdb.internal.raft.impl;
 import io.afloatdb.AfloatDBException;
 import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
-import io.afloatdb.internal.raft.RaftNodeReportObserver;
+import io.afloatdb.internal.raft.RaftNodeReportSupplier;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.model.RaftModelFactory;
@@ -55,11 +55,11 @@ public class RaftNodeSupplier
     public RaftNodeSupplier(@Named(CONFIG_KEY) AfloatDBConfig config, @Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
                             @Named(INITIAL_ENDPOINTS_KEY) Collection<RaftEndpoint> initialGroupMembers, Transport transport,
                             StateMachine stateMachine, RaftModelFactory modelFactory,
-                            RaftNodeReportObserver raftNodeReportObserver, ProcessTerminationLogger processTerminationLogger) {
+                            RaftNodeReportSupplier raftNodeReportSupplier, ProcessTerminationLogger processTerminationLogger) {
         this.raftNode = RaftNode.newBuilder().setGroupId(config.getRaftGroupConfig().getId()).setLocalEndpoint(localEndpoint)
                                 .setInitialGroupMembers(initialGroupMembers).setConfig(config.getRaftConfig())
                                 .setTransport(transport).setStateMachine(stateMachine).setModelFactory(modelFactory)
-                                .setRaftNodeReportListener(raftNodeReportObserver).build();
+                                .setRaftNodeReportListener(raftNodeReportSupplier).build();
         this.processTerminationLogger = processTerminationLogger;
     }
 

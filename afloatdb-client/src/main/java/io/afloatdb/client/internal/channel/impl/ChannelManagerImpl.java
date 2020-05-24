@@ -53,14 +53,13 @@ public class ChannelManagerImpl
 
         return channels.computeIfAbsent(address, s -> {
             LOGGER.info("{} created channel to {}.", config.getClientId(), address);
-            return ManagedChannelBuilder.forTarget(address).directExecutor().usePlaintext().build();
+            return ManagedChannelBuilder.forTarget(address).disableRetry().directExecutor().usePlaintext().build();
         });
     }
 
     @Override
     public void checkChannel(String address, ManagedChannel channel) {
-        if (channel.getState(true) == ConnectivityState.SHUTDOWN && channels
-                .remove(requireNonNull(address), requireNonNull(channel))) {
+        if (channel.getState(true) == ConnectivityState.SHUTDOWN && channels.remove(requireNonNull(address), channel)) {
             silentlyShutdownNow(channel);
             LOGGER.warn("{} removed the shutdown-channel to: {}.", config.getClientId(), address);
         }

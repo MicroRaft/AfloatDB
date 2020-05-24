@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package io.afloatdb.raft.proto;
 
-import "KVService.proto";
+import "KV.proto";
 
 option java_multiple_files = true;
 
@@ -170,7 +170,7 @@ message TriggerLeaderElectionRequestProto {
     int64 lastLogIndex = 5;
 }
 
-message RaftMessageProto {
+message RaftMessageRequest {
     oneof message {
         VoteRequestProto voteRequest = 1;
         VoteResponseProto voteResponse = 2;
@@ -185,7 +185,7 @@ message RaftMessageProto {
     }
 }
 
-message RaftResponse {
+message RaftMessageResponse {
     int32 status = 1;
 }
 
@@ -221,7 +221,14 @@ message OperationResponse {
     };
 }
 
-service RaftMessageService {
+service RaftMessageHandler {
+
+    rpc handle (stream RaftMessageRequest) returns (RaftMessageResponse) {
+    }
+
+}
+
+service RaftInvocationHandler {
 
     rpc replicate (ReplicateRequest) returns (OperationResponse) {
     }
@@ -229,8 +236,6 @@ service RaftMessageService {
     rpc query (QueryRequest) returns (OperationResponse) {
     }
 
-    rpc handle (stream RaftMessageProto) returns (RaftResponse) {
-    }
 }
 
 

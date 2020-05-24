@@ -24,7 +24,7 @@ import io.afloatdb.internal.raft.impl.model.message.InstallSnapshotRequestOrBuil
 import io.afloatdb.internal.raft.impl.model.message.InstallSnapshotResponseOrBuilder;
 import io.afloatdb.internal.raft.impl.model.message.PreVoteRequestOrBuilder;
 import io.afloatdb.internal.raft.impl.model.message.PreVoteResponseOrBuilder;
-import io.afloatdb.internal.raft.impl.model.message.RaftMessageProtoAware;
+import io.afloatdb.internal.raft.impl.model.message.RaftMessageRequestAware;
 import io.afloatdb.internal.raft.impl.model.message.TriggerLeaderElectionRequestOrBuilder;
 import io.afloatdb.internal.raft.impl.model.message.VoteRequestOrBuilder;
 import io.afloatdb.internal.raft.impl.model.message.VoteResponseOrBuilder;
@@ -35,9 +35,8 @@ import io.afloatdb.management.proto.RaftNodeReportReasonProto;
 import io.afloatdb.management.proto.RaftNodeStatusProto;
 import io.afloatdb.management.proto.RaftRoleProto;
 import io.afloatdb.management.proto.RaftTermProto;
-import io.afloatdb.raft.proto.OperationResponse;
 import io.afloatdb.raft.proto.QueryRequest.QUERY_POLICY;
-import io.afloatdb.raft.proto.RaftMessageProto;
+import io.afloatdb.raft.proto.RaftMessageRequest;
 import io.microraft.QueryPolicy;
 import io.microraft.RaftNodeStatus;
 import io.microraft.RaftRole;
@@ -49,8 +48,6 @@ import io.microraft.report.RaftNodeReport.RaftNodeReportReason;
 import io.microraft.report.RaftTerm;
 
 import javax.annotation.Nonnull;
-
-import static java.util.Objects.requireNonNull;
 
 public final class Serialization {
 
@@ -150,31 +147,6 @@ public final class Serialization {
                                 .setInstallSnapshotCount(log.getInstallSnapshotCount()).build();
     }
 
-    public static Object unwrapResponse(OperationResponse response) {
-        switch (response.getResponseCase()) {
-            case PUTRESPONSE:
-                return response.getPutResponse();
-            case SETRESPONSE:
-                return response.getSetResponse();
-            case GETRESPONSE:
-                return response.getGetResponse();
-            case CONTAINSRESPONSE:
-                return response.getContainsResponse();
-            case DELETERESPONSE:
-                return response.getDeleteResponse();
-            case REMOVERESPONSE:
-                return response.getRemoveResponse();
-            case REPLACERESPONSE:
-                return response.getReplaceResponse();
-            case SIZERESPONSE:
-                return response.getSizeResponse();
-            case CLEARRESPONSE:
-                return response.getClearResponse();
-            default:
-                throw new IllegalArgumentException("Invalid response: " + response);
-        }
-    }
-
     public static QUERY_POLICY toProto(@Nonnull QueryPolicy queryPolicy) {
         switch (queryPolicy) {
             case ANY_LOCAL:
@@ -201,44 +173,42 @@ public final class Serialization {
         }
     }
 
-    public static RaftMessage unwrap(@Nonnull RaftMessageProto proto) {
-        switch (proto.getMessageCase()) {
+    public static RaftMessage unwrap(@Nonnull RaftMessageRequest request) {
+        switch (request.getMessageCase()) {
             case VOTEREQUEST:
-                return new VoteRequestOrBuilder(proto.getVoteRequest());
+                return new VoteRequestOrBuilder(request.getVoteRequest());
             case VOTERESPONSE:
-                return new VoteResponseOrBuilder(proto.getVoteResponse());
+                return new VoteResponseOrBuilder(request.getVoteResponse());
             case APPENDENTRIESREQUEST:
-                return new AppendEntriesRequestOrBuilder(proto.getAppendEntriesRequest());
+                return new AppendEntriesRequestOrBuilder(request.getAppendEntriesRequest());
             case APPENDENTRIESSUCCESSRESPONSE:
-                return new AppendEntriesSuccessResponseOrBuilder(proto.getAppendEntriesSuccessResponse());
+                return new AppendEntriesSuccessResponseOrBuilder(request.getAppendEntriesSuccessResponse());
             case APPENDENTRIESFAILURERESPONSE:
-                return new AppendEntriesFailureResponseOrBuilder(proto.getAppendEntriesFailureResponse());
+                return new AppendEntriesFailureResponseOrBuilder(request.getAppendEntriesFailureResponse());
             case INSTALLSNAPSHOTREQUEST:
-                return new InstallSnapshotRequestOrBuilder(proto.getInstallSnapshotRequest());
+                return new InstallSnapshotRequestOrBuilder(request.getInstallSnapshotRequest());
             case INSTALLSNAPSHOTRESPONSE:
-                return new InstallSnapshotResponseOrBuilder(proto.getInstallSnapshotResponse());
+                return new InstallSnapshotResponseOrBuilder(request.getInstallSnapshotResponse());
             case PREVOTEREQUEST:
-                return new PreVoteRequestOrBuilder(proto.getPreVoteRequest());
+                return new PreVoteRequestOrBuilder(request.getPreVoteRequest());
             case PREVOTERESPONSE:
-                return new PreVoteResponseOrBuilder(proto.getPreVoteResponse());
+                return new PreVoteResponseOrBuilder(request.getPreVoteResponse());
             case TRIGGERLEADERELECTIONREQUEST:
-                return new TriggerLeaderElectionRequestOrBuilder(proto.getTriggerLeaderElectionRequest());
+                return new TriggerLeaderElectionRequestOrBuilder(request.getTriggerLeaderElectionRequest());
             default:
-                throw new IllegalArgumentException("Invalid proto: " + proto);
+                throw new IllegalArgumentException("Invalid request: " + request);
         }
     }
 
-    public static RaftMessageProto wrap(@Nonnull RaftMessage message) {
-        requireNonNull(message);
-
-        RaftMessageProto.Builder builder = RaftMessageProto.newBuilder();
-
-        if (message instanceof RaftMessageProtoAware) {
-            ((RaftMessageProtoAware) message).populate(builder);
+    public static RaftMessageRequest wrap(@Nonnull RaftMessage message) {
+        RaftMessageRequest.Builder builder = RaftMessageRequest.newBuilder();
+        if (message instanceof RaftMessageRequestAware) {
+            ((RaftMessageRequestAware) message).populate(builder);
         } else {
             throw new IllegalArgumentException("Cannot convert " + message + " to proto");
         }
 
         return builder.build();
     }
+
 }

@@ -40,6 +40,7 @@ import static com.typesafe.config.ConfigFactory.load;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_1;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_2;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_3;
+import static io.afloatdb.utils.AfloatDBTestUtils.waitUntilLeaderElected;
 import static io.microraft.impl.util.RandomPicker.getRandomInt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
@@ -79,6 +80,7 @@ public class AfloatDBClientKVTest
         servers.add(AfloatDB.bootstrap(CONFIG_1));
         servers.add(AfloatDB.bootstrap(CONFIG_2));
         servers.add(AfloatDB.bootstrap(CONFIG_3));
+        waitUntilLeaderElected(servers);
     }
 
     @AfterClass

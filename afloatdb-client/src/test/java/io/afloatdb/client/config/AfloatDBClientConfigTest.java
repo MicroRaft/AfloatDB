@@ -97,4 +97,29 @@ public class AfloatDBClientConfigTest
         assertThat(clientConfig.getConfig()).isSameAs(config);
     }
 
+    @Test
+    public void when_rpcTimeoutSecsNotProvided_then_shouldCreateConfigWithDefaultVal() {
+        AfloatDBClientConfig config = newBuilder().setServerAddress("localhost:6701").build();
+
+        assertThat(config.getRpcTimeoutSecs()).isEqualTo(AfloatDBClientConfig.DEFAULT_RPC_TIMEOUT_SECS);
+    }
+
+    @Test
+    public void when_rpcTimeoutSecsProvidedInConfig_then_shouldCreateConfigWithProvidedVal() {
+        int rpcTimeoutSecs = 20;
+        String configString = "afloatdb.client.rpc-timeout-secs: " + rpcTimeoutSecs + "\nafloatdb.client.id: \"client1\"";
+        AfloatDBClientConfig config = newBuilder().setConfig(ConfigFactory.parseString(configString))
+                                                  .setServerAddress("localhost:6701").build();
+
+        assertThat(config.getRpcTimeoutSecs()).isEqualTo(rpcTimeoutSecs);
+    }
+
+    @Test
+    public void when_rpcTimeoutSecsProvided_then_shouldCreateConfigWithProvidedVal() {
+        int rpcTimeoutSecs = 20;
+        AfloatDBClientConfig config = newBuilder().setServerAddress("localhost:6701").setRpcTimeoutSecs(rpcTimeoutSecs).build();
+
+        assertThat(config.getRpcTimeoutSecs()).isEqualTo(rpcTimeoutSecs);
+    }
+
 }

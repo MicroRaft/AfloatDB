@@ -21,8 +21,8 @@ import io.afloatdb.cluster.proto.AfloatDBClusterEndpointsRequest;
 import io.afloatdb.cluster.proto.AfloatDBClusterEndpointsResponse;
 import io.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc.AfloatDBClusterServiceImplBase;
 import io.afloatdb.config.AfloatDBConfig;
-import io.afloatdb.internal.raft.RaftNodeReportObserver;
-import io.afloatdb.internal.rpc.RaftRpcStubManager;
+import io.afloatdb.internal.raft.RaftNodeReportSupplier;
+import io.afloatdb.internal.rpc.RaftRpcService;
 import io.grpc.stub.StreamObserver;
 import io.microraft.RaftEndpoint;
 import io.microraft.report.RaftGroupMembers;
@@ -49,7 +49,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 @Singleton
 public class AfloatDBClusterEndpointsPublisher
         extends AfloatDBClusterServiceImplBase
-        implements RaftNodeReportObserver {
+        implements RaftNodeReportSupplier {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AfloatDBClusterEndpointsPublisher.class);
     private static final long CLUSTER_ENDPOINTS_IDLE_PUBLISH_DURATION_MILLIS = SECONDS.toMillis(30);
@@ -57,17 +57,17 @@ public class AfloatDBClusterEndpointsPublisher
     private final Map<String, StreamObserver<AfloatDBClusterEndpointsResponse>> observers = new ConcurrentHashMap<>();
     private final AfloatDBConfig config;
     private final RaftEndpoint localEndpoint;
-    private final RaftRpcStubManager raftRpcStubManager;
+    private final RaftRpcService raftRpcService;
     private volatile RaftNodeReport lastReport;
     private long raftNodeReportIdlePublishTimestamp;
 
     @Inject
     public AfloatDBClusterEndpointsPublisher(@Named(CONFIG_KEY) AfloatDBConfig config,
                                              @Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
-                                             RaftRpcStubManager raftRpcStubManager) {
+                                             RaftRpcService raftRpcService) {
         this.config = config;
         this.localEndpoint = localEndpoint;
-        this.raftRpcStubManager = raftRpcStubManager;
+        this.raftRpcService = raftRpcService;
         this.raftNodeReportIdlePublishTimestamp = System.currentTimeMillis() - CLUSTER_ENDPOINTS_IDLE_PUBLISH_DURATION_MILLIS;
     }
 
@@ -77,8 +77,8 @@ public class AfloatDBClusterEndpointsPublisher
     }
 
     @Override
-    public void observeClusterEndpoints(AfloatDBClusterEndpointsRequest request,
-                                        StreamObserver<AfloatDBClusterEndpointsResponse> responseObserver) {
+    public void listenClusterEndpoints(AfloatDBClusterEndpointsRequest request,
+                                       StreamObserver<AfloatDBClusterEndpointsResponse> responseObserver) {
         StreamObserver<AfloatDBClusterEndpointsResponse> prev = observers.put(request.getClientId(), responseObserver);
         if (prev != null) {
             LOGGER.warn("{} completing already existing stream observer for {}.", localEndpoint.getId(), request.getClientId());
@@ -154,8 +154,8 @@ public class AfloatDBClusterEndpointsPublisher
 
         endpointsBuilder.setTerm(report.getTerm().getTerm());
 
-        raftRpcStubManager.getAddresses().entrySet().stream().filter(e -> committedMembers.getMembers().contains(e.getKey()))
-                          .forEach(e -> endpointsBuilder.putEndpoint((String) e.getKey().getId(), e.getValue()));
+        raftRpcService.getAddresses().entrySet().stream().filter(e -> committedMembers.getMembers().contains(e.getKey()))
+                      .forEach(e -> endpointsBuilder.putEndpoint((String) e.getKey().getId(), e.getValue()));
 
         return AfloatDBClusterEndpointsResponse.newBuilder().setEndpoints(endpointsBuilder.build()).build();
     }

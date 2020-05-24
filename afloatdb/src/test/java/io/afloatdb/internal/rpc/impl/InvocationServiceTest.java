@@ -18,13 +18,12 @@ package io.afloatdb.internal.rpc.impl;
 
 import com.google.protobuf.ByteString;
 import io.afloatdb.AfloatDB;
-import io.afloatdb.internal.invocation.RaftInvocationManager;
+import io.afloatdb.internal.invocation.InvocationService;
 import io.afloatdb.kv.proto.PutRequest;
-import io.afloatdb.kv.proto.PutResponse;
 import io.afloatdb.kv.proto.SizeRequest;
-import io.afloatdb.kv.proto.SizeResponse;
 import io.afloatdb.kv.proto.TypedValue;
 import io.afloatdb.raft.proto.Operation;
+import io.afloatdb.raft.proto.OperationResponse;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.microraft.Ordered;
@@ -43,7 +42,7 @@ import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_2;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_3;
 import static io.afloatdb.utils.AfloatDBTestUtils.getAnyFollower;
 import static io.afloatdb.utils.AfloatDBTestUtils.getFollowers;
-import static io.afloatdb.utils.AfloatDBTestUtils.getRaftInvocationManager;
+import static io.afloatdb.utils.AfloatDBTestUtils.getInvocationService;
 import static io.afloatdb.utils.AfloatDBTestUtils.waitUntilLeaderElected;
 import static io.microraft.QueryPolicy.ANY_LOCAL;
 import static io.microraft.QueryPolicy.LEADER_LOCAL;
@@ -51,10 +50,10 @@ import static io.microraft.QueryPolicy.LINEARIZABLE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-public class RaftInvocationManagerTest
+public class InvocationServiceTest
         extends BaseTest {
 
-    private List<AfloatDB> servers = new ArrayList<>();
+    private final List<AfloatDB> servers = new ArrayList<>();
 
     @Before
     public void init() {
@@ -71,10 +70,9 @@ public class RaftInvocationManagerTest
     @Test
     public void when_invocationIsDoneOnLeader_then_invocationSucceeds() {
         AfloatDB leader = waitUntilLeaderElected(servers);
-        CompletableFuture<Ordered<PutResponse>> future = invokePutRequest(leader);
+        CompletableFuture<Ordered<OperationResponse>> future = invokePutRequest(leader);
 
-        Ordered<PutResponse> result = future.join();
-        assertThat(result.getCommitIndex()).isGreaterThan(0);
+        assertThat(future.join().getCommitIndex()).isGreaterThan(0);
     }
 
     @Test
@@ -82,10 +80,9 @@ public class RaftInvocationManagerTest
         waitUntilLeaderElected(servers);
         AfloatDB follower = getAnyFollower(servers);
 
-        CompletableFuture<Ordered<PutResponse>> future = invokePutRequest(follower);
+        CompletableFuture<Ordered<OperationResponse>> future = invokePutRequest(follower);
 
-        Ordered<PutResponse> result = future.join();
-        assertThat(result.getCommitIndex()).isGreaterThan(0);
+        assertThat(future.join().getCommitIndex()).isGreaterThan(0);
     }
 
     @Test
@@ -98,7 +95,7 @@ public class RaftInvocationManagerTest
             }
         }
 
-        CompletableFuture<Ordered<PutResponse>> future = invokePutRequest(follower);
+        CompletableFuture<Ordered<OperationResponse>> future = invokePutRequest(follower);
 
         try {
             future.join();
@@ -117,7 +114,7 @@ public class RaftInvocationManagerTest
             server.shutdown();
         }
 
-        CompletableFuture<Ordered<PutResponse>> future = invokePutRequest(leader);
+        CompletableFuture<Ordered<OperationResponse>> future = invokePutRequest(leader);
 
         try {
             future.join();
@@ -136,12 +133,12 @@ public class RaftInvocationManagerTest
 
         AfloatDB follower = getAnyFollower(servers);
 
-        RaftInvocationManager invocationManager = getRaftInvocationManager(follower);
+        InvocationService invocationService = getInvocationService(follower);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<SizeResponse>> future = invocationManager.query(request, LINEARIZABLE, 0);
+        CompletableFuture<Ordered<OperationResponse>> future = invocationService.query(request, LINEARIZABLE, 0);
 
-        Ordered<SizeResponse> result = future.join();
-        assertThat(result.getResult().getSize()).isEqualTo(1);
+        Ordered<OperationResponse> result = future.join();
+        assertThat(result.getResult().getSizeResponse().getSize()).isEqualTo(1);
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
 
@@ -150,12 +147,12 @@ public class RaftInvocationManagerTest
         AfloatDB leader = waitUntilLeaderElected(servers);
         invokePutRequest(leader).join();
 
-        RaftInvocationManager invocationManager = getRaftInvocationManager(leader);
+        InvocationService invocationService = getInvocationService(leader);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<SizeResponse>> future = invocationManager.query(request, LINEARIZABLE, 0);
+        CompletableFuture<Ordered<OperationResponse>> future = invocationService.query(request, LINEARIZABLE, 0);
 
-        Ordered<SizeResponse> result = future.join();
-        assertThat(result.getResult().getSize()).isEqualTo(1);
+        Ordered<OperationResponse> result = future.join();
+        assertThat(result.getResult().getSizeResponse().getSize()).isEqualTo(1);
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
 
@@ -166,12 +163,12 @@ public class RaftInvocationManagerTest
 
         AfloatDB follower = getAnyFollower(servers);
 
-        RaftInvocationManager invocationManager = getRaftInvocationManager(follower);
+        InvocationService invocationService = getInvocationService(follower);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<SizeResponse>> future = invocationManager.query(request, LEADER_LOCAL, 0);
+        CompletableFuture<Ordered<OperationResponse>> future = invocationService.query(request, LEADER_LOCAL, 0);
 
-        Ordered<SizeResponse> result = future.join();
-        assertThat(result.getResult().getSize()).isEqualTo(1);
+        Ordered<OperationResponse> result = future.join();
+        assertThat(result.getResult().getSizeResponse().getSize()).isEqualTo(1);
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
 
@@ -180,12 +177,12 @@ public class RaftInvocationManagerTest
         AfloatDB leader = waitUntilLeaderElected(servers);
         invokePutRequest(leader).join();
 
-        RaftInvocationManager invocationManager = getRaftInvocationManager(leader);
+        InvocationService invocationService = getInvocationService(leader);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<SizeResponse>> future = invocationManager.query(request, LEADER_LOCAL, 0);
+        CompletableFuture<Ordered<OperationResponse>> future = invocationService.query(request, LEADER_LOCAL, 0);
 
-        Ordered<SizeResponse> result = future.join();
-        assertThat(result.getResult().getSize()).isEqualTo(1);
+        Ordered<OperationResponse> result = future.join();
+        assertThat(result.getResult().getSizeResponse().getSize()).isEqualTo(1);
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
 
@@ -196,12 +193,12 @@ public class RaftInvocationManagerTest
 
         AfloatDB follower = getAnyFollower(servers);
 
-        RaftInvocationManager invocationManager = getRaftInvocationManager(follower);
+        InvocationService invocationService = getInvocationService(follower);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<SizeResponse>> future = invocationManager.query(request, ANY_LOCAL, 0);
+        CompletableFuture<Ordered<OperationResponse>> future = invocationService.query(request, ANY_LOCAL, 0);
 
-        Ordered<SizeResponse> result = future.join();
-        assertThat(result.getResult().getSize()).isLessThanOrEqualTo(1);
+        Ordered<OperationResponse> result = future.join();
+        assertThat(result.getResult().getSizeResponse().getSize()).isLessThanOrEqualTo(1);
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
 
@@ -210,22 +207,22 @@ public class RaftInvocationManagerTest
         AfloatDB leader = waitUntilLeaderElected(servers);
         invokePutRequest(leader).join();
 
-        RaftInvocationManager invocationManager = getRaftInvocationManager(leader);
+        InvocationService invocationService = getInvocationService(leader);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<SizeResponse>> future = invocationManager.query(request, ANY_LOCAL, 0);
+        CompletableFuture<Ordered<OperationResponse>> future = invocationService.query(request, ANY_LOCAL, 0);
 
-        Ordered<SizeResponse> result = future.join();
-        assertThat(result.getResult().getSize()).isEqualTo(1);
+        Ordered<OperationResponse> result = future.join();
+        assertThat(result.getResult().getSizeResponse().getSize()).isEqualTo(1);
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
 
-    private CompletableFuture<Ordered<PutResponse>> invokePutRequest(AfloatDB server) {
-        RaftInvocationManager invocationManager = getRaftInvocationManager(server);
+    private CompletableFuture<Ordered<OperationResponse>> invokePutRequest(AfloatDB server) {
+        InvocationService invocationService = getInvocationService(server);
         TypedValue val = TypedValue.newBuilder().setValue(ByteString.copyFromUtf8("val")).build();
         PutRequest request = PutRequest.newBuilder().setKey("key").setValue(val).build();
         Operation operation = Operation.newBuilder().setPutRequest(request).build();
 
-        return invocationManager.invoke(operation);
+        return invocationService.invoke(operation);
     }
 
 }

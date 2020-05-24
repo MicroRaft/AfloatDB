@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package io.afloatdb.internal.rpc;
+package io.afloatdb.internal.invocation;
 
-import io.microraft.RaftEndpoint;
+import io.afloatdb.raft.proto.Operation;
+import io.afloatdb.raft.proto.OperationResponse;
+import io.microraft.Ordered;
+import io.microraft.QueryPolicy;
 
 import javax.annotation.Nonnull;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
-public interface RaftRpcStubManager {
+public interface InvocationService {
 
-    void addAddress(@Nonnull RaftEndpoint endpoint, @Nonnull String address);
+    CompletableFuture<Ordered<OperationResponse>> invoke(@Nonnull Operation operation);
 
-    Map<RaftEndpoint, String> getAddresses();
-
-    RaftRpcStub getRpcStub(RaftEndpoint endpoint);
-
+    CompletableFuture<Ordered<OperationResponse>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy,
+                                                        long minCommitIndex);
 }

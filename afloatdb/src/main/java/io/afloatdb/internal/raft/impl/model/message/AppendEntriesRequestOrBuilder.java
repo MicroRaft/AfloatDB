@@ -19,7 +19,7 @@ package io.afloatdb.internal.raft.impl.model.message;
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.internal.raft.impl.model.log.LogEntryOrBuilder;
 import io.afloatdb.raft.proto.AppendEntriesRequestProto;
-import io.afloatdb.raft.proto.RaftMessageProto;
+import io.afloatdb.raft.proto.RaftMessageRequest;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.message.AppendEntriesRequest;
@@ -31,7 +31,7 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 public class AppendEntriesRequestOrBuilder
-        implements AppendEntriesRequest, AppendEntriesRequestBuilder, RaftMessageProtoAware {
+        implements AppendEntriesRequest, AppendEntriesRequestBuilder, RaftMessageRequestAware {
 
     private AppendEntriesRequestProto.Builder builder;
     private AppendEntriesRequestProto request;
@@ -53,7 +53,7 @@ public class AppendEntriesRequestOrBuilder
     }
 
     @Override
-    public void populate(RaftMessageProto.Builder builder) {
+    public void populate(RaftMessageRequest.Builder builder) {
         builder.setAppendEntriesRequest(request);
     }
 

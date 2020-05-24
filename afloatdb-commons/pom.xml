@@ -16,14 +16,14 @@
     <properties>
         <root.dir>${project.parent.basedir}</root.dir>
 
-        <protobuf.version>3.11.1</protobuf.version>
-        <io.grpc.version>1.26.0</io.grpc.version>
+        <protobuf.version>3.11.4</protobuf.version>
+        <io.grpc.version>1.29.0</io.grpc.version>
         <guice.version>4.2.2</guice.version>
         <governator.version>1.17.10</governator.version>
         <config.version>1.4.0</config.version>
 
-        <os-maven-plugin.version>1.6.2</os-maven-plugin.version>
-        <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
+        <os.maven.plugin.version>1.6.2</os.maven.plugin.version>
+        <protobuf.maven.plugin.version>0.6.1</protobuf.maven.plugin.version>
         <javax.annotation.api.version>1.2</javax.annotation.api.version>
     </properties>
 
@@ -52,6 +52,19 @@
             <artifactId>grpc-netty-shaded</artifactId>
             <version>${io.grpc.version}</version>
         </dependency>
+
+        <!--        <dependency>-->
+        <!--            <groupId>io.grpc</groupId>-->
+        <!--            <artifactId>grpc-netty</artifactId>-->
+        <!--            <version>1.29.0</version>-->
+        <!--        </dependency>-->
+        <!--        grpc-netty and netty-transport native versions: https://github.com/grpc/grpc-java/blob/master/SECURITY.md        -->
+        <!--        <dependency>-->
+        <!--            <groupId>io.netty</groupId>-->
+        <!--            <artifactId>netty-transport-native-epoll</artifactId>-->
+        <!--            <version>4.1.48.Final</version>-->
+        <!--            <classifier>linux-x86_64</classifier>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>com.google.inject</groupId>
@@ -85,14 +98,14 @@
             <extension>
                 <groupId>kr.motd.maven</groupId>
                 <artifactId>os-maven-plugin</artifactId>
-                <version>${os-maven-plugin.version}</version>
+                <version>${os.maven.plugin.version}</version>
             </extension>
         </extensions>
         <plugins>
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
-                <version>${protobuf-maven-plugin.version}</version>
+                <version>${protobuf.maven.plugin.version}</version>
                 <configuration>
                     <protocArtifact>
                         com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}

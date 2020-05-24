@@ -18,7 +18,7 @@ package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.raft.proto.AppendEntriesFailureResponseProto;
-import io.afloatdb.raft.proto.RaftMessageProto;
+import io.afloatdb.raft.proto.RaftMessageRequest;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.AppendEntriesFailureResponse;
 import io.microraft.model.message.AppendEntriesFailureResponse.AppendEntriesFailureResponseBuilder;
@@ -26,7 +26,7 @@ import io.microraft.model.message.AppendEntriesFailureResponse.AppendEntriesFail
 import javax.annotation.Nonnull;
 
 public class AppendEntriesFailureResponseOrBuilder
-        implements AppendEntriesFailureResponse, AppendEntriesFailureResponseBuilder, RaftMessageProtoAware {
+        implements AppendEntriesFailureResponse, AppendEntriesFailureResponseBuilder, RaftMessageRequestAware {
 
     private AppendEntriesFailureResponseProto.Builder builder;
     private AppendEntriesFailureResponseProto response;
@@ -46,7 +46,7 @@ public class AppendEntriesFailureResponseOrBuilder
     }
 
     @Override
-    public void populate(RaftMessageProto.Builder builder) {
+    public void populate(RaftMessageRequest.Builder builder) {
         builder.setAppendEntriesFailureResponse(response);
     }
 

@@ -17,16 +17,16 @@
 package io.afloatdb.internal.rpc.impl;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.internal.rpc.RaftRpcStubManager;
+import io.afloatdb.internal.rpc.RaftRpcService;
 import io.afloatdb.management.proto.AddRaftEndpointAddressRequest;
 import io.afloatdb.management.proto.AddRaftEndpointAddressResponse;
 import io.afloatdb.management.proto.AddRaftEndpointRequest;
 import io.afloatdb.management.proto.AddRaftEndpointResponse;
 import io.afloatdb.management.proto.GetRaftNodeReportRequest;
 import io.afloatdb.management.proto.GetRaftNodeReportResponse;
-import io.afloatdb.management.proto.ManagementServiceGrpc.ManagementServiceImplBase;
-import io.afloatdb.management.proto.RemoveEndpointRequest;
-import io.afloatdb.management.proto.RemoveEndpointResponse;
+import io.afloatdb.management.proto.ManagementRequestHandlerGrpc.ManagementRequestHandlerImplBase;
+import io.afloatdb.management.proto.RemoveRaftEndpointRequest;
+import io.afloatdb.management.proto.RemoveRaftEndpointResponse;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
@@ -48,35 +48,37 @@ import static io.microraft.MembershipChangeMode.REMOVE;
 
 @Singleton
 public class ManagementRequestHandler
-        extends ManagementServiceImplBase {
+        extends ManagementRequestHandlerImplBase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ManagementRequestHandler.class);
 
     private final RaftNode raftNode;
-    private final RaftRpcStubManager raftRpcStubManager;
+    private final RaftRpcService raftRpcService;
 
     @Inject
     public ManagementRequestHandler(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
-                                    RaftRpcStubManager raftRpcStubManager) {
+                                    RaftRpcService raftRpcService) {
         this.raftNode = raftNodeSupplier.get();
-        this.raftRpcStubManager = raftRpcStubManager;
+        this.raftRpcService = raftRpcService;
     }
 
     @Override
-    public void removeEndpoint(RemoveEndpointRequest request, StreamObserver<RemoveEndpointResponse> responseObserver) {
+    public void removeRaftEndpoint(RemoveRaftEndpointRequest request,
+                                   StreamObserver<RemoveRaftEndpointResponse> responseObserver) {
         AfloatDBEndpoint endpoint = AfloatDBEndpoint.wrap(request.getEndpoint());
 
         long commitIndex = request.getGroupMembersCommitIndex();
         LOGGER.info("{} received remove endpoint request for {} and group members commit index: {}",
-                raftNode.getLocalEndpoint().getId(), endpoint.getId(), commitIndex);
+                    raftNode.getLocalEndpoint().getId(), endpoint.getId(), commitIndex);
 
         raftNode.changeMembership(endpoint, REMOVE, commitIndex).whenComplete((result, throwable) -> {
             if (throwable == null) {
                 long newCommitIndex = result.getCommitIndex();
                 LOGGER.info("{} removed {} from the Raft group. New group members commit index: {}",
-                        raftNode.getLocalEndpoint().getId(), endpoint.getId(), newCommitIndex);
-                RemoveEndpointResponse response = RemoveEndpointResponse.newBuilder().setGroupMembersCommitIndex(newCommitIndex)
-                                                                        .build();
+                            raftNode.getLocalEndpoint().getId(), endpoint.getId(), newCommitIndex);
+                RemoveRaftEndpointResponse response = RemoveRaftEndpointResponse.newBuilder()
+                                                                                .setGroupMembersCommitIndex(newCommitIndex)
+                                                                                .build();
                 responseObserver.onNext(response);
             } else {
                 LOGGER.error(raftNode.getLocalEndpoint().getId() + " remove endpoint request for " + endpoint.getId()
@@ -88,13 +90,12 @@ public class ManagementRequestHandler
     }
 
     @Override
-    public void getReport(GetRaftNodeReportRequest request, StreamObserver<GetRaftNodeReportResponse> responseObserver) {
+    public void getRaftNodeReport(GetRaftNodeReportRequest request, StreamObserver<GetRaftNodeReportResponse> responseObserver) {
         raftNode.getReport().whenComplete((response, throwable) -> {
             if (throwable == null) {
                 GetRaftNodeReportResponse.Builder builder = GetRaftNodeReportResponse.newBuilder();
                 builder.setReport(toProto(response.getResult()));
-                raftRpcStubManager.getAddresses()
-                                  .forEach((key, value) -> builder.putEndpointAddress((String) key.getId(), value));
+                raftRpcService.getAddresses().forEach((key, value) -> builder.putEndpointAddress((String) key.getId(), value));
 
                 responseObserver.onNext(builder.build());
             } else {
@@ -108,7 +109,7 @@ public class ManagementRequestHandler
     public void addRaftEndpointAddress(AddRaftEndpointAddressRequest request,
                                        StreamObserver<AddRaftEndpointAddressResponse> responseObserver) {
         try {
-            raftRpcStubManager.addAddress(AfloatDBEndpoint.wrap(request.getEndpoint()), request.getAddress());
+            raftRpcService.addAddress(AfloatDBEndpoint.wrap(request.getEndpoint()), request.getAddress());
             responseObserver.onNext(AddRaftEndpointAddressResponse.getDefaultInstance());
         } catch (Throwable t) {
             responseObserver.onError(wrap(t));
@@ -120,9 +121,9 @@ public class ManagementRequestHandler
     @Override
     public void addRaftEndpoint(AddRaftEndpointRequest request, StreamObserver<AddRaftEndpointResponse> responseObserver) {
         RaftEndpoint endpoint = AfloatDBEndpoint.wrap(request.getEndpoint());
-        if (!raftRpcStubManager.getAddresses().containsKey(endpoint)) {
+        if (!raftRpcService.getAddresses().containsKey(endpoint)) {
             LOGGER.error("{} cannot add {} because its address is not known!", raftNode.getLocalEndpoint().getId(),
-                    endpoint.getId());
+                         endpoint.getId());
             responseObserver.onError(new StatusRuntimeException(Status.FAILED_PRECONDITION));
             responseObserver.onCompleted();
             return;

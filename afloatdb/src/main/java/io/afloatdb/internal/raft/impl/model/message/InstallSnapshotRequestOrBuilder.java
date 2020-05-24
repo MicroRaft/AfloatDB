@@ -20,7 +20,7 @@ import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.internal.raft.impl.model.log.SnapshotChunkOrBuilder;
 import io.afloatdb.raft.proto.InstallSnapshotRequestProto;
 import io.afloatdb.raft.proto.KVSnapshotChunk;
-import io.afloatdb.raft.proto.RaftMessageProto;
+import io.afloatdb.raft.proto.RaftMessageRequest;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.message.InstallSnapshotRequest;
@@ -32,7 +32,7 @@ import java.util.Collection;
 import static java.util.stream.Collectors.toList;
 
 public class InstallSnapshotRequestOrBuilder
-        implements InstallSnapshotRequest, InstallSnapshotRequest.InstallSnapshotRequestBuilder, RaftMessageProtoAware {
+        implements InstallSnapshotRequest, InstallSnapshotRequest.InstallSnapshotRequestBuilder, RaftMessageRequestAware {
 
     private InstallSnapshotRequestProto.Builder builder;
     private InstallSnapshotRequestProto request;
@@ -166,7 +166,7 @@ public class InstallSnapshotRequestOrBuilder
     }
 
     @Override
-    public void populate(RaftMessageProto.Builder builder) {
+    public void populate(RaftMessageRequest.Builder builder) {
         builder.setInstallSnapshotRequest(request);
     }
 

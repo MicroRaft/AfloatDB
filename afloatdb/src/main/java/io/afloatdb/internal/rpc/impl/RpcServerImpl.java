@@ -19,9 +19,10 @@ package io.afloatdb.internal.rpc.impl;
 import io.afloatdb.AfloatDBException;
 import io.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc.AfloatDBClusterServiceImplBase;
 import io.afloatdb.config.AfloatDBConfig;
+import io.afloatdb.internal.invocation.impl.RaftInvocationHandler;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.afloatdb.internal.lifecycle.TerminationAware;
-import io.afloatdb.internal.raft.RaftNodeReportObserver;
+import io.afloatdb.internal.raft.RaftNodeReportSupplier;
 import io.afloatdb.internal.rpc.RpcServer;
 import io.grpc.Server;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
@@ -52,13 +53,14 @@ public class RpcServerImpl
 
     @Inject
     public RpcServerImpl(@Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint, @Named(CONFIG_KEY) AfloatDBConfig config,
-                         KVRequestHandler requestHandler, RaftMessageHandler raftMessageHandler,
-                         ManagementRequestHandler managementRequestHandler, RaftNodeReportObserver raftNodeReportObserver,
-                         ProcessTerminationLogger processTerminationLogger) {
+                         KVRequestHandler kvRequestHandler, RaftMessageHandler raftMessageHandler,
+                         RaftInvocationHandler raftInvocationHandler, ManagementRequestHandler managementRequestHandler,
+                         RaftNodeReportSupplier raftNodeReportSupplier, ProcessTerminationLogger processTerminationLogger) {
         this.localEndpoint = localEndpoint;
-        this.server = NettyServerBuilder.forAddress(config.getLocalEndpointConfig().getSocketAddress()).addService(requestHandler)
-                                        .addService(raftMessageHandler).addService(managementRequestHandler)
-                                        .addService((AfloatDBClusterServiceImplBase) raftNodeReportObserver).directExecutor()
+        this.server = NettyServerBuilder.forAddress(config.getLocalEndpointConfig().getSocketAddress())
+                                        .addService(kvRequestHandler).addService(raftMessageHandler)
+                                        .addService(raftInvocationHandler).addService(managementRequestHandler)
+                                        .addService((AfloatDBClusterServiceImplBase) raftNodeReportSupplier).directExecutor()
                                         .build();
         this.processTerminationLogger = processTerminationLogger;
     }

@@ -28,13 +28,13 @@ import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.config.AfloatDBEndpointConfig;
 import io.afloatdb.internal.di.AfloatDBModule;
 import io.afloatdb.internal.lifecycle.TerminationAware;
-import io.afloatdb.internal.raft.RaftNodeReportObserver;
+import io.afloatdb.internal.raft.RaftNodeReportSupplier;
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.management.proto.AddRaftEndpointAddressRequest;
 import io.afloatdb.management.proto.AddRaftEndpointRequest;
 import io.afloatdb.management.proto.GetRaftNodeReportRequest;
 import io.afloatdb.management.proto.GetRaftNodeReportResponse;
-import io.afloatdb.management.proto.ManagementServiceGrpc;
+import io.afloatdb.management.proto.ManagementRequestHandlerGrpc;
 import io.afloatdb.management.proto.RaftNodeReportProto;
 import io.afloatdb.management.proto.RaftNodeStatusProto;
 import io.afloatdb.raft.proto.RaftEndpointProto;
@@ -91,7 +91,7 @@ public class AfloatDBImpl
             Supplier<RaftNode> raftNodeSupplier = injector.getInstance(Key.get(new TypeLiteral<Supplier<RaftNode>>() {
             }, named(RAFT_NODE_SUPPLIER_KEY)));
             this.raftNode = raftNodeSupplier.get();
-            this.raftNodeReportSupplier = injector.getInstance(RaftNodeReportObserver.class);
+            this.raftNodeReportSupplier = injector.getInstance(RaftNodeReportSupplier.class);
 
             registerShutdownHook();
         } catch (Throwable t) {
@@ -266,8 +266,8 @@ public class AfloatDBImpl
             ManagedChannel reportChannel = createChannel(joinAddress);
             GetRaftNodeReportResponse reportResponse;
             try {
-                reportResponse = ManagementServiceGrpc.newBlockingStub(reportChannel)
-                                                      .getReport(GetRaftNodeReportRequest.getDefaultInstance());
+                reportResponse = ManagementRequestHandlerGrpc.newBlockingStub(reportChannel)
+                                                             .getRaftNodeReport(GetRaftNodeReportRequest.getDefaultInstance());
             } finally {
                 reportChannel.shutdownNow();
             }
@@ -310,7 +310,7 @@ public class AfloatDBImpl
                          targetAddress);
             ManagedChannel channel = createChannel(targetAddress);
             try {
-                ManagementServiceGrpc.newBlockingStub(channel).addRaftEndpointAddress(request);
+                ManagementRequestHandlerGrpc.newBlockingStub(channel).addRaftEndpointAddress(request);
             } catch (Throwable t) {
                 throw new AfloatDBException("Could not add Raft endpoint address to " + target + " at " + targetAddress, t);
             } finally {
@@ -331,7 +331,7 @@ public class AfloatDBImpl
             AddRaftEndpointRequest request = AddRaftEndpointRequest.newBuilder().setEndpoint(localEndpoint)
                                                                    .setGroupMembersCommitIndex(groupMembersCommitIndex).build();
             try {
-                ManagementServiceGrpc.newBlockingStub(leaderChannel).addRaftEndpoint(request);
+                ManagementRequestHandlerGrpc.newBlockingStub(leaderChannel).addRaftEndpoint(request);
             } catch (Throwable t) {
                 throw new AfloatDBException(
                         localEndpoint.getId() + " failure during add Raft endpoint via the Raft " + "leader: " + leaderEndpoint

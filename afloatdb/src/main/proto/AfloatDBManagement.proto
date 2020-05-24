@@ -65,14 +65,6 @@ message RaftNodeReportProto {
     RaftLogStatsProto log = 10;
 }
 
-message RemoveEndpointRequest {
-    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
-    int64 groupMembersCommitIndex = 2;
-}
-
-message RemoveEndpointResponse {
-    int64 groupMembersCommitIndex = 1;
-}
 
 message GetRaftNodeReportRequest {
 }
@@ -99,18 +91,28 @@ message AddRaftEndpointResponse {
     int64 groupMembersCommitIndex = 1;
 }
 
-service ManagementService {
+message RemoveRaftEndpointRequest {
+    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
+    int64 groupMembersCommitIndex = 2;
+}
 
-    rpc removeEndpoint (RemoveEndpointRequest) returns (RemoveEndpointResponse) {
-    }
+message RemoveRaftEndpointResponse {
+    int64 groupMembersCommitIndex = 1;
+}
 
-    rpc getReport (GetRaftNodeReportRequest) returns (GetRaftNodeReportResponse) {
+
+service ManagementRequestHandler {
+
+    rpc getRaftNodeReport (GetRaftNodeReportRequest) returns (GetRaftNodeReportResponse) {
     }
 
     rpc addRaftEndpointAddress (AddRaftEndpointAddressRequest) returns (AddRaftEndpointAddressResponse) {
     }
 
     rpc addRaftEndpoint (AddRaftEndpointRequest) returns (AddRaftEndpointResponse) {
+    }
+
+    rpc removeRaftEndpoint (RemoveRaftEndpointRequest) returns (RemoveRaftEndpointResponse) {
     }
 
 }
