@@ -2,13 +2,11 @@ syntax = "proto3";
 
 package io.afloatdb.raft.proto;
 
+import "RaftEndpoint.proto";
 import "KV.proto";
 
 option java_multiple_files = true;
 
-message RaftEndpointProto {
-    string id = 1;
-}
 
 message UpdateRaftGroupMembersOpProto {
     repeated RaftEndpointProto groupMember = 1;
@@ -206,21 +204,6 @@ message QueryRequest {
     int64 minCommitIndex = 3;
 }
 
-message OperationResponse {
-    int64 commitIndex = 1;
-    oneof response {
-        io.afloatdb.kv.proto.PutResponse putResponse = 2;
-        io.afloatdb.kv.proto.SetResponse setResponse = 3;
-        io.afloatdb.kv.proto.GetResponse getResponse = 4;
-        io.afloatdb.kv.proto.ContainsResponse containsResponse = 5;
-        io.afloatdb.kv.proto.DeleteResponse deleteResponse = 6;
-        io.afloatdb.kv.proto.RemoveResponse removeResponse = 7;
-        io.afloatdb.kv.proto.ReplaceResponse replaceResponse = 8;
-        io.afloatdb.kv.proto.SizeResponse sizeResponse = 9;
-        io.afloatdb.kv.proto.ClearResponse clearResponse = 10;
-    };
-}
-
 service RaftMessageHandler {
 
     rpc handle (stream RaftMessageRequest) returns (RaftMessageResponse) {
@@ -230,10 +213,10 @@ service RaftMessageHandler {
 
 service RaftInvocationHandler {
 
-    rpc replicate (ReplicateRequest) returns (OperationResponse) {
+    rpc replicate (ReplicateRequest) returns (io.afloatdb.kv.proto.KVResponse) {
     }
 
-    rpc query (QueryRequest) returns (OperationResponse) {
+    rpc query (QueryRequest) returns (io.afloatdb.kv.proto.KVResponse) {
     }
 
 }

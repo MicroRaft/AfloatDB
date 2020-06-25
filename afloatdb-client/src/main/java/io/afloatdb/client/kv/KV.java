@@ -14,17 +14,46 @@
  * limitations under the License.
  */
 
-package io.afloatdb.client.kvstore;
+package io.afloatdb.client.kv;
+
+import javax.annotation.Nonnull;
 
 public interface KV
         extends Put, Set, Get, Contains, Delete, Remove, Replace {
 
     default boolean isEmpty() {
-        return size() == 0;
+        return isEmpty(0L);
     }
 
-    int size();
+    default boolean isEmpty(long minCommitIndex) {
+        return size(minCommitIndex) == 0;
+    }
+
+    default @Nonnull
+    Ordered<Boolean> isEmptyOrdered() {
+        return isEmptyOrdered(0L);
+    }
+
+    @Nonnull
+    Ordered<Boolean> isEmptyOrdered(long minCommitIndex);
+
+    default int size() {
+        return size(0L);
+    }
+
+    int size(long minCommitIndex);
+
+    default @Nonnull
+    Ordered<Integer> sizeOrdered() {
+        return sizeOrdered(0L);
+    }
+
+    @Nonnull
+    Ordered<Integer> sizeOrdered(long minCommitIndex);
 
     int clear();
+
+    @Nonnull
+    Ordered<Integer> clearOrdered();
 
 }

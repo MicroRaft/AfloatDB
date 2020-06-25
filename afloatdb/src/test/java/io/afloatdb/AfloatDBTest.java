@@ -12,6 +12,7 @@ import io.afloatdb.config.AfloatDBEndpointConfig;
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.kv.proto.GetRequest;
 import io.afloatdb.kv.proto.GetResponse;
+import io.afloatdb.kv.proto.KVResponse;
 import io.afloatdb.kv.proto.PutRequest;
 import io.afloatdb.kv.proto.SetRequest;
 import io.afloatdb.kv.proto.SizeRequest;
@@ -26,7 +27,6 @@ import io.afloatdb.management.proto.RaftNodeReportProto;
 import io.afloatdb.management.proto.RemoveRaftEndpointRequest;
 import io.afloatdb.management.proto.RemoveRaftEndpointResponse;
 import io.afloatdb.raft.proto.Operation;
-import io.afloatdb.raft.proto.OperationResponse;
 import io.afloatdb.raft.proto.RaftEndpointProto;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -217,8 +217,8 @@ public class AfloatDBTest
 
         eventually(() -> {
             GetRequest request = GetRequest.newBuilder().setKey("key").build();
-            GetResponse response = getRaftNode(newServer).<OperationResponse>query(
-                    Operation.newBuilder().setGetRequest(request).build(), ANY_LOCAL, 0).join().getResult().getGetResponse();
+            GetResponse response = getRaftNode(newServer).<KVResponse>query(Operation.newBuilder().setGetRequest(request).build(),
+                                                                            ANY_LOCAL, 0).join().getResult().getGetResponse();
             assertThat(response.getValue()).isEqualTo(putRequest.getValue());
         });
     }
@@ -338,7 +338,7 @@ public class AfloatDBTest
         servers.add(newServer);
 
         eventually(() -> {
-            SizeResponse sizeResponse = getRaftNode(newServer).<OperationResponse>query(
+            SizeResponse sizeResponse = getRaftNode(newServer).<KVResponse>query(
                     Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build(), ANY_LOCAL, 0).join()
                                                                                                                   .getResult()
                                                                                                                   .getSizeResponse();

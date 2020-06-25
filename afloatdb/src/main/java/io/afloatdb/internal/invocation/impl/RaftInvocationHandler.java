@@ -1,6 +1,6 @@
 package io.afloatdb.internal.invocation.impl;
 
-import io.afloatdb.raft.proto.OperationResponse;
+import io.afloatdb.kv.proto.KVResponse;
 import io.afloatdb.raft.proto.QueryRequest;
 import io.afloatdb.raft.proto.RaftInvocationHandlerGrpc.RaftInvocationHandlerImplBase;
 import io.afloatdb.raft.proto.ReplicateRequest;
@@ -31,8 +31,8 @@ public class RaftInvocationHandler
     }
 
     @Override
-    public void replicate(ReplicateRequest request, StreamObserver<OperationResponse> responseObserver) {
-        raftNode.<OperationResponse>replicate(request.getOperation()).whenComplete((response, throwable) -> {
+    public void replicate(ReplicateRequest request, StreamObserver<KVResponse> responseObserver) {
+        raftNode.<KVResponse>replicate(request.getOperation()).whenComplete((response, throwable) -> {
             if (throwable == null) {
                 responseObserver.onNext(response.getResult());
             } else {
@@ -43,7 +43,7 @@ public class RaftInvocationHandler
     }
 
     @Override
-    public void query(QueryRequest request, StreamObserver<OperationResponse> responseObserver) {
+    public void query(QueryRequest request, StreamObserver<KVResponse> responseObserver) {
         QueryPolicy queryPolicy = fromProto(request.getQueryPolicy());
         if (queryPolicy == null) {
             responseObserver.onError(new StatusRuntimeException(Status.INVALID_ARGUMENT));
@@ -51,7 +51,7 @@ public class RaftInvocationHandler
             return;
         }
 
-        raftNode.<OperationResponse>query(request.getOperation(), queryPolicy, request.getMinCommitIndex())
+        raftNode.<KVResponse>query(request.getOperation(), queryPolicy, request.getMinCommitIndex())
                 .whenComplete((response, throwable) -> {
                     if (throwable == null) {
                         responseObserver.onNext(response.getResult());

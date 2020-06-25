@@ -26,7 +26,6 @@ import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.afloatdb.internal.lifecycle.impl.ProcessTerminationLoggerImpl;
 import io.afloatdb.internal.raft.RaftNodeReportSupplier;
 import io.afloatdb.internal.raft.impl.AfloatDBClusterEndpointsPublisher;
-import io.afloatdb.internal.raft.impl.GrpcTransport;
 import io.afloatdb.internal.raft.impl.KVStoreStateMachine;
 import io.afloatdb.internal.raft.impl.RaftNodeSupplier;
 import io.afloatdb.internal.raft.impl.model.ProtoRaftModelFactory;
@@ -45,7 +44,6 @@ import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.statemachine.StateMachine;
-import io.microraft.transport.Transport;
 
 import java.util.Collection;
 import java.util.List;
@@ -93,7 +91,6 @@ public class AfloatDBModule
         }).annotatedWith(named(RAFT_ENDPOINT_ADDRESSES_KEY)).toInstance(addresses);
 
         bind(RaftNodeReportSupplier.class).to(AfloatDBClusterEndpointsPublisher.class);
-        bind(Transport.class).to(GrpcTransport.class);
         bind(StateMachine.class).to(KVStoreStateMachine.class);
         bind(RaftModelFactory.class).to(ProtoRaftModelFactory.class);
         bind(RaftMessageHandlerImplBase.class).to(RaftMessageHandler.class);

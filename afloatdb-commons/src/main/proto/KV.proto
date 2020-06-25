@@ -29,6 +29,7 @@ message SetResponse {
 
 message GetRequest {
     string key = 1;
+    int64 minCommitIndex = 2;
 }
 
 message GetResponse {
@@ -38,6 +39,7 @@ message GetResponse {
 message ContainsRequest {
     string key = 1;
     TypedValue value = 2;
+    int64 minCommitIndex = 3;
 }
 
 message ContainsResponse {
@@ -73,6 +75,7 @@ message ReplaceResponse {
 }
 
 message SizeRequest {
+    int64 minCommitIndex = 1;
 }
 
 message SizeResponse {
@@ -86,14 +89,29 @@ message ClearResponse {
     int32 size = 1;
 }
 
+message KVResponse {
+    int64 commitIndex = 1;
+    oneof response {
+        PutResponse putResponse = 2;
+        SetResponse setResponse = 3;
+        GetResponse getResponse = 4;
+        ContainsResponse containsResponse = 5;
+        DeleteResponse deleteResponse = 6;
+        RemoveResponse removeResponse = 7;
+        ReplaceResponse replaceResponse = 8;
+        SizeResponse sizeResponse = 9;
+        ClearResponse clearResponse = 10;
+    };
+}
+
 service KVRequestHandler {
-    rpc put (PutRequest) returns (PutResponse);
-    rpc set (SetRequest) returns (SetResponse);
-    rpc get (GetRequest) returns (GetResponse);
-    rpc contains (ContainsRequest) returns (ContainsResponse);
-    rpc delete (DeleteRequest) returns (DeleteResponse);
-    rpc remove (RemoveRequest) returns (RemoveResponse);
-    rpc replace (ReplaceRequest) returns (ReplaceResponse);
-    rpc size (SizeRequest) returns (SizeResponse);
-    rpc clear (ClearRequest) returns (ClearResponse);
+    rpc put (PutRequest) returns (KVResponse);
+    rpc set (SetRequest) returns (KVResponse);
+    rpc get (GetRequest) returns (KVResponse);
+    rpc contains (ContainsRequest) returns (KVResponse);
+    rpc delete (DeleteRequest) returns (KVResponse);
+    rpc remove (RemoveRequest) returns (KVResponse);
+    rpc replace (ReplaceRequest) returns (KVResponse);
+    rpc size (SizeRequest) returns (KVResponse);
+    rpc clear (ClearRequest) returns (KVResponse);
 }

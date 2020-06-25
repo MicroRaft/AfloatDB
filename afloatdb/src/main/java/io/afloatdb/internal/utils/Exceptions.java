@@ -40,6 +40,19 @@ public final class Exceptions {
     private Exceptions() {
     }
 
+    public static void main(String[] args) {
+        StatusRuntimeException e = wrap(new LaggingCommitIndexException(10, 15, null));
+        System.out.println(isRaftException(e.getMessage()));
+    }
+
+    public static boolean isRaftException(String message) {
+        return message != null && (message.contains("RAFT:" + NotLeaderException.class.getSimpleName()) || message
+                .contains("RAFT:" + CannotReplicateException.class.getSimpleName()) || message
+                .contains("RAFT:" + IndeterminateStateException.class.getSimpleName()) || message
+                .contains("RAFT:" + LaggingCommitIndexException.class.getSimpleName()) || message
+                .contains("RAFT:" + MismatchingRaftGroupMembersCommitIndexException.class.getSimpleName()));
+    }
+
     public static StatusRuntimeException wrap(Throwable t) {
         if (t instanceof StatusRuntimeException) {
             return (StatusRuntimeException) t;
@@ -65,8 +78,7 @@ public final class Exceptions {
         String stackTrace = getStackTraceString(t);
         StringBuilder sb = new StringBuilder();
         boolean isRaftException = t instanceof RaftException;
-        sb.append(isRaftException ? "RAFT" : "OTHER").append("\n");
-        sb.append(t.getClass().getSimpleName()).append("\n");
+        sb.append(isRaftException ? "RAFT" : "OTHER").append(":").append(t.getClass().getSimpleName()).append("\n");
         if (isRaftException) {
             RaftEndpoint leader = ((RaftException) t).getLeader();
             sb.append(leader != null ? leader.getId() : "").append("\n");

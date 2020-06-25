@@ -21,7 +21,7 @@ import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.afloatdb.internal.rpc.RaftRpc;
 import io.afloatdb.internal.rpc.RaftRpcService;
-import io.afloatdb.raft.proto.OperationResponse;
+import io.afloatdb.kv.proto.KVResponse;
 import io.afloatdb.raft.proto.QueryRequest;
 import io.afloatdb.raft.proto.RaftInvocationHandlerGrpc;
 import io.afloatdb.raft.proto.RaftInvocationHandlerGrpc.RaftInvocationHandlerFutureStub;
@@ -115,6 +115,21 @@ public class RaftRpcServiceImpl
     @Override
     public RaftRpc getRpcStub(RaftEndpoint target) {
         return getOrCreateStub(requireNonNull(target));
+    }
+
+    @Override
+    public void send(@Nonnull RaftEndpoint target, @Nonnull RaftMessage message) {
+        RaftRpc stub = getRpcStub(target);
+        if (stub != null) {
+            executor.submit(() -> {
+                stub.send(message);
+            });
+        }
+    }
+
+    @Override
+    public boolean isReachable(@Nonnull RaftEndpoint endpoint) {
+        return stubs.containsKey(endpoint);
     }
 
     private RaftRpcContext getOrCreateStub(RaftEndpoint target) {
@@ -216,12 +231,12 @@ public class RaftRpcServiceImpl
         }
 
         @Override
-        public ListenableFuture<OperationResponse> replicate(ReplicateRequest request) {
+        public ListenableFuture<KVResponse> replicate(ReplicateRequest request) {
             return invocationStub.withDeadlineAfter(rpcTimeoutSecs, SECONDS).replicate(request);
         }
 
         @Override
-        public ListenableFuture<OperationResponse> query(QueryRequest request) {
+        public ListenableFuture<KVResponse> query(QueryRequest request) {
             return invocationStub.withDeadlineAfter(rpcTimeoutSecs, SECONDS).query(request);
         }
     }

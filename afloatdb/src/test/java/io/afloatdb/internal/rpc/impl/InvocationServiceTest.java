@@ -19,11 +19,11 @@ package io.afloatdb.internal.rpc.impl;
 import com.google.protobuf.ByteString;
 import io.afloatdb.AfloatDB;
 import io.afloatdb.internal.invocation.InvocationService;
+import io.afloatdb.kv.proto.KVResponse;
 import io.afloatdb.kv.proto.PutRequest;
 import io.afloatdb.kv.proto.SizeRequest;
 import io.afloatdb.kv.proto.TypedValue;
 import io.afloatdb.raft.proto.Operation;
-import io.afloatdb.raft.proto.OperationResponse;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.microraft.Ordered;
@@ -70,7 +70,7 @@ public class InvocationServiceTest
     @Test
     public void when_invocationIsDoneOnLeader_then_invocationSucceeds() {
         AfloatDB leader = waitUntilLeaderElected(servers);
-        CompletableFuture<Ordered<OperationResponse>> future = invokePutRequest(leader);
+        CompletableFuture<Ordered<KVResponse>> future = invokePutRequest(leader);
 
         assertThat(future.join().getCommitIndex()).isGreaterThan(0);
     }
@@ -80,7 +80,7 @@ public class InvocationServiceTest
         waitUntilLeaderElected(servers);
         AfloatDB follower = getAnyFollower(servers);
 
-        CompletableFuture<Ordered<OperationResponse>> future = invokePutRequest(follower);
+        CompletableFuture<Ordered<KVResponse>> future = invokePutRequest(follower);
 
         assertThat(future.join().getCommitIndex()).isGreaterThan(0);
     }
@@ -95,7 +95,7 @@ public class InvocationServiceTest
             }
         }
 
-        CompletableFuture<Ordered<OperationResponse>> future = invokePutRequest(follower);
+        CompletableFuture<Ordered<KVResponse>> future = invokePutRequest(follower);
 
         try {
             future.join();
@@ -114,7 +114,7 @@ public class InvocationServiceTest
             server.shutdown();
         }
 
-        CompletableFuture<Ordered<OperationResponse>> future = invokePutRequest(leader);
+        CompletableFuture<Ordered<KVResponse>> future = invokePutRequest(leader);
 
         try {
             future.join();
@@ -135,9 +135,9 @@ public class InvocationServiceTest
 
         InvocationService invocationService = getInvocationService(follower);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<OperationResponse>> future = invocationService.query(request, LINEARIZABLE, 0);
+        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, LINEARIZABLE, 0);
 
-        Ordered<OperationResponse> result = future.join();
+        Ordered<KVResponse> result = future.join();
         assertThat(result.getResult().getSizeResponse().getSize()).isEqualTo(1);
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
@@ -149,9 +149,9 @@ public class InvocationServiceTest
 
         InvocationService invocationService = getInvocationService(leader);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<OperationResponse>> future = invocationService.query(request, LINEARIZABLE, 0);
+        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, LINEARIZABLE, 0);
 
-        Ordered<OperationResponse> result = future.join();
+        Ordered<KVResponse> result = future.join();
         assertThat(result.getResult().getSizeResponse().getSize()).isEqualTo(1);
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
@@ -165,9 +165,9 @@ public class InvocationServiceTest
 
         InvocationService invocationService = getInvocationService(follower);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<OperationResponse>> future = invocationService.query(request, LEADER_LOCAL, 0);
+        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, LEADER_LOCAL, 0);
 
-        Ordered<OperationResponse> result = future.join();
+        Ordered<KVResponse> result = future.join();
         assertThat(result.getResult().getSizeResponse().getSize()).isEqualTo(1);
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
@@ -179,9 +179,9 @@ public class InvocationServiceTest
 
         InvocationService invocationService = getInvocationService(leader);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<OperationResponse>> future = invocationService.query(request, LEADER_LOCAL, 0);
+        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, LEADER_LOCAL, 0);
 
-        Ordered<OperationResponse> result = future.join();
+        Ordered<KVResponse> result = future.join();
         assertThat(result.getResult().getSizeResponse().getSize()).isEqualTo(1);
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
@@ -195,9 +195,9 @@ public class InvocationServiceTest
 
         InvocationService invocationService = getInvocationService(follower);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<OperationResponse>> future = invocationService.query(request, ANY_LOCAL, 0);
+        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, ANY_LOCAL, 0);
 
-        Ordered<OperationResponse> result = future.join();
+        Ordered<KVResponse> result = future.join();
         assertThat(result.getResult().getSizeResponse().getSize()).isLessThanOrEqualTo(1);
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
@@ -209,14 +209,14 @@ public class InvocationServiceTest
 
         InvocationService invocationService = getInvocationService(leader);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<OperationResponse>> future = invocationService.query(request, ANY_LOCAL, 0);
+        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, ANY_LOCAL, 0);
 
-        Ordered<OperationResponse> result = future.join();
+        Ordered<KVResponse> result = future.join();
         assertThat(result.getResult().getSizeResponse().getSize()).isEqualTo(1);
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
 
-    private CompletableFuture<Ordered<OperationResponse>> invokePutRequest(AfloatDB server) {
+    private CompletableFuture<Ordered<KVResponse>> invokePutRequest(AfloatDB server) {
         InvocationService invocationService = getInvocationService(server);
         TypedValue val = TypedValue.newBuilder().setValue(ByteString.copyFromUtf8("val")).build();
         PutRequest request = PutRequest.newBuilder().setKey("key").setValue(val).build();

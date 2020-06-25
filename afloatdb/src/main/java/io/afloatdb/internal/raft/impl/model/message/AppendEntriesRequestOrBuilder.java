@@ -19,6 +19,7 @@ package io.afloatdb.internal.raft.impl.model.message;
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.internal.raft.impl.model.log.LogEntryOrBuilder;
 import io.afloatdb.raft.proto.AppendEntriesRequestProto;
+import io.afloatdb.raft.proto.LogEntryProto;
 import io.afloatdb.raft.proto.RaftMessageRequest;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.LogEntry;
@@ -26,9 +27,8 @@ import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.AppendEntriesRequest.AppendEntriesRequestBuilder;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 public class AppendEntriesRequestOrBuilder
         implements AppendEntriesRequest, AppendEntriesRequestBuilder, RaftMessageRequestAware {
@@ -45,7 +45,10 @@ public class AppendEntriesRequestOrBuilder
     public AppendEntriesRequestOrBuilder(AppendEntriesRequestProto request) {
         this.request = request;
         this.sender = AfloatDBEndpoint.wrap(request.getSender());
-        this.logEntries = request.getEntryList().stream().map(LogEntryOrBuilder::new).collect(toList());
+        this.logEntries = new ArrayList<>(request.getEntryCount());
+        for (LogEntryProto e : request.getEntryList()) {
+            this.logEntries.add(new LogEntryOrBuilder(e));
+        }
     }
 
     public AppendEntriesRequestProto getRequest() {

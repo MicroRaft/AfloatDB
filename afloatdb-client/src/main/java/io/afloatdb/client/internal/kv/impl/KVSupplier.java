@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package io.afloatdb.client.internal.kvstore.impl;
+package io.afloatdb.client.internal.kv.impl;
 
-import io.afloatdb.client.kvstore.KV;
+import io.afloatdb.client.kv.KV;
 import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerBlockingStub;
 
 import javax.inject.Inject;
