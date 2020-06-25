@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package io.afloatdb.raft.proto;
+
+option java_multiple_files = true;
+
+message RaftEndpointProto {
+    string id = 1;
+}

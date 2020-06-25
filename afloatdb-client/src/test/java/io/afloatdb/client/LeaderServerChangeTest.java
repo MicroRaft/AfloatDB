@@ -4,7 +4,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.afloatdb.AfloatDB;
 import io.afloatdb.client.config.AfloatDBClientConfig;
-import io.afloatdb.client.kvstore.KV;
+import io.afloatdb.client.kv.KV;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.microraft.RaftNode;

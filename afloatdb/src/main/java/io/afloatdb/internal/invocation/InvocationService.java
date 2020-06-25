@@ -16,8 +16,8 @@
 
 package io.afloatdb.internal.invocation;
 
+import io.afloatdb.kv.proto.KVResponse;
 import io.afloatdb.raft.proto.Operation;
-import io.afloatdb.raft.proto.OperationResponse;
 import io.microraft.Ordered;
 import io.microraft.QueryPolicy;
 
@@ -26,8 +26,8 @@ import java.util.concurrent.CompletableFuture;
 
 public interface InvocationService {
 
-    CompletableFuture<Ordered<OperationResponse>> invoke(@Nonnull Operation operation);
+    CompletableFuture<Ordered<KVResponse>> invoke(@Nonnull Operation operation);
 
-    CompletableFuture<Ordered<OperationResponse>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy,
-                                                        long minCommitIndex);
+    CompletableFuture<Ordered<KVResponse>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy,
+                                                 long minCommitIndex);
 }

@@ -10,7 +10,7 @@ import static java.util.Objects.requireNonNull;
 public class RpcConfig {
 
     public static final int DEFAULT_RPC_TIMEOUT_SECONDS = 10;
-    public static final int DEFAULT_RETRY_LIMIT = 10;
+    public static final int DEFAULT_RETRY_LIMIT = 20;
 
     private long rpcTimeoutSecs = DEFAULT_RPC_TIMEOUT_SECONDS;
     private int retryLimit = DEFAULT_RETRY_LIMIT;

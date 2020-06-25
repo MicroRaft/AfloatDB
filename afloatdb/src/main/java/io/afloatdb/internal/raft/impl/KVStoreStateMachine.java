@@ -23,6 +23,7 @@ import io.afloatdb.kv.proto.DeleteRequest;
 import io.afloatdb.kv.proto.DeleteResponse;
 import io.afloatdb.kv.proto.GetRequest;
 import io.afloatdb.kv.proto.GetResponse;
+import io.afloatdb.kv.proto.KVResponse;
 import io.afloatdb.kv.proto.PutRequest;
 import io.afloatdb.kv.proto.PutResponse;
 import io.afloatdb.kv.proto.RemoveRequest;
@@ -36,7 +37,6 @@ import io.afloatdb.kv.proto.TypedValue;
 import io.afloatdb.raft.proto.KVEntry;
 import io.afloatdb.raft.proto.KVSnapshotChunkData;
 import io.afloatdb.raft.proto.Operation;
-import io.afloatdb.raft.proto.OperationResponse;
 import io.afloatdb.raft.proto.StartNewTermOpProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.statemachine.StateMachine;
@@ -106,7 +106,7 @@ public class KVStoreStateMachine
         }
     }
 
-    private OperationResponse put(long commitIndex, PutRequest request) {
+    private KVResponse put(long commitIndex, PutRequest request) {
         TypedValue prev;
         PutResponse.Builder builder = PutResponse.newBuilder();
         if (request.getAbsent()) {
@@ -119,27 +119,26 @@ public class KVStoreStateMachine
             builder.setValue(prev);
         }
 
-        return OperationResponse.newBuilder().setCommitIndex(commitIndex).setPutResponse(builder.build()).build();
+        return KVResponse.newBuilder().setCommitIndex(commitIndex).setPutResponse(builder.build()).build();
     }
 
-    private OperationResponse set(long commitIndex, SetRequest request) {
+    private KVResponse set(long commitIndex, SetRequest request) {
         map.put(request.getKey(), request.getValue());
 
-        return OperationResponse.newBuilder().setCommitIndex(commitIndex).setSetResponse(SetResponse.getDefaultInstance())
-                                .build();
+        return KVResponse.newBuilder().setCommitIndex(commitIndex).setSetResponse(SetResponse.getDefaultInstance()).build();
     }
 
-    private OperationResponse get(long commitIndex, GetRequest request) {
+    private KVResponse get(long commitIndex, GetRequest request) {
         GetResponse.Builder builder = GetResponse.newBuilder();
         TypedValue val = map.get(request.getKey());
         if (val != null) {
             builder.setValue(val);
         }
 
-        return OperationResponse.newBuilder().setCommitIndex(commitIndex).setGetResponse(builder.build()).build();
+        return KVResponse.newBuilder().setCommitIndex(commitIndex).setGetResponse(builder.build()).build();
     }
 
-    private OperationResponse contains(long commitIndex, ContainsRequest request) {
+    private KVResponse contains(long commitIndex, ContainsRequest request) {
         boolean success;
 
         if (request.hasValue()) {
@@ -148,18 +147,18 @@ public class KVStoreStateMachine
             success = map.containsKey(request.getKey());
         }
 
-        return OperationResponse.newBuilder().setCommitIndex(commitIndex)
-                                .setContainsResponse(ContainsResponse.newBuilder().setSuccess(success).build()).build();
+        return KVResponse.newBuilder().setCommitIndex(commitIndex)
+                         .setContainsResponse(ContainsResponse.newBuilder().setSuccess(success).build()).build();
     }
 
-    private OperationResponse delete(long commitIndex, DeleteRequest request) {
+    private KVResponse delete(long commitIndex, DeleteRequest request) {
         boolean success = map.remove(request.getKey()) != null;
 
-        return OperationResponse.newBuilder().setCommitIndex(commitIndex)
-                                .setDeleteResponse(DeleteResponse.newBuilder().setSuccess(success).build()).build();
+        return KVResponse.newBuilder().setCommitIndex(commitIndex)
+                         .setDeleteResponse(DeleteResponse.newBuilder().setSuccess(success).build()).build();
     }
 
-    private OperationResponse remove(long commitIndex, RemoveRequest request) {
+    private KVResponse remove(long commitIndex, RemoveRequest request) {
         RemoveResponse.Builder builder = RemoveResponse.newBuilder();
         boolean success;
         if (request.hasValue()) {
@@ -173,30 +172,29 @@ public class KVStoreStateMachine
             success = val != null;
         }
 
-        return OperationResponse.newBuilder().setCommitIndex(commitIndex).setRemoveResponse(builder.setSuccess(success).build())
-                                .build();
+        return KVResponse.newBuilder().setCommitIndex(commitIndex).setRemoveResponse(builder.setSuccess(success).build()).build();
     }
 
-    private OperationResponse replace(long commitIndex, ReplaceRequest request) {
+    private KVResponse replace(long commitIndex, ReplaceRequest request) {
         boolean success = map.replace(request.getKey(), request.getOldValue(), request.getNewValue());
 
-        return OperationResponse.newBuilder().setCommitIndex(commitIndex)
-                                .setReplaceResponse(ReplaceResponse.newBuilder().setSuccess(success).build()).build();
+        return KVResponse.newBuilder().setCommitIndex(commitIndex)
+                         .setReplaceResponse(ReplaceResponse.newBuilder().setSuccess(success).build()).build();
     }
 
-    private OperationResponse size(long commitIndex) {
+    private KVResponse size(long commitIndex) {
         int size = map.size();
 
-        return OperationResponse.newBuilder().setCommitIndex(commitIndex)
-                                .setSizeResponse(SizeResponse.newBuilder().setSize(size).build()).build();
+        return KVResponse.newBuilder().setCommitIndex(commitIndex)
+                         .setSizeResponse(SizeResponse.newBuilder().setSize(size).build()).build();
     }
 
-    private OperationResponse clear(long commitIndex) {
+    private KVResponse clear(long commitIndex) {
         int size = map.size();
         map.clear();
 
-        return OperationResponse.newBuilder().setCommitIndex(commitIndex)
-                                .setClearResponse(ClearResponse.newBuilder().setSize(size).build()).build();
+        return KVResponse.newBuilder().setCommitIndex(commitIndex)
+                         .setClearResponse(ClearResponse.newBuilder().setSize(size).build()).build();
     }
 
     @Override

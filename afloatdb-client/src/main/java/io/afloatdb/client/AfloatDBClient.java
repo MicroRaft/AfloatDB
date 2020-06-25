@@ -18,7 +18,7 @@ package io.afloatdb.client;
 
 import io.afloatdb.client.config.AfloatDBClientConfig;
 import io.afloatdb.client.internal.AfloatDBClientImpl;
-import io.afloatdb.client.kvstore.KV;
+import io.afloatdb.client.kv.KV;
 
 import javax.annotation.Nonnull;
 

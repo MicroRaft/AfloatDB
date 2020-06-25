@@ -17,7 +17,7 @@
 package io.afloatdb.internal.rpc;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import io.afloatdb.raft.proto.OperationResponse;
+import io.afloatdb.kv.proto.KVResponse;
 import io.afloatdb.raft.proto.QueryRequest;
 import io.afloatdb.raft.proto.ReplicateRequest;
 import io.microraft.model.message.RaftMessage;
@@ -28,8 +28,8 @@ public interface RaftRpc {
 
     void send(@Nonnull RaftMessage message);
 
-    ListenableFuture<OperationResponse> replicate(ReplicateRequest request);
+    ListenableFuture<KVResponse> replicate(ReplicateRequest request);
 
-    ListenableFuture<OperationResponse> query(QueryRequest request);
+    ListenableFuture<KVResponse> query(QueryRequest request);
 
 }

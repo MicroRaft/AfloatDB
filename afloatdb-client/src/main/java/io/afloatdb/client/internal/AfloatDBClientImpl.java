@@ -26,7 +26,7 @@ import io.afloatdb.client.AfloatDBClient;
 import io.afloatdb.client.AfloatDBClientException;
 import io.afloatdb.client.config.AfloatDBClientConfig;
 import io.afloatdb.client.internal.di.AfloatDBClientModule;
-import io.afloatdb.client.kvstore.KV;
+import io.afloatdb.client.kv.KV;
 import io.afloatdb.internal.lifecycle.TerminationAware;
 
 import javax.annotation.Nonnull;

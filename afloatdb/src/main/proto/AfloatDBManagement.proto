@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package io.afloatdb.management.proto;
 
-import "AfloatDBRaft.proto";
+import "RaftEndpoint.proto";
 
 option java_multiple_files = true;
 

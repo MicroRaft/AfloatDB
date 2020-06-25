@@ -16,9 +16,10 @@
 
 package io.afloatdb.client;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import io.afloatdb.client.config.AfloatDBClientConfig;
-import io.afloatdb.client.config.AfloatDBClientConfig.AfloatDBClientConfigBuilder;
-import io.afloatdb.client.kvstore.KV;
+import io.afloatdb.client.kv.KV;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -31,56 +32,54 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Threads;
+import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.RunnerException;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import java.util.Random;
+import java.io.File;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Fork(1)
 public class AfloatDBClientBenchmark {
 
-    public static void main(String[] args)
-            throws RunnerException {
-        Options opt = new OptionsBuilder().include(AfloatDBClientBenchmark.class.getSimpleName()).build();
-        new Runner(opt).run();
-    }
-
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
     @OutputTimeUnit(TimeUnit.SECONDS)
-    @Threads(5)
-    @Measurement(iterations = 100)
-    public void setTesting(Context context) {
-        int i = context.random.nextInt(10000);
+    @Threads(1)
+    @Measurement(iterations = 50)
+    @Warmup(iterations = 20)
+    public void setTesting(BenchmarkState state) {
+        int i = state.random(state.keyCount);
         String keyStr = "key" + i;
         String valueStr = "value" + i;
-        context.kv.set(keyStr, valueStr);
+        state.kv.set(keyStr, valueStr);
     }
 
     @State(Scope.Benchmark)
-    public static class Context {
+    public static class BenchmarkState {
         AfloatDBClient client;
-        Random random = new Random();
         KV kv;
+        int keyCount;
 
         @Setup(Level.Trial)
         public void setup() {
-            String target = "localhost:6701";
-            AfloatDBClientConfigBuilder configBuilder = AfloatDBClientConfig.newBuilder();
-            AfloatDBClientConfig clientConfig = configBuilder.setClientId("benchmark-client").setServerAddress(target).build();
-
+            File configFile = new File("benchmark-client.conf");
+            Config config = ConfigFactory.parseFile(configFile);
+            AfloatDBClientConfig clientConfig = AfloatDBClientConfig.newBuilder().setConfig(config).build();
             client = AfloatDBClient.newInstance(clientConfig);
             kv = client.getKV();
             kv.clear();
+            keyCount = config.getInt("key-count");
+            System.out.println("# Key count: " + keyCount);
         }
 
         @TearDown(Level.Trial)
         public void tearDown(Blackhole hole) {
             client.shutdown();
+        }
+
+        public int random(int limit) {
+            return ThreadLocalRandom.current().nextInt(limit);
         }
 
     }

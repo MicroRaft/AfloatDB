@@ -26,6 +26,10 @@ import io.afloatdb.internal.raft.RaftNodeReportSupplier;
 import io.afloatdb.internal.rpc.RpcServer;
 import io.grpc.Server;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
+import io.grpc.netty.shaded.io.netty.channel.EventLoopGroup;
+import io.grpc.netty.shaded.io.netty.channel.ServerChannel;
+import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
+import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.microraft.RaftEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,9 +61,14 @@ public class RpcServerImpl
                          RaftInvocationHandler raftInvocationHandler, ManagementRequestHandler managementRequestHandler,
                          RaftNodeReportSupplier raftNodeReportSupplier, ProcessTerminationLogger processTerminationLogger) {
         this.localEndpoint = localEndpoint;
-        this.server = NettyServerBuilder.forAddress(config.getLocalEndpointConfig().getSocketAddress())
-                                        .addService(kvRequestHandler).addService(raftMessageHandler)
-                                        .addService(raftInvocationHandler).addService(managementRequestHandler)
+        // TODO [basri] do perf analysis for this setup
+        EventLoopGroup boss = new NioEventLoopGroup(1);
+        EventLoopGroup worker = new NioEventLoopGroup(1);
+        Class<? extends ServerChannel> channelType = NioServerSocketChannel.class;
+        this.server = NettyServerBuilder.forAddress(config.getLocalEndpointConfig().getSocketAddress()).bossEventLoopGroup(boss)
+                                        .workerEventLoopGroup(worker).channelType(channelType).addService(kvRequestHandler)
+                                        .addService(raftMessageHandler).addService(raftInvocationHandler)
+                                        .addService(managementRequestHandler)
                                         .addService((AfloatDBClusterServiceImplBase) raftNodeReportSupplier).directExecutor()
                                         .build();
         this.processTerminationLogger = processTerminationLogger;

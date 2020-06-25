@@ -38,13 +38,13 @@ public class RunAfloatDB {
 
     private static String getConfigFileName(String[] args) {
         String prop = System.getProperty("afloatdb.config");
-        if (args.length == 1 && prop == null) {
+        if (args.length > 0) {
             return args[0];
-        } else if (args.length == 0 && prop != null) {
+        } else if (prop != null) {
             return prop;
         } else {
-            System.err.println("Config file name must be provided either via program argument or system parameter: "
-                    + "\"afloatdb.config\"!");
+            System.err.println("Config file location must be provided either via program argument or system parameter: "
+                                       + "\"afloatdb.config\"! If both are present, program argument is used.");
             System.exit(-1);
             return null;
         }

@@ -23,10 +23,11 @@ import io.afloatdb.internal.raft.RaftNodeReportSupplier;
 import io.afloatdb.internal.rpc.RaftRpc;
 import io.afloatdb.internal.rpc.RaftRpcService;
 import io.afloatdb.internal.utils.Exceptions;
+import io.afloatdb.kv.proto.KVResponse;
 import io.afloatdb.raft.proto.Operation;
-import io.afloatdb.raft.proto.OperationResponse;
 import io.afloatdb.raft.proto.QueryRequest;
 import io.afloatdb.raft.proto.ReplicateRequest;
+import io.grpc.Status.Code;
 import io.grpc.StatusRuntimeException;
 import io.microraft.Ordered;
 import io.microraft.QueryPolicy;
@@ -34,6 +35,8 @@ import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.impl.util.OrderedFuture;
 import io.microraft.report.RaftNodeReport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.PreDestroy;
@@ -48,8 +51,8 @@ import java.util.function.Supplier;
 
 import static io.afloatdb.internal.di.AfloatDBModule.CONFIG_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_SUPPLIER_KEY;
+import static io.afloatdb.internal.utils.Exceptions.isRaftException;
 import static io.afloatdb.internal.utils.Serialization.toProto;
-import static io.grpc.Status.FAILED_PRECONDITION;
 import static io.grpc.Status.RESOURCE_EXHAUSTED;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -58,6 +61,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 @Singleton
 public class InvocationServiceImpl
         implements InvocationService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(InvocationService.class);
 
     private final RaftNode raftNode;
     private final Supplier<RaftNodeReport> raftNodeReportSupplier;
@@ -82,19 +87,19 @@ public class InvocationServiceImpl
     }
 
     @Override
-    public CompletableFuture<Ordered<OperationResponse>> invoke(@Nonnull Operation operation) {
+    public CompletableFuture<Ordered<KVResponse>> invoke(@Nonnull Operation operation) {
         return new ReplicateInvocation(operation).invoke();
     }
 
     @Override
-    public CompletableFuture<Ordered<OperationResponse>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy,
-                                                               long minCommitIndex) {
+    public CompletableFuture<Ordered<KVResponse>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy,
+                                                        long minCommitIndex) {
         return new QueryInvocation(operation, queryPolicy, minCommitIndex).invoke();
     }
 
     private abstract class Invocation
-            extends OrderedFuture<OperationResponse>
-            implements BiConsumer<Ordered<OperationResponse>, Throwable> {
+            extends OrderedFuture<KVResponse>
+            implements BiConsumer<Ordered<KVResponse>, Throwable> {
 
         final Operation operation;
         volatile int retryCount;
@@ -106,18 +111,20 @@ public class InvocationServiceImpl
         final void retry() {
             ++retryCount;
             if (retryCount > retryLimit) {
-                fail(new StatusRuntimeException(RESOURCE_EXHAUSTED)); // TODO [basri] status type...
+                fail(RESOURCE_EXHAUSTED.withDescription("Retry limit exceeded.").asRuntimeException());
+            } else if (retryCount > 10) {
+                executor.schedule(this::invoke, 250, MILLISECONDS);
             } else if (retryCount > 5) {
-                executor.schedule(this::invoke, 500, MILLISECONDS);
+                executor.schedule(this::invoke, 50, MILLISECONDS);
             } else if (retryCount > 3) {
-                executor.schedule(this::invoke, 100, MILLISECONDS);
-            } else {
                 executor.schedule(this::invoke, 10, MILLISECONDS);
+            } else {
+                executor.submit(this::invoke);
             }
         }
 
         @Override
-        public final void accept(Ordered<OperationResponse> ordered, Throwable t) {
+        public final void accept(Ordered<KVResponse> ordered, Throwable t) {
             if (t == null) {
                 complete(ordered.getCommitIndex(), ordered.getResult());
             } else {
@@ -125,8 +132,8 @@ public class InvocationServiceImpl
             }
         }
 
-        final CompletableFuture<Ordered<OperationResponse>> invoke() {
-            CompletableFuture<Ordered<OperationResponse>> f = tryInvokeLocally();
+        final CompletableFuture<Ordered<KVResponse>> invoke() {
+            CompletableFuture<Ordered<KVResponse>> f = tryInvokeLocally();
             if (f != null) {
                 f.whenComplete(this);
             } else {
@@ -152,10 +159,10 @@ public class InvocationServiceImpl
             retry();
         }
 
-        private void handleResult(ListenableFuture<OperationResponse> future) {
+        private void handleResult(ListenableFuture<KVResponse> future) {
             future.addListener(() -> {
                 try {
-                    OperationResponse response = future.get();
+                    KVResponse response = future.get();
                     complete(response.getCommitIndex(), response);
                 } catch (Throwable t) {
                     if (t instanceof InterruptedException) {
@@ -173,23 +180,20 @@ public class InvocationServiceImpl
         }
 
         private <T> void failOrRetry(OrderedFuture<T> future, Throwable t) {
-            if (!t.getMessage().startsWith("RAFT") || !(t instanceof StatusRuntimeException)) {
-                future.fail(t);
-                return;
+            if (t instanceof StatusRuntimeException && isRaftException(t.getMessage())) {
+                StatusRuntimeException ex = (StatusRuntimeException) t;
+                if (ex.getStatus().getCode() == Code.FAILED_PRECONDITION || ex.getStatus().getCode() == Code.RESOURCE_EXHAUSTED) {
+                    retry();
+                    return;
+                }
             }
 
-            StatusRuntimeException ex = (StatusRuntimeException) t;
-            if (!(ex.getStatus() == FAILED_PRECONDITION || ex.getStatus() == RESOURCE_EXHAUSTED)) {
-                future.fail(t);
-                return;
-            }
-
-            retry();
+            future.fail(t);
         }
 
-        abstract CompletableFuture<Ordered<OperationResponse>> tryInvokeLocally();
+        abstract CompletableFuture<Ordered<KVResponse>> tryInvokeLocally();
 
-        abstract ListenableFuture<OperationResponse> doInvokeRemotely(RaftRpc stub);
+        abstract ListenableFuture<KVResponse> doInvokeRemotely(RaftRpc stub);
 
     }
 
@@ -205,7 +209,7 @@ public class InvocationServiceImpl
         }
 
         @Override
-        CompletableFuture<Ordered<OperationResponse>> tryInvokeLocally() {
+        CompletableFuture<Ordered<KVResponse>> tryInvokeLocally() {
             if (raftNode.getLocalEndpoint().equals(raftNode.getTerm().getLeaderEndpoint())) {
                 return raftNode.replicate(operation);
             }
@@ -214,7 +218,7 @@ public class InvocationServiceImpl
         }
 
         @Override
-        protected ListenableFuture<OperationResponse> doInvokeRemotely(RaftRpc stub) {
+        protected ListenableFuture<KVResponse> doInvokeRemotely(RaftRpc stub) {
             if (request == null) {
                 request = ReplicateRequest.newBuilder().setOperation(operation).build();
             }
@@ -241,7 +245,7 @@ public class InvocationServiceImpl
         }
 
         @Override
-        CompletableFuture<Ordered<OperationResponse>> tryInvokeLocally() {
+        CompletableFuture<Ordered<KVResponse>> tryInvokeLocally() {
             if (queryPolicy == QueryPolicy.ANY_LOCAL || raftNode.getLocalEndpoint()
                                                                 .equals(raftNode.getTerm().getLeaderEndpoint())) {
                 return raftNode.query(operation, queryPolicy, minCommitIndex);
@@ -251,7 +255,7 @@ public class InvocationServiceImpl
         }
 
         @Override
-        ListenableFuture<OperationResponse> doInvokeRemotely(RaftRpc stub) {
+        ListenableFuture<KVResponse> doInvokeRemotely(RaftRpc stub) {
             if (request == null) {
                 request = QueryRequest.newBuilder().setOperation(operation).setQueryPolicy(toProto(queryPolicy))
                                       .setMinCommitIndex(minCommitIndex).build();
