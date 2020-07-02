@@ -95,7 +95,7 @@ public class ManagementRequestHandler
             if (throwable == null) {
                 GetRaftNodeReportResponse.Builder builder = GetRaftNodeReportResponse.newBuilder();
                 builder.setReport(toProto(response.getResult()));
-                raftRpcService.getAddresses().forEach((key, value) -> builder.putEndpointAddress((String) key.getId(), value));
+                raftRpcService.getAddresses().forEach((key, value) -> builder.putEndpointAddress(key.getId().toString(), value));
 
                 responseObserver.onNext(builder.build());
             } else {

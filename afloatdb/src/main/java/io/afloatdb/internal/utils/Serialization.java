@@ -139,12 +139,15 @@ public final class Serialization {
     }
 
     public static RaftLogStatsProto toProto(RaftLogStats log) {
-        return RaftLogStatsProto.newBuilder().setCommitIndex(log.getCommitIndex())
-                                .setLastLogOrSnapshotIndex(log.getLastLogOrSnapshotIndex())
-                                .setLastLogOrSnapshotTerm(log.getLastLogOrSnapshotTerm())
-                                .setSnapshotIndex(log.getLastSnapshotIndex()).setSnapshotTerm(log.getLastSnapshotTerm())
-                                .setTakeSnapshotCount(log.getTakeSnapshotCount())
-                                .setInstallSnapshotCount(log.getInstallSnapshotCount()).build();
+        RaftLogStatsProto.Builder builder = RaftLogStatsProto.newBuilder();
+        builder.setCommitIndex(log.getCommitIndex()).setLastLogOrSnapshotIndex(log.getLastLogOrSnapshotIndex())
+               .setLastLogOrSnapshotTerm(log.getLastLogOrSnapshotTerm()).setSnapshotIndex(log.getLastSnapshotIndex())
+               .setSnapshotTerm(log.getLastSnapshotTerm()).setTakeSnapshotCount(log.getTakeSnapshotCount())
+               .setInstallSnapshotCount(log.getInstallSnapshotCount());
+
+        log.getFollowerMatchIndices().forEach((key, value) -> builder.putFollowerMatchIndex(key.getId().toString(), value));
+
+        return builder.build();
     }
 
     public static QUERY_POLICY toProto(@Nonnull QueryPolicy queryPolicy) {

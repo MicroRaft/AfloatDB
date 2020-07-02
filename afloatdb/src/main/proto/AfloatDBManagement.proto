@@ -50,6 +50,7 @@ message RaftLogStatsProto {
     int64 snapshotIndex = 5;
     int32 takeSnapshotCount = 6;
     int32 installSnapshotCount = 7;
+    map<string, int64> followerMatchIndex = 8;
 }
 
 message RaftNodeReportProto {
