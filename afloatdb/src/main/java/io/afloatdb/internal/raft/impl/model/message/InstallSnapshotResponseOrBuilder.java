@@ -67,15 +67,15 @@ public class InstallSnapshotResponseOrBuilder
 
     @Nonnull
     @Override
-    public InstallSnapshotResponseBuilder setQuerySeqNo(long querySeqNo) {
-        builder.setQuerySeqNo(querySeqNo);
+    public InstallSnapshotResponseBuilder setQuerySequenceNumber(long querySequenceNumber) {
+        builder.setQuerySequenceNumber(querySequenceNumber);
         return this;
     }
 
     @Nonnull
     @Override
-    public InstallSnapshotResponseBuilder setFlowControlSeqNo(long flowControlSeqNo) {
-        builder.setFlowControlSeqNo(flowControlSeqNo);
+    public InstallSnapshotResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+        builder.setFlowControlSequenceNumber(flowControlSequenceNumber);
         return this;
     }
 
@@ -103,13 +103,13 @@ public class InstallSnapshotResponseOrBuilder
     }
 
     @Override
-    public long getQuerySeqNo() {
-        return response.getQuerySeqNo();
+    public long getQuerySequenceNumber() {
+        return response.getQuerySequenceNumber();
     }
 
     @Override
-    public long getFlowControlSeqNo() {
-        return response.getFlowControlSeqNo();
+    public long getFlowControlSequenceNumber() {
+        return response.getFlowControlSequenceNumber();
     }
 
     @Override
@@ -136,7 +136,8 @@ public class InstallSnapshotResponseOrBuilder
 
         return "GrpcInstallSnapshotResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
                 + ", snapshotIndex=" + getSnapshotIndex() + ", requestedSnapshotChunkIndex=" + getRequestedSnapshotChunkIndex()
-                + ", querySeqNo=" + getQuerySeqNo() + ", flowControlSeqNo=" + getFlowControlSeqNo() + '}';
+                + ", querySequenceNumber=" + getQuerySequenceNumber() + ", flowControlSequenceNumber="
+                + getFlowControlSequenceNumber() + '}';
     }
 
 }

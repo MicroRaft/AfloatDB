@@ -44,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -280,7 +279,7 @@ public class KVStoreStateMachine
     //        return out.toByteString();
     //    }
 
-    @Nullable
+    @Nonnull
     @Override
     public Object getNewTermOperation() {
         return Operation.newBuilder().setStartNewTermOp(StartNewTermOpProto.getDefaultInstance()).build();

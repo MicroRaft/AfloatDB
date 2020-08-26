@@ -117,15 +117,15 @@ public class AppendEntriesRequestOrBuilder
 
     @Nonnull
     @Override
-    public AppendEntriesRequestBuilder setQuerySeqNo(long querySeqNo) {
-        builder.setQuerySeqNo(querySeqNo);
+    public AppendEntriesRequestBuilder setQuerySequenceNumber(long querySequenceNumber) {
+        builder.setQuerySequenceNumber(querySequenceNumber);
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesRequestBuilder setFlowControlSeqNo(long flowControlSeqNo) {
-        builder.setFlowControlSeqNo(flowControlSeqNo);
+    public AppendEntriesRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+        builder.setFlowControlSequenceNumber(flowControlSequenceNumber);
         return this;
     }
 
@@ -159,13 +159,13 @@ public class AppendEntriesRequestOrBuilder
     }
 
     @Override
-    public long getQuerySeqNo() {
-        return request.getQuerySeqNo();
+    public long getQuerySequenceNumber() {
+        return request.getQuerySequenceNumber();
     }
 
     @Override
-    public long getFlowControlSeqNo() {
-        return request.getFlowControlSeqNo();
+    public long getFlowControlSequenceNumber() {
+        return request.getFlowControlSequenceNumber();
     }
 
     @Override
@@ -191,9 +191,9 @@ public class AppendEntriesRequestOrBuilder
         }
 
         return "GrpcAppendEntriesRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
-                + ", commitIndex=" + getCommitIndex() + ", querySeqNo=" + getQuerySeqNo() + ", flowControlSeqNo="
-                + getFlowControlSeqNo() + ", " + "prevLogIndex=" + getPreviousLogIndex() + ", prevLogTerm=" + getPreviousLogTerm()
-                + ", entries=" + getLogEntries() + '}';
+                + ", commitIndex=" + getCommitIndex() + ", querySequenceNumber=" + getQuerySequenceNumber()
+                + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + ", " + "prevLogIndex=" + getPreviousLogIndex()
+                + ", prevLogTerm=" + getPreviousLogTerm() + ", entries=" + getLogEntries() + '}';
     }
 
 }

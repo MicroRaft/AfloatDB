@@ -76,15 +76,15 @@ public class AppendEntriesSuccessResponseOrBuilder
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponseBuilder setQuerySeqNo(long querySeqNo) {
-        builder.setQuerySeqNo(querySeqNo);
+    public AppendEntriesSuccessResponseBuilder setQuerySequenceNumber(long querySequenceNumber) {
+        builder.setQuerySequenceNumber(querySequenceNumber);
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponseBuilder setFlowControlSeqNo(long flowControlSeqNo) {
-        builder.setFlowControlSeqNo(flowControlSeqNo);
+    public AppendEntriesSuccessResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+        builder.setFlowControlSequenceNumber(flowControlSequenceNumber);
         return this;
     }
 
@@ -107,13 +107,13 @@ public class AppendEntriesSuccessResponseOrBuilder
     }
 
     @Override
-    public long getQuerySeqNo() {
-        return response.getQuerySeqNo();
+    public long getQuerySequenceNumber() {
+        return response.getQuerySequenceNumber();
     }
 
     @Override
-    public long getFlowControlSeqNo() {
-        return response.getFlowControlSeqNo();
+    public long getFlowControlSequenceNumber() {
+        return response.getFlowControlSequenceNumber();
     }
 
     @Override
@@ -139,8 +139,8 @@ public class AppendEntriesSuccessResponseOrBuilder
         }
 
         return "GrpcAppendEntriesSuccessResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", " + "term="
-                + getTerm() + ", lastLogIndex=" + getLastLogIndex() + ", querySeqNo=" + getQuerySeqNo() + ", flowControlSeqNo="
-                + getFlowControlSeqNo() + '}';
+                + getTerm() + ", lastLogIndex=" + getLastLogIndex() + ", querySequenceNumber=" + getQuerySequenceNumber()
+                + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';
     }
 
 }

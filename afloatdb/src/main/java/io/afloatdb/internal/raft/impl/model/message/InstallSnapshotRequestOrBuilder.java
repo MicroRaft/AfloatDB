@@ -145,15 +145,15 @@ public class InstallSnapshotRequestOrBuilder
 
     @Nonnull
     @Override
-    public InstallSnapshotRequestBuilder setQuerySeqNo(long querySeqNo) {
-        builder.setQuerySeqNo(querySeqNo);
+    public InstallSnapshotRequestBuilder setQuerySequenceNumber(long querySequenceNumber) {
+        builder.setQuerySequenceNumber(querySequenceNumber);
         return this;
     }
 
     @Nonnull
     @Override
-    public InstallSnapshotRequestBuilder setFlowControlSeqNo(long flowControlSeqNo) {
-        builder.setFlowControlSeqNo(flowControlSeqNo);
+    public InstallSnapshotRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+        builder.setFlowControlSequenceNumber(flowControlSequenceNumber);
         return this;
     }
 
@@ -214,13 +214,13 @@ public class InstallSnapshotRequestOrBuilder
     }
 
     @Override
-    public long getQuerySeqNo() {
-        return request.getQuerySeqNo();
+    public long getQuerySequenceNumber() {
+        return request.getQuerySequenceNumber();
     }
 
     @Override
-    public long getFlowControlSeqNo() {
-        return request.getFlowControlSeqNo();
+    public long getFlowControlSequenceNumber() {
+        return request.getFlowControlSequenceNumber();
     }
 
     @Override
@@ -249,8 +249,8 @@ public class InstallSnapshotRequestOrBuilder
                 + ", senderLeader=" + isSenderLeader() + ", snapshotTerm=" + getSnapshotTerm() + ", snapshotIndex="
                 + getSnapshotIndex() + ", chunkCount=" + getTotalSnapshotChunkCount() + ", snapshotChunk=" + getSnapshotChunk()
                 + ", snapshottedMembers=" + getSnapshottedMembers() + ", groupMembers=" + getGroupMembers()
-                + ", groupMembersLogIndex=" + getGroupMembersLogIndex() + ", querySeqNo=" + getQuerySeqNo()
-                + ", flowControlSeqNo=" + getFlowControlSeqNo() + '}';
+                + ", groupMembersLogIndex=" + getGroupMembersLogIndex() + ", querySequenceNumber=" + getQuerySequenceNumber()
+                + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';
     }
 
 }
