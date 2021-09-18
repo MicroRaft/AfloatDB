@@ -44,14 +44,13 @@ import static io.afloatdb.utils.AfloatDBTestUtils.getAnyFollower;
 import static io.afloatdb.utils.AfloatDBTestUtils.getFollowers;
 import static io.afloatdb.utils.AfloatDBTestUtils.getInvocationService;
 import static io.afloatdb.utils.AfloatDBTestUtils.waitUntilLeaderElected;
-import static io.microraft.QueryPolicy.ANY_LOCAL;
-import static io.microraft.QueryPolicy.LEADER_LOCAL;
+import static io.microraft.QueryPolicy.EVENTUAL_CONSISTENCY;
+import static io.microraft.QueryPolicy.LEADER_LEASE;
 import static io.microraft.QueryPolicy.LINEARIZABLE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-public class InvocationServiceTest
-        extends BaseTest {
+public class InvocationServiceTest extends BaseTest {
 
     private final List<AfloatDB> servers = new ArrayList<>();
 
@@ -165,7 +164,7 @@ public class InvocationServiceTest
 
         InvocationService invocationService = getInvocationService(follower);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, LEADER_LOCAL, 0);
+        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, LEADER_LEASE, 0);
 
         Ordered<KVResponse> result = future.join();
         assertThat(result.getResult().getSizeResponse().getSize()).isEqualTo(1);
@@ -179,7 +178,7 @@ public class InvocationServiceTest
 
         InvocationService invocationService = getInvocationService(leader);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, LEADER_LOCAL, 0);
+        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, LEADER_LEASE, 0);
 
         Ordered<KVResponse> result = future.join();
         assertThat(result.getResult().getSizeResponse().getSize()).isEqualTo(1);
@@ -195,7 +194,7 @@ public class InvocationServiceTest
 
         InvocationService invocationService = getInvocationService(follower);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, ANY_LOCAL, 0);
+        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, EVENTUAL_CONSISTENCY, 0);
 
         Ordered<KVResponse> result = future.join();
         assertThat(result.getResult().getSizeResponse().getSize()).isLessThanOrEqualTo(1);
@@ -209,7 +208,7 @@ public class InvocationServiceTest
 
         InvocationService invocationService = getInvocationService(leader);
         Operation request = Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build();
-        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, ANY_LOCAL, 0);
+        CompletableFuture<Ordered<KVResponse>> future = invocationService.query(request, EVENTUAL_CONSISTENCY, 0);
 
         Ordered<KVResponse> result = future.join();
         assertThat(result.getResult().getSizeResponse().getSize()).isEqualTo(1);

@@ -40,8 +40,7 @@ import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_SUPPLIER_KEY;
 import static io.afloatdb.internal.utils.Serialization.unwrap;
 
 @Singleton
-public class RaftMessageHandler
-        extends RaftMessageHandlerImplBase {
+public class RaftMessageHandler extends RaftMessageHandlerImplBase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RaftMessageHandler.class);
 
@@ -52,7 +51,7 @@ public class RaftMessageHandler
 
     @Inject
     public RaftMessageHandler(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
-                              ProcessTerminationLogger processTerminationLogger) {
+            ProcessTerminationLogger processTerminationLogger) {
         this.raftNode = raftNodeSupplier.get();
         this.localEndpoint = this.raftNode.getLocalEndpoint();
         this.processTerminationLogger = processTerminationLogger;
@@ -73,8 +72,7 @@ public class RaftMessageHandler
         return observer;
     }
 
-    private class RaftMessageStreamObserver
-            implements StreamObserver<RaftMessageRequest> {
+    private class RaftMessageStreamObserver implements StreamObserver<RaftMessageRequest> {
 
         private volatile RaftEndpoint sender;
 
@@ -85,7 +83,9 @@ public class RaftMessageHandler
                 sender = message.getSender();
             }
 
-            LOGGER.debug("{} received {}.", localEndpoint.getId(), message);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("{} received {}.", localEndpoint.getId(), message);
+            }
 
             raftNode.handle(message);
         }
@@ -96,8 +96,8 @@ public class RaftMessageHandler
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.error(localEndpoint.getId() + " failure on Raft RPC stream of " + sender.getId(), t);
                 } else {
-                    LOGGER.error("{} failure on Raft RPC stream of {}. Exception: {} Message: {}", localEndpoint.getId(),
-                            sender.getId(), t.getClass().getSimpleName(), t.getMessage());
+                    LOGGER.error("{} failure on Raft RPC stream of {}. Exception: {} Message: {}",
+                            localEndpoint.getId(), sender.getId(), t.getClass().getSimpleName(), t.getMessage());
                 }
             } else {
                 if (LOGGER.isDebugEnabled()) {
@@ -112,7 +112,8 @@ public class RaftMessageHandler
 
         @Override
         public void onCompleted() {
-            LOGGER.debug("{} Raft RPC stream of {} completed.", localEndpoint.getId(), sender != null ? sender.getId() : null);
+            LOGGER.debug("{} Raft RPC stream of {} completed.", localEndpoint.getId(),
+                    sender != null ? sender.getId() : null);
             streamObservers.remove(this);
         }
 

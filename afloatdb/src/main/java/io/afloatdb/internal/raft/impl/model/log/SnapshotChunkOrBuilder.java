@@ -6,17 +6,17 @@ import io.afloatdb.raft.proto.KVSnapshotChunkData;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotChunk.SnapshotChunkBuilder;
+import io.microraft.model.log.RaftGroupMembersView;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
-public class SnapshotChunkOrBuilder
-        implements SnapshotChunk, SnapshotChunkBuilder {
+public class SnapshotChunkOrBuilder implements SnapshotChunk, SnapshotChunkBuilder {
 
     private KVSnapshotChunk.Builder builder;
     private KVSnapshotChunk snapshotChunk;
-    private Collection<RaftEndpoint> groupMembers;
+    private RaftGroupMembersView groupMembersView;
 
     public SnapshotChunkOrBuilder() {
         this.builder = KVSnapshotChunk.newBuilder();
@@ -24,8 +24,8 @@ public class SnapshotChunkOrBuilder
 
     public SnapshotChunkOrBuilder(KVSnapshotChunk snapshotChunk) {
         this.snapshotChunk = snapshotChunk;
-        this.groupMembers = new LinkedHashSet<>();
-        snapshotChunk.getGroupMemberList().stream().map(AfloatDBEndpoint::wrap).forEach(groupMembers::add);
+        // this.groupMembers = new LinkedHashSet<>();
+        // snapshotChunk.getGroupMemberList().stream().map(AfloatDBEndpoint::wrap).forEach(groupMembers::add);
     }
 
     public KVSnapshotChunk getSnapshotChunk() {
@@ -69,16 +69,9 @@ public class SnapshotChunkOrBuilder
 
     @Nonnull
     @Override
-    public SnapshotChunkBuilder setGroupMembersLogIndex(long groupMembersLogIndex) {
-        builder.setGroupMembersLogIndex(groupMembersLogIndex);
-        return this;
-    }
-
-    @Nonnull
-    @Override
-    public SnapshotChunkBuilder setGroupMembers(@Nonnull Collection<RaftEndpoint> groupMembers) {
-        groupMembers.stream().map(AfloatDBEndpoint::extract).forEach(builder::addGroupMember);
-        this.groupMembers = groupMembers;
+    public SnapshotChunkBuilder setGroupMembersView(RaftGroupMembersView groupMembersView) {
+        builder.setGroupMembersView(((RaftGroupMembersViewOrBuilder) groupMembersView).getGroupMembersView());
+        this.groupMembersView = groupMembersView;
         return this;
     }
 
@@ -98,7 +91,7 @@ public class SnapshotChunkOrBuilder
 
         return "GrpcSnapshotChunk{" + "index=" + getIndex() + ", term=" + getTerm() + ", operation=" + getOperation()
                 + ", snapshotChunkIndex=" + getSnapshotChunkIndex() + ", snapshotChunkCount=" + getSnapshotChunkCount()
-                + ", groupMembers=" + getGroupMembers() + ", groupMembersLogIndex=" + getGroupMembersLogIndex() + '}';
+                + ", groupMembersView=" + getGroupMembersView() + '}';
     }
 
     @Override
@@ -109,17 +102,6 @@ public class SnapshotChunkOrBuilder
     @Override
     public int getSnapshotChunkCount() {
         return snapshotChunk.getSnapshotChunkCount();
-    }
-
-    @Override
-    public long getGroupMembersLogIndex() {
-        return snapshotChunk.getGroupMembersLogIndex();
-    }
-
-    @Nonnull
-    @Override
-    public Collection<RaftEndpoint> getGroupMembers() {
-        return groupMembers;
     }
 
     @Override
@@ -136,6 +118,12 @@ public class SnapshotChunkOrBuilder
     @Override
     public Object getOperation() {
         return snapshotChunk.getOperation();
+    }
+
+    @Nonnull
+    @Override
+    public RaftGroupMembersView getGroupMembersView() {
+        return groupMembersView;
     }
 
 }

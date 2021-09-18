@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.afloatdb</groupId>
         <artifactId>afloatdb-root</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>io.afloatdb</groupId>
             <artifactId>afloatdb-commons</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -46,7 +46,7 @@
         <dependency>
             <groupId>io.microraft</groupId>
             <artifactId>microraft</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.1</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -54,14 +54,14 @@
         <dependency>
             <groupId>io.afloatdb</groupId>
             <artifactId>afloatdb</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.afloatdb</groupId>
             <artifactId>afloatdb</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.1-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

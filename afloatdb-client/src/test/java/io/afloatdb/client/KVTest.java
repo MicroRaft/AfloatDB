@@ -47,8 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(Parameterized.class)
-public class KVTest
+@RunWith(Parameterized.class) public class KVTest
         extends BaseTest {
 
     private static final byte[] BYTES_1 = new byte[]{1, 2, 3, 4};
@@ -70,55 +69,49 @@ public class KVTest
         this.singleConnection = singleConnection;
     }
 
-    @Parameters
-    public static Collection<Object[]> data() {
+    @Parameters public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{{false}, {true}});
     }
 
-    @BeforeClass
-    public static void initCluster() {
+    @BeforeClass public static void initCluster() {
         servers.add(AfloatDB.bootstrap(CONFIG_1));
         servers.add(AfloatDB.bootstrap(CONFIG_2));
         servers.add(AfloatDB.bootstrap(CONFIG_3));
         waitUntilLeaderElected(servers);
     }
 
-    @AfterClass
-    public static void shutDownCluster() {
+    @AfterClass public static void shutDownCluster() {
         servers.forEach(AfloatDB::shutdown);
     }
 
-    @Before
-    public void initClient() {
+    @Before public void initClient() {
         String serverAddress = servers.get(getRandomInt(servers.size())).getConfig().getLocalEndpointConfig().getAddress();
         Config config = ConfigFactory.parseString("afloatdb.client.server-address: \"" + serverAddress + "\"")
                                      .withFallback(load("client.conf"));
-        AfloatDBClientConfig clientConfig = AfloatDBClientConfig.newBuilder().setConfig(config)
-                                                                .setSingleConnection(singleConnection).build();
+        AfloatDBClientConfig clientConfig = AfloatDBClientConfig.newBuilder()
+                                                                .setConfig(config)
+                                                                .setSingleConnection(singleConnection)
+                                                                .build();
         client = AfloatDBClient.newInstance(clientConfig);
         kv = client.getKV();
         kv.clear();
     }
 
-    @After
-    public void shutDownClient() {
+    @After public void shutDownClient() {
         if (client != null) {
             client.shutdown();
         }
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testPutNullKey() {
+    @Test(expected = NullPointerException.class) public void testPutNullKey() {
         kv.put(null, "val1");
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testPutNullKeyOrdered() {
+    @Test(expected = NullPointerException.class) public void testPutNullKeyOrdered() {
         kv.putOrdered(null, "val1");
     }
 
-    @Test
-    public void testPutByteArray() {
+    @Test public void testPutByteArray() {
         byte[] bytes = kv.put(KEY, BYTES_1);
         assertThat(bytes).isNull();
 
@@ -129,8 +122,7 @@ public class KVTest
         assertThat(bytes).isEqualTo(BYTES_2);
     }
 
-    @Test
-    public void testPutByteArrayOrdered() {
+    @Test public void testPutByteArrayOrdered() {
         Ordered<byte[]> result1 = kv.putOrdered(KEY, BYTES_1);
         Ordered<byte[]> result2 = kv.putOrdered(KEY, BYTES_2);
 
@@ -140,8 +132,7 @@ public class KVTest
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
     }
 
-    @Test
-    public void testPutInt() {
+    @Test public void testPutInt() {
         Integer i = kv.put(KEY, INT_1);
         assertThat(i).isNull();
 
@@ -152,8 +143,7 @@ public class KVTest
         assertThat(i).isEqualTo(INT_2);
     }
 
-    @Test
-    public void testPutIntOrdered() {
+    @Test public void testPutIntOrdered() {
         Ordered<Integer> result1 = kv.putOrdered(KEY, INT_1);
         Ordered<Integer> result2 = kv.putOrdered(KEY, INT_2);
 
@@ -163,8 +153,7 @@ public class KVTest
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
     }
 
-    @Test
-    public void testPutLong() {
+    @Test public void testPutLong() {
         Long l = kv.put(KEY, LONG_1);
         assertThat(l).isNull();
 
@@ -175,8 +164,7 @@ public class KVTest
         assertThat(l).isEqualTo(LONG_2);
     }
 
-    @Test
-    public void testPutLongOrdered() {
+    @Test public void testPutLongOrdered() {
         Ordered<Long> result1 = kv.putOrdered(KEY, LONG_1);
         Ordered<Long> result2 = kv.putOrdered(KEY, LONG_2);
 
@@ -186,8 +174,7 @@ public class KVTest
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
     }
 
-    @Test
-    public void testPutString() {
+    @Test public void testPutString() {
         String s = kv.put(KEY, STRING_1);
         assertThat(s).isNull();
 
@@ -198,8 +185,7 @@ public class KVTest
         assertThat(s).isEqualTo(STRING_2);
     }
 
-    @Test
-    public void testPutStringOrdered() {
+    @Test public void testPutStringOrdered() {
         Ordered<String> result1 = kv.putOrdered(KEY, STRING_1);
         Ordered<String> result2 = kv.putOrdered(KEY, STRING_2);
 
@@ -209,18 +195,15 @@ public class KVTest
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testPutIfAbsentNullKey() {
+    @Test(expected = NullPointerException.class) public void testPutIfAbsentNullKey() {
         kv.putIfAbsent(null, "val1");
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testPutIfAbsentNullKeyOrdered() {
+    @Test(expected = NullPointerException.class) public void testPutIfAbsentNullKeyOrdered() {
         kv.putIfAbsentOrdered(null, "val1");
     }
 
-    @Test
-    public void testPutByteArrayIfAbsent() {
+    @Test public void testPutByteArrayIfAbsent() {
         byte[] bytes = kv.putIfAbsent(KEY, BYTES_1);
         assertThat(bytes).isNull();
 
@@ -231,8 +214,7 @@ public class KVTest
         assertThat(bytes).isEqualTo(BYTES_1);
     }
 
-    @Test
-    public void testPutByteArrayIfAbsentOrdered() {
+    @Test public void testPutByteArrayIfAbsentOrdered() {
         Ordered<byte[]> result1 = kv.putIfAbsentOrdered(KEY, BYTES_1);
         Ordered<byte[]> result2 = kv.putIfAbsentOrdered(KEY, BYTES_2);
 
@@ -242,8 +224,7 @@ public class KVTest
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
     }
 
-    @Test
-    public void testPutIntIfAbsent() {
+    @Test public void testPutIntIfAbsent() {
         Integer i = kv.putIfAbsent(KEY, INT_1);
         assertThat(i).isNull();
 
@@ -254,8 +235,7 @@ public class KVTest
         assertThat(i).isEqualTo(INT_1);
     }
 
-    @Test
-    public void testPutIntIfAbsentOrdered() {
+    @Test public void testPutIntIfAbsentOrdered() {
         Ordered<Integer> result1 = kv.putIfAbsentOrdered(KEY, INT_1);
         Ordered<Integer> result2 = kv.putIfAbsentOrdered(KEY, INT_2);
 
@@ -265,8 +245,7 @@ public class KVTest
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
     }
 
-    @Test
-    public void testPutLongIfAbsent() {
+    @Test public void testPutLongIfAbsent() {
         Long l = kv.putIfAbsent(KEY, LONG_1);
         assertThat(l).isNull();
 
@@ -277,8 +256,7 @@ public class KVTest
         assertThat(l).isEqualTo(LONG_1);
     }
 
-    @Test
-    public void testPutLongIfAbsentOrdered() {
+    @Test public void testPutLongIfAbsentOrdered() {
         Ordered<Long> result1 = kv.putIfAbsentOrdered(KEY, LONG_1);
         Ordered<Long> result2 = kv.putIfAbsentOrdered(KEY, LONG_2);
 
@@ -288,8 +266,7 @@ public class KVTest
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
     }
 
-    @Test
-    public void testPutStringIfAbsent() {
+    @Test public void testPutStringIfAbsent() {
         String s = kv.putIfAbsent(KEY, STRING_1);
         assertThat(s).isNull();
 
@@ -300,8 +277,7 @@ public class KVTest
         assertThat(s).isEqualTo(STRING_1);
     }
 
-    @Test
-    public void testPutStringIfAbsentOrdered() {
+    @Test public void testPutStringIfAbsentOrdered() {
         Ordered<String> result1 = kv.putIfAbsentOrdered(KEY, STRING_1);
         Ordered<String> result2 = kv.putIfAbsentOrdered(KEY, STRING_2);
 
@@ -311,25 +287,21 @@ public class KVTest
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testSetNullKey() {
+    @Test(expected = NullPointerException.class) public void testSetNullKey() {
         kv.set(null, "val1");
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testSetNullKeyOrdered() {
+    @Test(expected = NullPointerException.class) public void testSetNullKeyOrdered() {
         kv.setOrdered(null, "val1");
     }
 
-    @Test
-    public void testSetByteArray() {
+    @Test public void testSetByteArray() {
         kv.set(KEY, BYTES_1);
 
         assertThat(kv.<byte[]>get(KEY)).isEqualTo(BYTES_1);
     }
 
-    @Test
-    public void testSetByteArrayOrdered() {
+    @Test public void testSetByteArrayOrdered() {
         long commitIndex1 = kv.setOrdered(KEY, BYTES_1);
         assertThat(kv.<byte[]>get(KEY)).isEqualTo(BYTES_1);
 
@@ -340,15 +312,13 @@ public class KVTest
         assertThat(commitIndex2).isGreaterThan(commitIndex1);
     }
 
-    @Test
-    public void testSetInt() {
+    @Test public void testSetInt() {
         kv.set(KEY, INT_1);
 
         assertThat(kv.<Integer>get(KEY)).isEqualTo(INT_1);
     }
 
-    @Test
-    public void testSetIntOrdered() {
+    @Test public void testSetIntOrdered() {
         long commitIndex1 = kv.setOrdered(KEY, INT_1);
         assertThat(kv.<Integer>get(KEY)).isEqualTo(INT_1);
 
@@ -359,15 +329,13 @@ public class KVTest
         assertThat(commitIndex2).isGreaterThan(commitIndex1);
     }
 
-    @Test
-    public void testSetLong() {
+    @Test public void testSetLong() {
         kv.set(KEY, LONG_1);
 
         assertThat(kv.<Long>get(KEY)).isEqualTo(LONG_1);
     }
 
-    @Test
-    public void testSetLongOrdered() {
+    @Test public void testSetLongOrdered() {
         long commitIndex1 = kv.setOrdered(KEY, LONG_1);
         assertThat(kv.<Long>get(KEY)).isEqualTo(LONG_1);
 
@@ -378,15 +346,13 @@ public class KVTest
         assertThat(commitIndex2).isGreaterThan(commitIndex1);
     }
 
-    @Test
-    public void testSetString() {
+    @Test public void testSetString() {
         kv.set(KEY, STRING_1);
 
         assertThat(kv.<String>get(KEY)).isEqualTo(STRING_1);
     }
 
-    @Test
-    public void testSetStringOrdered() {
+    @Test public void testSetStringOrdered() {
         long commitIndex1 = kv.setOrdered(KEY, STRING_1);
         assertThat(kv.<String>get(KEY)).isEqualTo(STRING_1);
 
@@ -397,8 +363,7 @@ public class KVTest
         assertThat(commitIndex2).isGreaterThan(commitIndex1);
     }
 
-    @Test
-    public void testSet() {
+    @Test public void testSet() {
         String key = "key1";
         String val1 = "val1";
         String val2 = "val2";
@@ -420,52 +385,43 @@ public class KVTest
         assertThat(val).isEqualTo(val2);
     }
 
-    @Test
-    public void testGetByteArrayOrDefault() {
+    @Test public void testGetByteArrayOrDefault() {
         byte[] b = kv.getOrDefault(KEY, BYTES_2);
         assertThat(b).isEqualTo(BYTES_2);
     }
 
-    @Test
-    public void testGetIntOrDefault() {
+    @Test public void testGetIntOrDefault() {
         int i = kv.getOrDefault(KEY, INT_2);
         assertThat(i).isEqualTo(INT_2);
     }
 
-    @Test
-    public void testGetLongOrDefault() {
+    @Test public void testGetLongOrDefault() {
         long l = kv.getOrDefault(KEY, LONG_2);
         assertThat(l).isEqualTo(LONG_2);
     }
 
-    @Test
-    public void testGetStringOrDefault() {
+    @Test public void testGetStringOrDefault() {
         String s = kv.getOrDefault(KEY, STRING_2);
         assertThat(s).isEqualTo(STRING_2);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testDeleteNullKey() {
+    @Test(expected = NullPointerException.class) public void testDeleteNullKey() {
         kv.delete(null);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testDeleteNullKeyOrdered() {
+    @Test(expected = NullPointerException.class) public void testDeleteNullKeyOrdered() {
         kv.deleteOrdered(null);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testContainsNullKey() {
+    @Test(expected = NullPointerException.class) public void testContainsNullKey() {
         kv.containsKey(null);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testContainsNullKeyForKV() {
+    @Test(expected = NullPointerException.class) public void testContainsNullKeyForKV() {
         kv.contains(null, STRING_1);
     }
 
-    @Test
-    public void testContainsByteArray() {
+    @Test public void testContainsByteArray() {
         kv.set(KEY, BYTES_1);
 
         assertThat(kv.containsKey(KEY)).isTrue();
@@ -476,8 +432,7 @@ public class KVTest
         assertThat(kv.containsKey(KEY)).isFalse();
     }
 
-    @Test
-    public void testContainsByteArrayOrdered() {
+    @Test public void testContainsByteArrayOrdered() {
         long commitIndex1 = kv.setOrdered(KEY, BYTES_1);
 
         assertThat(kv.containsKeyOrdered(KEY, commitIndex1).get()).isTrue();
@@ -489,8 +444,7 @@ public class KVTest
         assertThat(kv.containsKeyOrdered(KEY, commitIndex2).get()).isFalse();
     }
 
-    @Test
-    public void testContainsInt() {
+    @Test public void testContainsInt() {
         kv.set(KEY, INT_1);
 
         assertThat(kv.containsKey(KEY)).isTrue();
@@ -501,8 +455,7 @@ public class KVTest
         assertThat(kv.containsKey(KEY)).isFalse();
     }
 
-    @Test
-    public void testContainsIntOrdered() {
+    @Test public void testContainsIntOrdered() {
         long commitIndex1 = kv.setOrdered(KEY, INT_1);
 
         assertThat(kv.containsKeyOrdered(KEY, commitIndex1).get()).isTrue();
@@ -514,8 +467,7 @@ public class KVTest
         assertThat(kv.containsKeyOrdered(KEY, commitIndex2).get()).isFalse();
     }
 
-    @Test
-    public void testContainsLong() {
+    @Test public void testContainsLong() {
         kv.set(KEY, LONG_1);
 
         assertThat(kv.containsKey(KEY)).isTrue();
@@ -526,8 +478,7 @@ public class KVTest
         assertThat(kv.containsKey(KEY)).isFalse();
     }
 
-    @Test
-    public void testContainsLongOrdered() {
+    @Test public void testContainsLongOrdered() {
         long commitIndex1 = kv.setOrdered(KEY, LONG_1);
 
         assertThat(kv.containsKeyOrdered(KEY, commitIndex1).get()).isTrue();
@@ -539,8 +490,7 @@ public class KVTest
         assertThat(kv.containsKeyOrdered(KEY, commitIndex2).get()).isFalse();
     }
 
-    @Test
-    public void testContainsString() {
+    @Test public void testContainsString() {
         kv.set(KEY, STRING_1);
 
         assertThat(kv.containsKey(KEY)).isTrue();
@@ -551,8 +501,7 @@ public class KVTest
         assertThat(kv.containsKey(KEY)).isFalse();
     }
 
-    @Test
-    public void testContainsStringOrdered() {
+    @Test public void testContainsStringOrdered() {
         long commitIndex1 = kv.setOrdered(KEY, STRING_1);
 
         assertThat(kv.containsKeyOrdered(KEY, commitIndex1).get()).isTrue();
@@ -564,8 +513,7 @@ public class KVTest
         assertThat(kv.containsKeyOrdered(KEY, commitIndex2).get()).isFalse();
     }
 
-    @Test
-    public void testDelete() {
+    @Test public void testDelete() {
         String key = "key1";
         String val1 = "val1";
 
@@ -590,8 +538,7 @@ public class KVTest
         assertThat(val).isNull();
     }
 
-    @Test
-    public void testDeleteOrdered() {
+    @Test public void testDeleteOrdered() {
         String key = "key1";
         String val1 = "val1";
 
@@ -619,29 +566,25 @@ public class KVTest
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
     }
 
-    @Test
-    public void testDeleteNonExistingKey() {
+    @Test public void testDeleteNonExistingKey() {
         boolean success = kv.delete(KEY);
         assertThat(success).isFalse();
     }
 
-    @Test
-    public void testDeleteNonExistingKeyOrdered() {
+    @Test public void testDeleteNonExistingKeyOrdered() {
         Ordered<Boolean> result = kv.deleteOrdered(KEY);
         assertThat(result.get()).isFalse();
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
 
-    @Test
-    public void testDeleteByteArray() {
+    @Test public void testDeleteByteArray() {
         kv.set(KEY, BYTES_1);
 
         boolean success = kv.delete(KEY);
         assertThat(success).isTrue();
     }
 
-    @Test
-    public void testDeleteByteArrayOrdered() {
+    @Test public void testDeleteByteArrayOrdered() {
         kv.set(KEY, BYTES_1);
 
         Ordered<Boolean> result = kv.deleteOrdered(KEY);
@@ -649,16 +592,14 @@ public class KVTest
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
 
-    @Test
-    public void testDeleteInt() {
+    @Test public void testDeleteInt() {
         kv.set(KEY, INT_1);
 
         boolean success = kv.delete(KEY);
         assertThat(success).isTrue();
     }
 
-    @Test
-    public void testDeleteIntOrdered() {
+    @Test public void testDeleteIntOrdered() {
         kv.set(KEY, INT_1);
 
         Ordered<Boolean> result = kv.deleteOrdered(KEY);
@@ -666,16 +607,14 @@ public class KVTest
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
 
-    @Test
-    public void testDeleteLong() {
+    @Test public void testDeleteLong() {
         kv.set(KEY, LONG_1);
 
         boolean success = kv.delete(KEY);
         assertThat(success).isTrue();
     }
 
-    @Test
-    public void testDeleteLongOrdered() {
+    @Test public void testDeleteLongOrdered() {
         kv.set(KEY, LONG_1);
 
         Ordered<Boolean> result = kv.deleteOrdered(KEY);
@@ -683,16 +622,14 @@ public class KVTest
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
 
-    @Test
-    public void testDeleteString() {
+    @Test public void testDeleteString() {
         kv.set(KEY, STRING_1);
 
         boolean success = kv.delete(KEY);
         assertThat(success).isTrue();
     }
 
-    @Test
-    public void testDeleteStringOrdered() {
+    @Test public void testDeleteStringOrdered() {
         kv.set(KEY, STRING_1);
 
         Ordered<Boolean> result = kv.deleteOrdered(KEY);
@@ -700,31 +637,26 @@ public class KVTest
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testRemoveNullKey() {
+    @Test(expected = NullPointerException.class) public void testRemoveNullKey() {
         kv.remove(null);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testRemoveNullKeyOrdered() {
+    @Test(expected = NullPointerException.class) public void testRemoveNullKeyOrdered() {
         kv.removeOrdered(null);
     }
 
-    @Test
-    public void testRemoveNonExistingKey() {
+    @Test public void testRemoveNonExistingKey() {
         Object o = kv.remove(KEY);
         assertThat(o).isNull();
     }
 
-    @Test
-    public void testRemoveNonExistingKeyOrdered() {
+    @Test public void testRemoveNonExistingKeyOrdered() {
         Ordered<Object> result = kv.removeOrdered(KEY);
         assertThat(result.get()).isNull();
         assertThat(result.getCommitIndex()).isGreaterThan(0);
     }
 
-    @Test
-    public void testRemoveByteArray() {
+    @Test public void testRemoveByteArray() {
         kv.set(KEY, BYTES_1);
 
         assertThat(kv.remove(KEY, BYTES_2)).isFalse();
@@ -736,8 +668,7 @@ public class KVTest
         assertThat(b).isEqualTo(BYTES_2);
     }
 
-    @Test
-    public void testRemoveByteArrayOrdered() {
+    @Test public void testRemoveByteArrayOrdered() {
         kv.set(KEY, BYTES_1);
 
         Ordered<Boolean> result1 = kv.removeOrdered(KEY, BYTES_2);
@@ -754,8 +685,7 @@ public class KVTest
         assertThat(result3.getCommitIndex()).isGreaterThan(result2.getCommitIndex());
     }
 
-    @Test
-    public void testRemoveInt() {
+    @Test public void testRemoveInt() {
         kv.set(KEY, INT_1);
 
         assertThat(kv.remove(KEY, INT_2)).isFalse();
@@ -767,8 +697,7 @@ public class KVTest
         assertThat(i).isEqualTo(INT_2);
     }
 
-    @Test
-    public void testRemoveIntOrdered() {
+    @Test public void testRemoveIntOrdered() {
         kv.set(KEY, INT_1);
 
         Ordered<Boolean> result1 = kv.removeOrdered(KEY, INT_2);
@@ -785,8 +714,7 @@ public class KVTest
         assertThat(result3.getCommitIndex()).isGreaterThan(result2.getCommitIndex());
     }
 
-    @Test
-    public void testRemoveLong() {
+    @Test public void testRemoveLong() {
         kv.set(KEY, LONG_1);
 
         assertThat(kv.remove(KEY, LONG_2)).isFalse();
@@ -798,8 +726,7 @@ public class KVTest
         assertThat(l).isEqualTo(LONG_2);
     }
 
-    @Test
-    public void testRemoveLongOrdered() {
+    @Test public void testRemoveLongOrdered() {
         kv.set(KEY, LONG_1);
 
         Ordered<Boolean> result1 = kv.removeOrdered(KEY, LONG_2);
@@ -816,8 +743,7 @@ public class KVTest
         assertThat(result3.getCommitIndex()).isGreaterThan(result2.getCommitIndex());
     }
 
-    @Test
-    public void testRemoveString() {
+    @Test public void testRemoveString() {
         kv.set(KEY, STRING_1);
 
         assertThat(kv.remove(KEY, STRING_2)).isFalse();
@@ -829,8 +755,7 @@ public class KVTest
         assertThat(s).isEqualTo(STRING_2);
     }
 
-    @Test
-    public void testRemoveStringOrdered() {
+    @Test public void testRemoveStringOrdered() {
         kv.set(KEY, STRING_1);
 
         Ordered<Boolean> result1 = kv.removeOrdered(KEY, STRING_2);
@@ -847,38 +772,31 @@ public class KVTest
         assertThat(result3.getCommitIndex()).isGreaterThan(result2.getCommitIndex());
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testReplaceNullKey() {
+    @Test(expected = NullPointerException.class) public void testReplaceNullKey() {
         kv.replace(null, STRING_1, STRING_2);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testReplaceNullKeyOrdered() {
+    @Test(expected = NullPointerException.class) public void testReplaceNullKeyOrdered() {
         kv.replaceOrdered(null, STRING_1, STRING_2);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testReplaceNullOldValue() {
+    @Test(expected = NullPointerException.class) public void testReplaceNullOldValue() {
         kv.replace(KEY, null, STRING_1);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testReplaceNullOldValueOrdered() {
+    @Test(expected = NullPointerException.class) public void testReplaceNullOldValueOrdered() {
         kv.replaceOrdered(KEY, null, STRING_1);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testReplaceNullNewValue() {
+    @Test(expected = NullPointerException.class) public void testReplaceNullNewValue() {
         kv.replace(KEY, STRING_1, null);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testReplaceNullNewValueOrdered() {
+    @Test(expected = NullPointerException.class) public void testReplaceNullNewValueOrdered() {
         kv.replaceOrdered(KEY, STRING_1, null);
     }
 
-    @Test
-    public void testReplaceByteArray() {
+    @Test public void testReplaceByteArray() {
         kv.set(KEY, BYTES_1);
 
         assertThat(kv.replace(KEY, BYTES_2, BYTES_1)).isFalse();
@@ -887,8 +805,7 @@ public class KVTest
         assertThat(kv.replace(KEY, BYTES_2, STRING_1)).isTrue();
     }
 
-    @Test
-    public void testReplaceByteArrayOrdered() {
+    @Test public void testReplaceByteArrayOrdered() {
         kv.set(KEY, BYTES_1);
 
         Ordered<Boolean> result1 = kv.replaceOrdered(KEY, BYTES_2, BYTES_1);
@@ -902,8 +819,7 @@ public class KVTest
         assertThat(result4.get()).isTrue();
     }
 
-    @Test
-    public void testReplaceInt() {
+    @Test public void testReplaceInt() {
         kv.set(KEY, INT_1);
 
         assertThat(kv.replace(KEY, INT_2, INT_1)).isFalse();
@@ -912,8 +828,7 @@ public class KVTest
         assertThat(kv.replace(KEY, INT_2, STRING_1)).isTrue();
     }
 
-    @Test
-    public void testReplaceIntOrdered() {
+    @Test public void testReplaceIntOrdered() {
         kv.set(KEY, INT_1);
 
         Ordered<Boolean> result1 = kv.replaceOrdered(KEY, INT_2, INT_1);
@@ -927,8 +842,7 @@ public class KVTest
         assertThat(result4.get()).isTrue();
     }
 
-    @Test
-    public void testReplaceLong() {
+    @Test public void testReplaceLong() {
         kv.set(KEY, LONG_1);
 
         assertThat(kv.replace(KEY, LONG_2, LONG_1)).isFalse();
@@ -937,8 +851,7 @@ public class KVTest
         assertThat(kv.replace(KEY, LONG_2, STRING_1)).isTrue();
     }
 
-    @Test
-    public void testReplaceLongOrdered() {
+    @Test public void testReplaceLongOrdered() {
         kv.set(KEY, LONG_1);
 
         Ordered<Boolean> result1 = kv.replaceOrdered(KEY, LONG_2, LONG_1);
@@ -952,8 +865,7 @@ public class KVTest
         assertThat(result4.get()).isTrue();
     }
 
-    @Test
-    public void testReplaceString() {
+    @Test public void testReplaceString() {
         kv.set(KEY, STRING_1);
 
         assertThat(kv.replace(KEY, STRING_2, STRING_1)).isFalse();
@@ -962,8 +874,7 @@ public class KVTest
         assertThat(kv.replace(KEY, STRING_2, INT_1)).isTrue();
     }
 
-    @Test
-    public void testReplaceStringOrdered() {
+    @Test public void testReplaceStringOrdered() {
         kv.set(KEY, STRING_1);
 
         Ordered<Boolean> result1 = kv.replaceOrdered(KEY, STRING_2, STRING_1);
@@ -977,8 +888,7 @@ public class KVTest
         assertThat(result4.get()).isTrue();
     }
 
-    @Test
-    public void testSize() {
+    @Test public void testSize() {
         int keyCount = 100;
         for (int i = 0; i < keyCount; i++) {
             String key = "key" + i;
@@ -1000,8 +910,7 @@ public class KVTest
         }
     }
 
-    @Test
-    public void testSizeOrdered() {
+    @Test public void testSizeOrdered() {
         int keyCount = 100;
         for (int i = 0; i < keyCount; i++) {
             String key = "key" + i;
@@ -1029,8 +938,7 @@ public class KVTest
         }
     }
 
-    @Test
-    public void testClear() {
+    @Test public void testClear() {
         int keyCount = 100;
         for (int i = 0; i < keyCount; i++) {
             String key = "key" + i;
@@ -1047,8 +955,7 @@ public class KVTest
         assertThat(kv.isEmpty()).isTrue();
     }
 
-    @Test
-    public void testClearOrdered() {
+    @Test public void testClearOrdered() {
         int keyCount = 100;
         long commitIndex = 0;
         for (int i = 0; i < keyCount; i++) {
@@ -1073,8 +980,7 @@ public class KVTest
         assertThat(isEmptyResult2.getCommitIndex()).isGreaterThanOrEqualTo(clearResult.getCommitIndex());
     }
 
-    @Test
-    public void testGetOrderedWithCommitIndex() {
+    @Test public void testGetOrderedWithCommitIndex() {
         int keyCount = 100;
         for (int i = 0; i < keyCount; i++) {
             String key = "key" + i;
@@ -1088,8 +994,7 @@ public class KVTest
         }
     }
 
-    @Test
-    public void testGetOrdered() {
+    @Test public void testGetOrdered() {
         int keyCount = 100;
         for (int i = 0; i < keyCount; i++) {
             String key = "key" + i;
@@ -1103,8 +1008,7 @@ public class KVTest
         }
     }
 
-    @Test
-    public void testGetOrDefaultOrderedWithCommitIndex() {
+    @Test public void testGetOrDefaultOrderedWithCommitIndex() {
         int keyCount = 100;
         for (int i = 0; i < keyCount; i++) {
             String key = "key" + i;
@@ -1118,8 +1022,7 @@ public class KVTest
         }
     }
 
-    @Test
-    public void testGetOrDefaultOrdered() {
+    @Test public void testGetOrDefaultOrdered() {
         int keyCount = 100;
         for (int i = 0; i < keyCount; i++) {
             String key = "key" + i;

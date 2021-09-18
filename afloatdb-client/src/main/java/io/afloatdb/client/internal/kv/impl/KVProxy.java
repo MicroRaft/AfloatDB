@@ -43,18 +43,10 @@ import io.afloatdb.kv.proto.TypedValue;
 import javax.annotation.Nonnull;
 import java.util.function.Supplier;
 
-import static io.afloatdb.internal.serialization.Serialization.BYTE_ARRAY_TYPE;
-import static io.afloatdb.internal.serialization.Serialization.INT_TYPE;
-import static io.afloatdb.internal.serialization.Serialization.LONG_TYPE;
-import static io.afloatdb.internal.serialization.Serialization.STRING_TYPE;
-import static io.afloatdb.internal.serialization.Serialization.serializeBytes;
-import static io.afloatdb.internal.serialization.Serialization.serializeInt;
-import static io.afloatdb.internal.serialization.Serialization.serializeLong;
-import static io.afloatdb.internal.serialization.Serialization.serializeString;
+import static io.afloatdb.internal.serialization.Serialization.getTypedValue;
 import static java.util.Objects.requireNonNull;
 
-public class KVProxy
-        implements KV {
+public class KVProxy implements KV {
 
     private final Supplier<KVRequestHandlerBlockingStub> kvStubSupplier;
 
@@ -64,13 +56,13 @@ public class KVProxy
 
     @Override
     public <T> T put(@Nonnull String key, @Nonnull byte[] value) {
-        return put(key, getTypedValue(requireNonNull(value)), false);
+        return put(key, getTypedValue(value), false);
     }
 
     @Nonnull
     @Override
     public <T> Ordered<T> putOrdered(@Nonnull String key, @Nonnull byte[] value) {
-        return putOrdered(key, getTypedValue(requireNonNull(value)), false);
+        return putOrdered(key, getTypedValue(value), false);
     }
 
     @Override
@@ -150,30 +142,16 @@ public class KVProxy
         return putOrdered(key, getTypedValue(requireNonNull(value)), true);
     }
 
-    private TypedValue getTypedValue(@Nonnull String value) {
-        return TypedValue.newBuilder().setType(STRING_TYPE).setValue(serializeString(value)).build();
-    }
-
-    private TypedValue getTypedValue(long value) {
-        return TypedValue.newBuilder().setType(LONG_TYPE).setValue(serializeLong(value)).build();
-    }
-
-    private TypedValue getTypedValue(int value) {
-        return TypedValue.newBuilder().setType(INT_TYPE).setValue(serializeInt(value)).build();
-    }
-
-    private TypedValue getTypedValue(byte[] value) {
-        return TypedValue.newBuilder().setType(BYTE_ARRAY_TYPE).setValue(serializeBytes(value)).build();
-    }
-
     private <T> T put(String key, TypedValue value, boolean absent) {
-        PutRequest request = PutRequest.newBuilder().setKey(requireNonNull(key)).setValue(value).setAbsent(absent).build();
+        PutRequest request = PutRequest.newBuilder().setKey(requireNonNull(key)).setValue(value).setAbsent(absent)
+                .build();
         PutResponse response = kvStubSupplier.get().put(request).getPutResponse();
         return response.hasValue() ? (T) Serialization.deserialize(response.getValue()) : null;
     }
 
     private <T> Ordered<T> putOrdered(String key, TypedValue value, boolean absent) {
-        PutRequest request = PutRequest.newBuilder().setKey(requireNonNull(key)).setValue(value).setAbsent(absent).build();
+        PutRequest request = PutRequest.newBuilder().setKey(requireNonNull(key)).setValue(value).setAbsent(absent)
+                .build();
         KVResponse response = kvStubSupplier.get().put(request);
         PutResponse putResponse = response.getPutResponse();
         T result = putResponse.hasValue() ? (T) Serialization.deserialize(putResponse.getValue()) : null;
@@ -207,7 +185,8 @@ public class KVProxy
 
     @Override
     public <T> T get(@Nonnull String key, long minCommitIndex) {
-        GetRequest request = GetRequest.newBuilder().setKey(requireNonNull(key)).setMinCommitIndex(minCommitIndex).build();
+        GetRequest request = GetRequest.newBuilder().setKey(requireNonNull(key)).setMinCommitIndex(minCommitIndex)
+                .build();
         GetResponse response = kvStubSupplier.get().get(request).getGetResponse();
         return response.hasValue() ? (T) Serialization.deserialize(response.getValue()) : null;
     }
@@ -215,7 +194,8 @@ public class KVProxy
     @Nonnull
     @Override
     public <T> Ordered<T> getOrdered(@Nonnull String key, long minCommitIndex) {
-        GetRequest request = GetRequest.newBuilder().setKey(requireNonNull(key)).setMinCommitIndex(minCommitIndex).build();
+        GetRequest request = GetRequest.newBuilder().setKey(requireNonNull(key)).setMinCommitIndex(minCommitIndex)
+                .build();
         KVResponse response = kvStubSupplier.get().get(request);
         GetResponse getResponse = response.getGetResponse();
         T value = getResponse.hasValue() ? (T) Serialization.deserialize(getResponse.getValue()) : null;
@@ -225,7 +205,8 @@ public class KVProxy
     @Nonnull
     @Override
     public <T> Ordered<T> getOrDefaultOrdered(@Nonnull String key, T defaultValue, long minCommitIndex) {
-        GetRequest request = GetRequest.newBuilder().setKey(requireNonNull(key)).setMinCommitIndex(minCommitIndex).build();
+        GetRequest request = GetRequest.newBuilder().setKey(requireNonNull(key)).setMinCommitIndex(minCommitIndex)
+                .build();
         KVResponse response = kvStubSupplier.get().get(request);
         GetResponse getResponse = response.getGetResponse();
         T value = getResponse.hasValue() ? (T) Serialization.deserialize(getResponse.getValue()) : defaultValue;
@@ -234,8 +215,8 @@ public class KVProxy
 
     @Override
     public boolean containsKey(@Nonnull String key, long minCommitIndex) {
-        ContainsRequest request = ContainsRequest.newBuilder().setKey(requireNonNull(key)).setMinCommitIndex(minCommitIndex)
-                                                 .build();
+        ContainsRequest request = ContainsRequest.newBuilder().setKey(requireNonNull(key))
+                .setMinCommitIndex(minCommitIndex).build();
         ContainsResponse response = kvStubSupplier.get().contains(request).getContainsResponse();
         return response.getSuccess();
     }
@@ -243,8 +224,8 @@ public class KVProxy
     @Nonnull
     @Override
     public Ordered<Boolean> containsKeyOrdered(@Nonnull String key, long minCommitIndex) {
-        ContainsRequest request = ContainsRequest.newBuilder().setKey(requireNonNull(key)).setMinCommitIndex(minCommitIndex)
-                                                 .build();
+        ContainsRequest request = ContainsRequest.newBuilder().setKey(requireNonNull(key))
+                .setMinCommitIndex(minCommitIndex).build();
         KVResponse response = kvStubSupplier.get().contains(request);
         return new OrderedImpl<>(response.getCommitIndex(), response.getContainsResponse().getSuccess());
     }
@@ -295,13 +276,13 @@ public class KVProxy
 
     private boolean contains(String key, TypedValue value, long minCommitIndex) {
         ContainsRequest request = ContainsRequest.newBuilder().setKey(requireNonNull(key)).setValue(value)
-                                                 .setMinCommitIndex(minCommitIndex).build();
+                .setMinCommitIndex(minCommitIndex).build();
         return kvStubSupplier.get().contains(request).getContainsResponse().getSuccess();
     }
 
     private Ordered<Boolean> containsOrdered(String key, TypedValue value, long minCommitIndex) {
         ContainsRequest request = ContainsRequest.newBuilder().setKey(requireNonNull(key)).setValue(value)
-                                                 .setMinCommitIndex(minCommitIndex).build();
+                .setMinCommitIndex(minCommitIndex).build();
         KVResponse response = kvStubSupplier.get().contains(request);
         return new OrderedImpl<>(response.getCommitIndex(), response.getContainsResponse().getSuccess());
     }
@@ -396,8 +377,8 @@ public class KVProxy
     @Override
     public boolean replace(@Nonnull String key, @Nonnull Object oldValue, @Nonnull Object newValue) {
         ReplaceRequest request = ReplaceRequest.newBuilder().setKey(requireNonNull(key))
-                                               .setOldValue(getTypedValue(requireNonNull(oldValue)))
-                                               .setNewValue(getTypedValue(requireNonNull(newValue))).build();
+                .setOldValue(getTypedValue(requireNonNull(oldValue)))
+                .setNewValue(getTypedValue(requireNonNull(newValue))).build();
         ReplaceResponse response = kvStubSupplier.get().replace(request).getReplaceResponse();
         return response.getSuccess();
     }
@@ -406,24 +387,10 @@ public class KVProxy
     @Override
     public Ordered<Boolean> replaceOrdered(@Nonnull String key, @Nonnull Object oldValue, @Nonnull Object newValue) {
         ReplaceRequest request = ReplaceRequest.newBuilder().setKey(requireNonNull(key))
-                                               .setOldValue(getTypedValue(requireNonNull(oldValue)))
-                                               .setNewValue(getTypedValue(requireNonNull(newValue))).build();
+                .setOldValue(getTypedValue(requireNonNull(oldValue)))
+                .setNewValue(getTypedValue(requireNonNull(newValue))).build();
         KVResponse response = kvStubSupplier.get().replace(request);
         return new OrderedImpl<>(response.getCommitIndex(), response.getReplaceResponse().getSuccess());
-    }
-
-    private TypedValue getTypedValue(Object object) {
-        if (object instanceof byte[]) {
-            return getTypedValue((byte[]) object);
-        } else if (object instanceof Integer) {
-            return getTypedValue((int) object);
-        } else if (object instanceof Long) {
-            return getTypedValue((long) object);
-        } else if (object instanceof String) {
-            return getTypedValue((String) object);
-        }
-
-        throw new IllegalArgumentException(object + " has invalid type!");
     }
 
     @Nonnull
@@ -462,8 +429,7 @@ public class KVProxy
         return new OrderedImpl<>(response.getCommitIndex(), response.getClearResponse().getSize());
     }
 
-    private static class OrderedImpl<T>
-            implements Ordered<T> {
+    private static class OrderedImpl<T> implements Ordered<T> {
 
         private final long commitIndex;
         private final T value;

@@ -31,12 +31,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class UpdateRaftGroupMembersOpOrBuilder
-        implements UpdateRaftGroupMembersOp, UpdateRaftGroupMembersOpBuilder {
+public class UpdateRaftGroupMembersOpOrBuilder implements UpdateRaftGroupMembersOp, UpdateRaftGroupMembersOpBuilder {
 
     private UpdateRaftGroupMembersOpProto.Builder builder;
     private UpdateRaftGroupMembersOpProto op;
     private Collection<RaftEndpoint> members;
+    private Collection<RaftEndpoint> votingMembers;
     private RaftEndpoint endpoint;
 
     public UpdateRaftGroupMembersOpOrBuilder() {
@@ -46,7 +46,9 @@ public class UpdateRaftGroupMembersOpOrBuilder
     public UpdateRaftGroupMembersOpOrBuilder(UpdateRaftGroupMembersOpProto op) {
         this.op = op;
         this.members = new LinkedHashSet<>();
-        op.getGroupMemberList().stream().map(AfloatDBEndpoint::wrap).forEach(members::add);
+        op.getMemberList().stream().map(AfloatDBEndpoint::wrap).forEach(members::add);
+        this.votingMembers = new LinkedHashSet<>();
+        op.getVotingMemberList().stream().map(AfloatDBEndpoint::wrap).forEach(votingMembers::add);
         this.endpoint = AfloatDBEndpoint.wrap(op.getEndpoint());
     }
 
@@ -62,6 +64,12 @@ public class UpdateRaftGroupMembersOpOrBuilder
 
     @Nonnull
     @Override
+    public Collection<RaftEndpoint> getVotingMembers() {
+        return votingMembers;
+    }
+
+    @Nonnull
+    @Override
     public RaftEndpoint getEndpoint() {
         return endpoint;
     }
@@ -69,10 +77,12 @@ public class UpdateRaftGroupMembersOpOrBuilder
     @Nonnull
     @Override
     public MembershipChangeMode getMode() {
-        if (op.getMode() == MembershipChangeModeProto.ADD) {
-            return MembershipChangeMode.ADD;
-        } else if (op.getMode() == MembershipChangeModeProto.REMOVE) {
-            return MembershipChangeMode.REMOVE;
+        if (op.getMode() == MembershipChangeModeProto.ADD_LEARNER) {
+            return MembershipChangeMode.ADD_LEARNER;
+        } else if (op.getMode() == MembershipChangeModeProto.ADD_OR_PROMOTE_TO_FOLLOWER) {
+            return MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER;
+        } else if (op.getMode() == MembershipChangeModeProto.REMOVE_MEMBER) {
+            return MembershipChangeMode.REMOVE_MEMBER;
         }
         throw new IllegalStateException();
     }
@@ -80,8 +90,15 @@ public class UpdateRaftGroupMembersOpOrBuilder
     @Nonnull
     @Override
     public UpdateRaftGroupMembersOpBuilder setMembers(@Nonnull Collection<RaftEndpoint> members) {
-        members.stream().map(AfloatDBEndpoint::extract).forEach(builder::addGroupMember);
+        members.stream().map(AfloatDBEndpoint::extract).forEach(builder::addMember);
         this.members = members;
+        return this;
+    }
+
+    @Override
+    public UpdateRaftGroupMembersOpBuilder setVotingMembers(Collection<RaftEndpoint> votingMembers) {
+        members.stream().map(AfloatDBEndpoint::extract).forEach(builder::addVotingMember);
+        this.votingMembers = votingMembers;
         return this;
     }
 
@@ -96,11 +113,14 @@ public class UpdateRaftGroupMembersOpOrBuilder
     @Nonnull
     @Override
     public UpdateRaftGroupMembersOpBuilder setMode(@Nonnull MembershipChangeMode mode) {
-        if (mode == MembershipChangeMode.ADD) {
-            builder.setMode(MembershipChangeModeProto.ADD);
+        if (mode == MembershipChangeMode.ADD_LEARNER) {
+            builder.setMode(MembershipChangeModeProto.ADD_LEARNER);
             return this;
-        } else if (mode == MembershipChangeMode.REMOVE) {
-            builder.setMode(MembershipChangeModeProto.REMOVE);
+        } else if (mode == MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER) {
+            builder.setMode(MembershipChangeModeProto.ADD_OR_PROMOTE_TO_FOLLOWER);
+            return this;
+        } else if (mode == MembershipChangeMode.REMOVE_MEMBER) {
+            builder.setMode(MembershipChangeModeProto.REMOVE_MEMBER);
             return this;
         }
 
@@ -122,8 +142,9 @@ public class UpdateRaftGroupMembersOpOrBuilder
         }
 
         List<Object> memberIds = members.stream().map(RaftEndpoint::getId).collect(Collectors.toList());
-        return "GrpcUpdateRaftGroupMembersOp{" + "members=" + memberIds + ", endpoint=" + endpoint.getId() + ", " + "modee="
-                + getMode() + '}';
+        List<Object> votingMemberIds = votingMembers.stream().map(RaftEndpoint::getId).collect(Collectors.toList());
+        return "GrpcUpdateRaftGroupMembersOp{" + "members=" + memberIds + ", votingMembers=" + votingMemberIds
+                + ", endpoint=" + endpoint.getId() + ", " + "mode=" + getMode() + '}';
     }
 
 }

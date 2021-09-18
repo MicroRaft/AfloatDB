@@ -18,11 +18,13 @@ package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.internal.raft.impl.model.log.SnapshotChunkOrBuilder;
+import io.afloatdb.internal.raft.impl.model.log.RaftGroupMembersViewOrBuilder;
 import io.afloatdb.raft.proto.InstallSnapshotRequestProto;
 import io.afloatdb.raft.proto.KVSnapshotChunk;
 import io.afloatdb.raft.proto.RaftMessageRequest;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.SnapshotChunk;
+import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.message.InstallSnapshotRequest;
 
 import javax.annotation.Nonnull;
@@ -31,15 +33,15 @@ import java.util.Collection;
 
 import static java.util.stream.Collectors.toList;
 
-public class InstallSnapshotRequestOrBuilder
-        implements InstallSnapshotRequest, InstallSnapshotRequest.InstallSnapshotRequestBuilder, RaftMessageRequestAware {
+public class InstallSnapshotRequestOrBuilder implements InstallSnapshotRequest,
+        InstallSnapshotRequest.InstallSnapshotRequestBuilder, RaftMessageRequestAware {
 
     private InstallSnapshotRequestProto.Builder builder;
     private InstallSnapshotRequestProto request;
     private RaftEndpoint sender;
     private SnapshotChunk snapshotChunk;
     private Collection<RaftEndpoint> snapshottedMembers;
-    private Collection<RaftEndpoint> groupMembers;
+    private RaftGroupMembersView groupMembersView;
 
     public InstallSnapshotRequestOrBuilder() {
         this.builder = InstallSnapshotRequestProto.newBuilder();
@@ -51,8 +53,9 @@ public class InstallSnapshotRequestOrBuilder
         if (!request.getSnapshotChunk().equals(KVSnapshotChunk.getDefaultInstance())) {
             this.snapshotChunk = new SnapshotChunkOrBuilder(request.getSnapshotChunk());
         }
-        this.snapshottedMembers = request.getSnapshottedMemberList().stream().map(AfloatDBEndpoint::wrap).collect(toList());
-        this.groupMembers = request.getGroupMemberList().stream().map(AfloatDBEndpoint::wrap).collect(toList());
+        this.snapshottedMembers = request.getSnapshottedMemberList().stream().map(AfloatDBEndpoint::wrap)
+                .collect(toList());
+        this.groupMembersView = new RaftGroupMembersViewOrBuilder(request.getGroupMembersView());
     }
 
     public InstallSnapshotRequestProto getRequest() {
@@ -130,16 +133,9 @@ public class InstallSnapshotRequestOrBuilder
 
     @Nonnull
     @Override
-    public InstallSnapshotRequestBuilder setGroupMembersLogIndex(long groupMembersLogIndex) {
-        builder.setGroupMembersLogIndex(groupMembersLogIndex);
-        return this;
-    }
-
-    @Nonnull
-    @Override
-    public InstallSnapshotRequestBuilder setGroupMembers(@Nonnull Collection<RaftEndpoint> groupMembers) {
-        groupMembers.stream().map(AfloatDBEndpoint::extract).forEach(builder::addGroupMember);
-        this.groupMembers = groupMembers;
+    public InstallSnapshotRequestBuilder setGroupMembersView(RaftGroupMembersView groupMembersView) {
+        builder.setGroupMembersView(((RaftGroupMembersViewOrBuilder) groupMembersView).getGroupMembersView());
+        this.groupMembersView = groupMembersView;
         return this;
     }
 
@@ -202,15 +198,10 @@ public class InstallSnapshotRequestOrBuilder
         return snapshottedMembers;
     }
 
-    @Override
-    public long getGroupMembersLogIndex() {
-        return request.getGroupMembersLogIndex();
-    }
-
     @Nonnull
     @Override
-    public Collection<RaftEndpoint> getGroupMembers() {
-        return groupMembers;
+    public RaftGroupMembersView getGroupMembersView() {
+        return groupMembersView;
     }
 
     @Override
@@ -245,11 +236,11 @@ public class InstallSnapshotRequestOrBuilder
             return "GrpcInstallSnapshotRequestBuilder{builder=" + builder + "}";
         }
 
-        return "GrpcInstallSnapshotRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
-                + ", senderLeader=" + isSenderLeader() + ", snapshotTerm=" + getSnapshotTerm() + ", snapshotIndex="
-                + getSnapshotIndex() + ", chunkCount=" + getTotalSnapshotChunkCount() + ", snapshotChunk=" + getSnapshotChunk()
-                + ", snapshottedMembers=" + getSnapshottedMembers() + ", groupMembers=" + getGroupMembers()
-                + ", groupMembersLogIndex=" + getGroupMembersLogIndex() + ", querySequenceNumber=" + getQuerySequenceNumber()
+        return "GrpcInstallSnapshotRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
+                + getTerm() + ", senderLeader=" + isSenderLeader() + ", snapshotTerm=" + getSnapshotTerm()
+                + ", snapshotIndex=" + getSnapshotIndex() + ", chunkCount=" + getTotalSnapshotChunkCount()
+                + ", snapshotChunk=" + getSnapshotChunk() + ", snapshottedMembers=" + getSnapshottedMembers()
+                + ", groupMembersView=" + getGroupMembersView() + ", querySequenceNumber=" + getQuerySequenceNumber()
                 + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';
     }
 

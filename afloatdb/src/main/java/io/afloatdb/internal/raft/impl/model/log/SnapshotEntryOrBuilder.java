@@ -20,6 +20,7 @@ import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.raft.proto.SnapshotEntryProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.SnapshotChunk;
+import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
 
@@ -27,21 +28,35 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 
-public class SnapshotEntryOrBuilder
-        implements SnapshotEntry, SnapshotEntryBuilder {
+public class SnapshotEntryOrBuilder implements SnapshotEntry, SnapshotEntryBuilder {
 
     private SnapshotEntryProto.Builder builder;
     private SnapshotEntryProto entry;
     private List<SnapshotChunk> snapshotChunks;
-    private Collection<RaftEndpoint> groupMembers;
+    private RaftGroupMembersView groupMembersView;
 
     public SnapshotEntryOrBuilder() {
         this.builder = SnapshotEntryProto.newBuilder();
     }
 
-    @Nonnull
     public SnapshotEntryProto getEntry() {
         return entry;
+    }
+
+    @Override
+    public long getIndex() {
+        return entry.getIndex();
+    }
+
+    @Override
+    public int getTerm() {
+        return entry.getTerm();
+    }
+
+    @Nonnull
+    @Override
+    public Object getOperation() {
+        return snapshotChunks;
     }
 
     @Override
@@ -49,25 +64,18 @@ public class SnapshotEntryOrBuilder
         return entry.getSnapshotChunkCount();
     }
 
-    @Override
-    public long getGroupMembersLogIndex() {
-        return entry.getGroupMembersLogIndex();
-    }
-
     @Nonnull
     @Override
-    public Collection<RaftEndpoint> getGroupMembers() {
-        return groupMembers;
+    public RaftGroupMembersView getGroupMembersView() {
+        return groupMembersView;
     }
 
-    @Nonnull
     @Override
     public SnapshotEntryBuilder setIndex(long index) {
         builder.setIndex(index);
         return this;
     }
 
-    @Nonnull
     @Override
     public SnapshotEntryBuilder setTerm(int term) {
         builder.setTerm(term);
@@ -78,23 +86,16 @@ public class SnapshotEntryOrBuilder
     @Override
     public SnapshotEntryBuilder setSnapshotChunks(@Nonnull List<SnapshotChunk> snapshotChunks) {
         snapshotChunks.stream().map(chunk -> ((SnapshotChunkOrBuilder) chunk).getSnapshotChunk())
-                      .forEach(builder::addSnapshotChunk);
+                .forEach(builder::addSnapshotChunk);
         this.snapshotChunks = snapshotChunks;
         return this;
     }
 
     @Nonnull
     @Override
-    public SnapshotEntryBuilder setGroupMembersLogIndex(long groupMembersLogIndex) {
-        builder.setGroupMembersLogIndex(groupMembersLogIndex);
-        return this;
-    }
-
-    @Nonnull
-    @Override
-    public SnapshotEntryBuilder setGroupMembers(@Nonnull Collection<RaftEndpoint> groupMembers) {
-        groupMembers.stream().map(AfloatDBEndpoint::extract).forEach(builder::addGroupMember);
-        this.groupMembers = groupMembers;
+    public SnapshotEntryBuilder setGroupMembersView(RaftGroupMembersView groupMembersView) {
+        builder.setGroupMembersView(((RaftGroupMembersViewOrBuilder) groupMembersView).getGroupMembersView());
+        this.groupMembersView = groupMembersView;
         return this;
     }
 
@@ -113,23 +114,7 @@ public class SnapshotEntryOrBuilder
         }
 
         return "GrpcSnapshotEntry{" + "index=" + getIndex() + ", term=" + getTerm() + ", operation=" + getOperation()
-                + ", groupMembers=" + getGroupMembers() + ", groupMembersLogIndex=" + getGroupMembersLogIndex() + '}';
-    }
-
-    @Override
-    public long getIndex() {
-        return entry.getIndex();
-    }
-
-    @Override
-    public int getTerm() {
-        return entry.getTerm();
-    }
-
-    @Nonnull
-    @Override
-    public Object getOperation() {
-        return snapshotChunks;
+                + ", groupMembersView=" + getGroupMembersView() + '}';
     }
 
 }

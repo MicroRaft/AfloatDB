@@ -32,8 +32,8 @@ public interface AfloatDB {
         return new AfloatDBBootstrapper(requireNonNull(config)).get();
     }
 
-    static AfloatDB join(AfloatDBConfig config) {
-        return new AfloatDBJoiner(requireNonNull(config)).get();
+    static AfloatDB join(AfloatDBConfig config, boolean votingMember) {
+        return new AfloatDBJoiner(requireNonNull(config), votingMember).get();
     }
 
     @Nonnull

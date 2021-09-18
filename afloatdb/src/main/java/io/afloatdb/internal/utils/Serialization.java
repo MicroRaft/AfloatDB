@@ -55,13 +55,13 @@ public final class Serialization {
     }
 
     public static RaftNodeReportProto toProto(RaftNodeReport report) {
-        return RaftNodeReportProto.newBuilder().setReason(toProto(report.getReason())).setGroupId((String) report.getGroupId())
-                                  .setEndpoint(AfloatDBEndpoint.extract(report.getEndpoint()))
-                                  .setInitialMembers(toProto(report.getInitialMembers()))
-                                  .setCommittedMembers(toProto(report.getCommittedMembers()))
-                                  .setEffectiveMembers(toProto(report.getEffectiveMembers())).setRole(toProto(report.getRole()))
-                                  .setStatus(toProto(report.getStatus())).setTerm(toProto(report.getTerm()))
-                                  .setLog(toProto(report.getLog())).build();
+        return RaftNodeReportProto.newBuilder().setReason(toProto(report.getReason()))
+                .setGroupId((String) report.getGroupId()).setEndpoint(AfloatDBEndpoint.extract(report.getEndpoint()))
+                .setInitialMembers(toProto(report.getInitialMembers()))
+                .setCommittedMembers(toProto(report.getCommittedMembers()))
+                .setEffectiveMembers(toProto(report.getEffectiveMembers())).setRole(toProto(report.getRole()))
+                .setStatus(toProto(report.getStatus())).setTerm(toProto(report.getTerm()))
+                .setLog(toProto(report.getLog())).build();
     }
 
     public static RaftNodeReportReasonProto toProto(RaftNodeReportReason reason) {
@@ -96,12 +96,15 @@ public final class Serialization {
 
     public static RaftRoleProto toProto(RaftRole role) {
         switch (role) {
-            case FOLLOWER:
-                return RaftRoleProto.FOLLOWER;
-            case CANDIDATE:
-                return RaftRoleProto.CANDIDATE;
             case LEADER:
                 return RaftRoleProto.LEADER;
+            case CANDIDATE:
+                return RaftRoleProto.CANDIDATE;
+            case FOLLOWER:
+                return RaftRoleProto.FOLLOWER;
+            case LEARNER:
+                return RaftRoleProto.LEARNER;
+
             default:
                 throw new IllegalArgumentException("Invalid RaftRole: " + role);
         }
@@ -141,21 +144,24 @@ public final class Serialization {
     public static RaftLogStatsProto toProto(RaftLogStats log) {
         RaftLogStatsProto.Builder builder = RaftLogStatsProto.newBuilder();
         builder.setCommitIndex(log.getCommitIndex()).setLastLogOrSnapshotIndex(log.getLastLogOrSnapshotIndex())
-               .setLastLogOrSnapshotTerm(log.getLastLogOrSnapshotTerm()).setSnapshotIndex(log.getLastSnapshotIndex())
-               .setSnapshotTerm(log.getLastSnapshotTerm()).setTakeSnapshotCount(log.getTakeSnapshotCount())
-               .setInstallSnapshotCount(log.getInstallSnapshotCount());
+                .setLastLogOrSnapshotTerm(log.getLastLogOrSnapshotTerm()).setSnapshotIndex(log.getLastSnapshotIndex())
+                .setSnapshotTerm(log.getLastSnapshotTerm()).setTakeSnapshotCount(log.getTakeSnapshotCount())
+                .setInstallSnapshotCount(log.getInstallSnapshotCount());
 
-        log.getFollowerMatchIndices().forEach((key, value) -> builder.putFollowerMatchIndex(key.getId().toString(), value));
+        log.getFollowerMatchIndices()
+                .forEach((key, value) -> builder.putFollowerMatchIndex(key.getId().toString(), value));
 
         return builder.build();
     }
 
     public static QUERY_POLICY toProto(@Nonnull QueryPolicy queryPolicy) {
         switch (queryPolicy) {
-            case ANY_LOCAL:
-                return QUERY_POLICY.ANY_LOCAL;
-            case LEADER_LOCAL:
-                return QUERY_POLICY.LEADER_LOCAL;
+            case EVENTUAL_CONSISTENCY:
+                return QUERY_POLICY.EVENTUAL_CONSISTENCY;
+            case BOUNDED_STALENESS:
+                return QUERY_POLICY.BOUNDED_STALENESS;
+            case LEADER_LEASE:
+                return QUERY_POLICY.LEADER_LEASE;
             case LINEARIZABLE:
                 return QUERY_POLICY.LINEARIZABLE;
             default:
@@ -165,10 +171,12 @@ public final class Serialization {
 
     public static QueryPolicy fromProto(QUERY_POLICY queryPolicy) {
         switch (queryPolicy.getNumber()) {
-            case QUERY_POLICY.ANY_LOCAL_VALUE:
-                return QueryPolicy.ANY_LOCAL;
-            case QUERY_POLICY.LEADER_LOCAL_VALUE:
-                return QueryPolicy.LEADER_LOCAL;
+            case QUERY_POLICY.EVENTUAL_CONSISTENCY_VALUE:
+                return QueryPolicy.EVENTUAL_CONSISTENCY;
+            case QUERY_POLICY.BOUNDED_STALENESS_VALUE:
+                return QueryPolicy.BOUNDED_STALENESS;
+            case QUERY_POLICY.LEADER_LEASE_VALUE:
+                return QueryPolicy.LEADER_LEASE;
             case QUERY_POLICY.LINEARIZABLE_VALUE:
                 return QueryPolicy.LINEARIZABLE;
             default:

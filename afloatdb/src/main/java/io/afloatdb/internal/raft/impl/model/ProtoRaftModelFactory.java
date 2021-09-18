@@ -20,6 +20,7 @@ import io.afloatdb.internal.raft.impl.model.groupop.UpdateRaftGroupMembersOpOrBu
 import io.afloatdb.internal.raft.impl.model.log.LogEntryOrBuilder;
 import io.afloatdb.internal.raft.impl.model.log.SnapshotChunkOrBuilder;
 import io.afloatdb.internal.raft.impl.model.log.SnapshotEntryOrBuilder;
+import io.afloatdb.internal.raft.impl.model.log.RaftGroupMembersViewOrBuilder;
 import io.afloatdb.internal.raft.impl.model.message.AppendEntriesFailureResponseOrBuilder;
 import io.afloatdb.internal.raft.impl.model.message.AppendEntriesRequestOrBuilder;
 import io.afloatdb.internal.raft.impl.model.message.AppendEntriesSuccessResponseOrBuilder;
@@ -33,6 +34,7 @@ import io.afloatdb.internal.raft.impl.model.message.VoteResponseOrBuilder;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMembersOpBuilder;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
+import io.microraft.model.log.RaftGroupMembersView.RaftGroupMembersViewBuilder;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
 import io.microraft.model.message.AppendEntriesFailureResponse.AppendEntriesFailureResponseBuilder;
@@ -50,8 +52,7 @@ import javax.annotation.Nonnull;
 import javax.inject.Singleton;
 
 @Singleton
-public class ProtoRaftModelFactory
-        implements RaftModelFactory {
+public class ProtoRaftModelFactory implements RaftModelFactory {
 
     @Nonnull
     @Override
@@ -135,6 +136,11 @@ public class ProtoRaftModelFactory
     @Override
     public UpdateRaftGroupMembersOpBuilder createUpdateRaftGroupMembersOpBuilder() {
         return new UpdateRaftGroupMembersOpOrBuilder();
+    }
+
+    @Override
+    public RaftGroupMembersViewBuilder createRaftGroupMembersViewBuilder() {
+        return new RaftGroupMembersViewOrBuilder();
     }
 
 }

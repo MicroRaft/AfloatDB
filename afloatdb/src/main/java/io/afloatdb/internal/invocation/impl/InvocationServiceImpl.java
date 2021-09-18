@@ -59,8 +59,7 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Singleton
-public class InvocationServiceImpl
-        implements InvocationService {
+public class InvocationServiceImpl implements InvocationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InvocationService.class);
 
@@ -72,8 +71,8 @@ public class InvocationServiceImpl
 
     @Inject
     public InvocationServiceImpl(@Named(CONFIG_KEY) AfloatDBConfig config,
-                                 @Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
-                                 RaftNodeReportSupplier raftNodeReportSupplier, RaftRpcService raftRpcService) {
+            @Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
+            RaftNodeReportSupplier raftNodeReportSupplier, RaftRpcService raftRpcService) {
         this.raftNode = raftNodeSupplier.get();
         this.raftNodeReportSupplier = raftNodeReportSupplier;
         this.raftRpcService = raftRpcService;
@@ -93,12 +92,11 @@ public class InvocationServiceImpl
 
     @Override
     public CompletableFuture<Ordered<KVResponse>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy,
-                                                        long minCommitIndex) {
+            long minCommitIndex) {
         return new QueryInvocation(operation, queryPolicy, minCommitIndex).invoke();
     }
 
-    private abstract class Invocation
-            extends OrderedFuture<KVResponse>
+    private abstract class Invocation extends OrderedFuture<KVResponse>
             implements BiConsumer<Ordered<KVResponse>, Throwable> {
 
         final Operation operation;
@@ -182,7 +180,8 @@ public class InvocationServiceImpl
         private <T> void failOrRetry(OrderedFuture<T> future, Throwable t) {
             if (t instanceof StatusRuntimeException && isRaftException(t.getMessage())) {
                 StatusRuntimeException ex = (StatusRuntimeException) t;
-                if (ex.getStatus().getCode() == Code.FAILED_PRECONDITION || ex.getStatus().getCode() == Code.RESOURCE_EXHAUSTED) {
+                if (ex.getStatus().getCode() == Code.FAILED_PRECONDITION
+                        || ex.getStatus().getCode() == Code.RESOURCE_EXHAUSTED) {
                     retry();
                     return;
                 }
@@ -197,8 +196,7 @@ public class InvocationServiceImpl
 
     }
 
-    private class ReplicateInvocation
-            extends Invocation {
+    private class ReplicateInvocation extends Invocation {
 
         // no need to make it volatile.
         // it is ok for multiple threads to create it redundantly
@@ -228,8 +226,7 @@ public class InvocationServiceImpl
         }
     }
 
-    private class QueryInvocation
-            extends Invocation {
+    private class QueryInvocation extends Invocation {
 
         final QueryPolicy queryPolicy;
         final long minCommitIndex;
@@ -246,8 +243,8 @@ public class InvocationServiceImpl
 
         @Override
         CompletableFuture<Ordered<KVResponse>> tryInvokeLocally() {
-            if (queryPolicy == QueryPolicy.ANY_LOCAL || raftNode.getLocalEndpoint()
-                                                                .equals(raftNode.getTerm().getLeaderEndpoint())) {
+            if (queryPolicy == QueryPolicy.EVENTUAL_CONSISTENCY || queryPolicy == QueryPolicy.BOUNDED_STALENESS
+                    || raftNode.getLocalEndpoint().equals(raftNode.getTerm().getLeaderEndpoint())) {
                 return raftNode.query(operation, queryPolicy, minCommitIndex);
             }
 
@@ -258,7 +255,7 @@ public class InvocationServiceImpl
         ListenableFuture<KVResponse> doInvokeRemotely(RaftRpc stub) {
             if (request == null) {
                 request = QueryRequest.newBuilder().setOperation(operation).setQueryPolicy(toProto(queryPolicy))
-                                      .setMinCommitIndex(minCommitIndex).build();
+                        .setMinCommitIndex(minCommitIndex).build();
             }
             // TODO [basri] offload to IO thread...
             return stub.query(request);

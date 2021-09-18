@@ -4,7 +4,7 @@
     <groupId>io.afloatdb</groupId>
     <artifactId>afloatdb-root</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1-SNAPSHOT</version>
 
     <name>AfloatDB Root</name>
     <url>https://afloatdb.io</url>
@@ -24,9 +24,9 @@
     </developers>
 
     <scm>
-        <url>https://github.com/metanet/AfloatDB</url>
-        <connection>scm:git:git@github.com:metanet/AfloatDB</connection>
-        <developerConnection>scm:git:git@github.com:metanet/AfloatDB.git</developerConnection>
+        <url>https://github.com/MicroRaft/AfloatDB</url>
+        <connection>scm:git:git@github.com:MicroRaft/AfloatDB</connection>
+        <developerConnection>scm:git:git@github.com:MicroRaft/AfloatDB.git</developerConnection>
     </scm>
 
     <licenses>
@@ -41,6 +41,7 @@
         <root.dir>${project.basedir}</root.dir>
         <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
         <timestamp>${maven.build.timestamp}</timestamp>
+        <jdk.version>8</jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <slf4j.api.version>1.7.30</slf4j.api.version>

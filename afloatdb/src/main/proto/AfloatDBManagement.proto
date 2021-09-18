@@ -19,9 +19,10 @@ message RaftTermProto {
 }
 
 enum RaftRoleProto {
-    FOLLOWER = 0;
+    LEADER = 0;
     CANDIDATE = 1;
-    LEADER = 2;
+    FOLLOWER = 2;
+    LEARNER = 3;
 }
 
 enum RaftNodeReportReasonProto {
@@ -38,8 +39,7 @@ enum RaftNodeStatusProto {
     INITIAL = 0;
     ACTIVE = 1;
     UPDATING_RAFT_GROUP_MEMBER_LIST = 2;
-    TERMINATING_RAFT_GROUP = 3;
-    TERMINATED = 4;
+    TERMINATED = 3;
 }
 
 message RaftLogStatsProto {
@@ -85,7 +85,8 @@ message AddRaftEndpointAddressResponse {
 
 message AddRaftEndpointRequest {
     io.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
-    int64 groupMembersCommitIndex = 2;
+    bool votingMember = 2;
+    int64 groupMembersCommitIndex = 3;
 }
 
 message AddRaftEndpointResponse {

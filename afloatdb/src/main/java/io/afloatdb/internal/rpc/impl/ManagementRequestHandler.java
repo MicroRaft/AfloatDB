@@ -16,6 +16,7 @@
 
 package io.afloatdb.internal.rpc.impl;
 
+import io.afloatdb.AfloatDB;
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.internal.rpc.RaftRpcService;
 import io.afloatdb.management.proto.AddRaftEndpointAddressRequest;
@@ -44,11 +45,10 @@ import java.util.function.Supplier;
 import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_SUPPLIER_KEY;
 import static io.afloatdb.internal.utils.Exceptions.wrap;
 import static io.afloatdb.internal.utils.Serialization.toProto;
-import static io.microraft.MembershipChangeMode.REMOVE;
+import static io.microraft.MembershipChangeMode.REMOVE_MEMBER;
 
 @Singleton
-public class ManagementRequestHandler
-        extends ManagementRequestHandlerImplBase {
+public class ManagementRequestHandler extends ManagementRequestHandlerImplBase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ManagementRequestHandler.class);
 
@@ -57,28 +57,27 @@ public class ManagementRequestHandler
 
     @Inject
     public ManagementRequestHandler(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
-                                    RaftRpcService raftRpcService) {
+            RaftRpcService raftRpcService) {
         this.raftNode = raftNodeSupplier.get();
         this.raftRpcService = raftRpcService;
     }
 
     @Override
     public void removeRaftEndpoint(RemoveRaftEndpointRequest request,
-                                   StreamObserver<RemoveRaftEndpointResponse> responseObserver) {
+            StreamObserver<RemoveRaftEndpointResponse> responseObserver) {
         AfloatDBEndpoint endpoint = AfloatDBEndpoint.wrap(request.getEndpoint());
 
         long commitIndex = request.getGroupMembersCommitIndex();
         LOGGER.info("{} received remove endpoint request for {} and group members commit index: {}",
-                    raftNode.getLocalEndpoint().getId(), endpoint.getId(), commitIndex);
+                raftNode.getLocalEndpoint().getId(), endpoint.getId(), commitIndex);
 
-        raftNode.changeMembership(endpoint, REMOVE, commitIndex).whenComplete((result, throwable) -> {
+        raftNode.changeMembership(endpoint, REMOVE_MEMBER, commitIndex).whenComplete((result, throwable) -> {
             if (throwable == null) {
                 long newCommitIndex = result.getCommitIndex();
                 LOGGER.info("{} removed {} from the Raft group. New group members commit index: {}",
-                            raftNode.getLocalEndpoint().getId(), endpoint.getId(), newCommitIndex);
+                        raftNode.getLocalEndpoint().getId(), endpoint.getId(), newCommitIndex);
                 RemoveRaftEndpointResponse response = RemoveRaftEndpointResponse.newBuilder()
-                                                                                .setGroupMembersCommitIndex(newCommitIndex)
-                                                                                .build();
+                        .setGroupMembersCommitIndex(newCommitIndex).build();
                 responseObserver.onNext(response);
             } else {
                 LOGGER.error(raftNode.getLocalEndpoint().getId() + " remove endpoint request for " + endpoint.getId()
@@ -90,12 +89,14 @@ public class ManagementRequestHandler
     }
 
     @Override
-    public void getRaftNodeReport(GetRaftNodeReportRequest request, StreamObserver<GetRaftNodeReportResponse> responseObserver) {
+    public void getRaftNodeReport(GetRaftNodeReportRequest request,
+            StreamObserver<GetRaftNodeReportResponse> responseObserver) {
         raftNode.getReport().whenComplete((response, throwable) -> {
             if (throwable == null) {
                 GetRaftNodeReportResponse.Builder builder = GetRaftNodeReportResponse.newBuilder();
                 builder.setReport(toProto(response.getResult()));
-                raftRpcService.getAddresses().forEach((key, value) -> builder.putEndpointAddress(key.getId().toString(), value));
+                raftRpcService.getAddresses()
+                        .forEach((key, value) -> builder.putEndpointAddress(key.getId().toString(), value));
 
                 responseObserver.onNext(builder.build());
             } else {
@@ -107,9 +108,11 @@ public class ManagementRequestHandler
 
     @Override
     public void addRaftEndpointAddress(AddRaftEndpointAddressRequest request,
-                                       StreamObserver<AddRaftEndpointAddressResponse> responseObserver) {
+            StreamObserver<AddRaftEndpointAddressResponse> responseObserver) {
         try {
-            raftRpcService.addAddress(AfloatDBEndpoint.wrap(request.getEndpoint()), request.getAddress());
+            RaftEndpoint endpoint = AfloatDBEndpoint.wrap(request.getEndpoint());
+            LOGGER.info("Adding address: {} for {}.", request.getAddress(), endpoint);
+            raftRpcService.addAddress(endpoint, request.getAddress());
             responseObserver.onNext(AddRaftEndpointAddressResponse.getDefaultInstance());
         } catch (Throwable t) {
             responseObserver.onError(wrap(t));
@@ -119,27 +122,34 @@ public class ManagementRequestHandler
     }
 
     @Override
-    public void addRaftEndpoint(AddRaftEndpointRequest request, StreamObserver<AddRaftEndpointResponse> responseObserver) {
+    public void addRaftEndpoint(AddRaftEndpointRequest request,
+            StreamObserver<AddRaftEndpointResponse> responseObserver) {
         RaftEndpoint endpoint = AfloatDBEndpoint.wrap(request.getEndpoint());
         if (!raftRpcService.getAddresses().containsKey(endpoint)) {
             LOGGER.error("{} cannot add {} because its address is not known!", raftNode.getLocalEndpoint().getId(),
-                         endpoint.getId());
+                    endpoint.getId());
             responseObserver.onError(new StatusRuntimeException(Status.FAILED_PRECONDITION));
             responseObserver.onCompleted();
             return;
         }
 
-        raftNode.changeMembership(endpoint, MembershipChangeMode.ADD, request.getGroupMembersCommitIndex())
+        MembershipChangeMode mode = request.getVotingMember() ? MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER
+                : MembershipChangeMode.ADD_LEARNER;
+
+        LOGGER.info("Adding {} with mode: {}.", endpoint, mode);
+
+        raftNode.changeMembership(endpoint, mode, request.getGroupMembersCommitIndex())
                 .whenComplete((result, throwable) -> {
                     if (throwable == null) {
                         long newCommitIndex = result.getCommitIndex();
                         AddRaftEndpointResponse response = AddRaftEndpointResponse.newBuilder()
-                                                                                  .setGroupMembersCommitIndex(newCommitIndex)
-                                                                                  .build();
+                                .setGroupMembersCommitIndex(newCommitIndex).build();
                         responseObserver.onNext(response);
                     } else {
-                        LOGGER.error(raftNode.getLocalEndpoint().getId() + " could not add " + endpoint + " "
-                                + "with group members commit index: " + request.getGroupMembersCommitIndex(), throwable);
+                        LOGGER.error(
+                                raftNode.getLocalEndpoint().getId() + " could not add " + endpoint + " "
+                                        + "with group members commit index: " + request.getGroupMembersCommitIndex(),
+                                throwable);
                         responseObserver.onError(wrap(throwable));
                     }
                     responseObserver.onCompleted();

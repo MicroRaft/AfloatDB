@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.afloatdb</groupId>
         <artifactId>afloatdb-root</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -30,23 +30,36 @@
         <jmh-core.version>1.19</jmh-core.version>
     </properties>
 
+    <!-- <repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
+	</repositories> -->
+
     <dependencies>
         <dependency>
-            <groupId>io.microraft</groupId>
-            <artifactId>microraft</artifactId>
-            <version>1.0-SNAPSHOT</version>
+           <groupId>io.microraft</groupId>
+           <artifactId>microraft</artifactId>
+           <version>0.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
-            <groupId>io.microraft</groupId>
-            <artifactId>microraft-hocon</artifactId>
-            <version>1.0-SNAPSHOT</version>
+           <groupId>io.microraft</groupId>
+           <artifactId>microraft-hocon</artifactId>
+           <version>0.2-SNAPSHOT</version>
         </dependency>
+
+        <!-- <dependency>
+	        <groupId>com.github.MicroRaft</groupId>
+	        <artifactId>MicroRaft</artifactId>
+	        <version>v0.1</version>
+    	</dependency> -->
 
         <dependency>
             <groupId>io.afloatdb</groupId>
             <artifactId>afloatdb-commons</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>

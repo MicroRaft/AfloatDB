@@ -16,8 +16,7 @@ public final class Serialization {
     }
 
     public static ByteString serializeBytes(byte[] b) {
-        requireNonNull(b);
-        return ByteString.copyFrom(b);
+        return ByteString.copyFrom(requireNonNull(b));
     }
 
     public static ByteString serializeLong(long l) {
@@ -45,13 +44,12 @@ public final class Serialization {
     }
 
     public static ByteString serializeString(String s) {
-        return ByteString.copyFromUtf8(s);
+        return ByteString.copyFromUtf8(requireNonNull(s));
     }
 
     public static Object deserialize(TypedValue typedValue) {
-        requireNonNull(typedValue);
 
-        switch (typedValue.getType()) {
+        switch (requireNonNull(typedValue).getType()) {
             case BYTE_ARRAY_TYPE:
                 return deserializeBytes(typedValue.getValue());
             case INT_TYPE:
@@ -66,7 +64,6 @@ public final class Serialization {
     }
 
     public static byte[] deserializeBytes(ByteString bytes) {
-        requireNonNull(bytes);
         return bytes.toByteArray();
     }
 
@@ -94,6 +91,36 @@ public final class Serialization {
 
     public static String deserializeString(ByteString bytes) {
         return bytes.toStringUtf8();
+    }
+
+    public static TypedValue getTypedValue(Object object) {
+        if (object instanceof byte[]) {
+            return getTypedValue((byte[]) object);
+        } else if (object instanceof Integer) {
+            return getTypedValue((int) object);
+        } else if (object instanceof Long) {
+            return getTypedValue((long) object);
+        } else if (object instanceof String) {
+            return getTypedValue((String) object);
+        }
+
+        throw new IllegalArgumentException(object + " has invalid type!");
+    }
+
+    public static TypedValue getTypedValue(String value) {
+        return TypedValue.newBuilder().setType(STRING_TYPE).setValue(serializeString(value)).build();
+    }
+
+    public static TypedValue getTypedValue(long value) {
+        return TypedValue.newBuilder().setType(LONG_TYPE).setValue(serializeLong(value)).build();
+    }
+
+    public static TypedValue getTypedValue(int value) {
+        return TypedValue.newBuilder().setType(INT_TYPE).setValue(serializeInt(value)).build();
+    }
+
+    public static TypedValue getTypedValue(byte[] value) {
+        return TypedValue.newBuilder().setType(BYTE_ARRAY_TYPE).setValue(serializeBytes(value)).build();
     }
 
 }

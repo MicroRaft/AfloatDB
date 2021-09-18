@@ -59,14 +59,13 @@ import static io.afloatdb.utils.AfloatDBTestUtils.getRaftGroupMembers;
 import static io.afloatdb.utils.AfloatDBTestUtils.getRaftNode;
 import static io.afloatdb.utils.AfloatDBTestUtils.getTerm;
 import static io.afloatdb.utils.AfloatDBTestUtils.waitUntilLeaderElected;
-import static io.microraft.QueryPolicy.ANY_LOCAL;
+import static io.microraft.QueryPolicy.EVENTUAL_CONSISTENCY;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-public class AfloatDBTest
-        extends BaseTest {
+public class AfloatDBTest extends BaseTest {
 
     private List<AfloatDB> servers = new ArrayList<>();
     private Map<String, ManagedChannel> channels = new HashMap<>();
@@ -82,6 +81,11 @@ public class AfloatDBTest
     public void tearDown() {
         servers.forEach(AfloatDB::shutdown);
         channels.values().forEach(ManagedChannel::shutdownNow);
+    }
+
+    private ManagedChannel createChannel(String address) {
+        return channels.computeIfAbsent(address,
+                s -> ManagedChannelBuilder.forTarget(address).usePlaintext().disableRetry().directExecutor().build());
     }
 
     @Test
@@ -102,12 +106,13 @@ public class AfloatDBTest
         RaftEndpointProto leaderEndpoint = AfloatDBEndpoint.extract(leader.getLocalEndpoint());
         RaftGroupMembers groupMembers = getRaftGroupMembers(leader);
         List<RaftEndpointProto> endpoints = groupMembers.getMembers().stream().map(e -> (AfloatDBEndpoint) e)
-                                                        .map(AfloatDBEndpoint::getEndpoint).collect(toList());
+                .map(AfloatDBEndpoint::getEndpoint).collect(toList());
 
         eventually(() -> {
             for (AfloatDB server : servers) {
                 ManagementRequestHandlerBlockingStub stub = createManagementStub(server);
-                RaftNodeReportProto report = stub.getRaftNodeReport(GetRaftNodeReportRequest.newBuilder().build()).getReport();
+                RaftNodeReportProto report = stub.getRaftNodeReport(GetRaftNodeReportRequest.newBuilder().build())
+                        .getReport();
 
                 assertThat(report.getEndpoint().getId()).isEqualTo(server.getLocalEndpoint().getId());
                 assertThat(report.getTerm().getTerm()).isEqualTo(term);
@@ -116,11 +121,6 @@ public class AfloatDBTest
                 assertThat(report.getCommittedMembers().getMemberList()).isEqualTo(endpoints);
             }
         });
-    }
-
-    private ManagedChannel createChannel(String address) {
-        return channels.computeIfAbsent(address,
-                s -> ManagedChannelBuilder.forTarget(address).usePlaintext().disableRetry().directExecutor().build());
     }
 
     @Test
@@ -137,8 +137,8 @@ public class AfloatDBTest
 
         long groupMembersCommitIndex = report.getCommittedMembers().getLogIndex();
 
-        RemoveRaftEndpointRequest removeEndpointRequest = RemoveRaftEndpointRequest.newBuilder().setGroupMembersCommitIndex(
-                groupMembersCommitIndex).setEndpoint(followerEndpoint).build();
+        RemoveRaftEndpointRequest removeEndpointRequest = RemoveRaftEndpointRequest.newBuilder()
+                .setGroupMembersCommitIndex(groupMembersCommitIndex).setEndpoint(followerEndpoint).build();
 
         RemoveRaftEndpointResponse removeEndpointResponse = stub.removeRaftEndpoint(removeEndpointRequest);
 
@@ -146,7 +146,8 @@ public class AfloatDBTest
 
         report = stub.getRaftNodeReport(GetRaftNodeReportRequest.newBuilder().build()).getReport();
 
-        assertThat(report.getCommittedMembers().getLogIndex()).isEqualTo(removeEndpointResponse.getGroupMembersCommitIndex());
+        assertThat(report.getCommittedMembers().getLogIndex())
+                .isEqualTo(removeEndpointResponse.getGroupMembersCommitIndex());
         assertThat(report.getCommittedMembers().getMemberList()).doesNotContain(followerEndpoint);
     }
 
@@ -160,8 +161,8 @@ public class AfloatDBTest
         RaftNodeReportProto report = stub.getRaftNodeReport(GetRaftNodeReportRequest.newBuilder().build()).getReport();
         long groupMembersCommitIndex = report.getCommittedMembers().getLogIndex();
 
-        RemoveRaftEndpointRequest removeEndpointRequest = RemoveRaftEndpointRequest.newBuilder().setGroupMembersCommitIndex(
-                groupMembersCommitIndex).setEndpoint(followerEndpoint).build();
+        RemoveRaftEndpointRequest removeEndpointRequest = RemoveRaftEndpointRequest.newBuilder()
+                .setGroupMembersCommitIndex(groupMembersCommitIndex).setEndpoint(followerEndpoint).build();
         try {
             stub.removeRaftEndpoint(removeEndpointRequest);
             fail();
@@ -176,8 +177,8 @@ public class AfloatDBTest
         AfloatDB follower = getAnyFollower(servers);
         RaftEndpointProto followerEndpoint = AfloatDBEndpoint.extract(follower.getLocalEndpoint());
 
-        RemoveRaftEndpointRequest removeEndpointRequest = RemoveRaftEndpointRequest.newBuilder().setGroupMembersCommitIndex(-1)
-                                                                                   .setEndpoint(followerEndpoint).build();
+        RemoveRaftEndpointRequest removeEndpointRequest = RemoveRaftEndpointRequest.newBuilder()
+                .setGroupMembersCommitIndex(-1).setEndpoint(followerEndpoint).build();
         try {
             createManagementStub(leader).removeRaftEndpoint(removeEndpointRequest);
             fail();
@@ -192,11 +193,11 @@ public class AfloatDBTest
     }
 
     private void testJoin(AfloatDB server) {
-        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: " + "\"localhost:6704\"\n"
-                + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \"" + server.getConfig().getLocalEndpointConfig()
-                                                                                    .getAddress() + "\"";
+        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + server.getConfig().getLocalEndpointConfig().getAddress() + "\"";
 
-        AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)));
+        AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)), true);
         servers.add(newServer);
 
         AfloatDB leader = waitUntilLeaderElected(servers);
@@ -210,15 +211,17 @@ public class AfloatDBTest
             assertThat(newServerReport.getTerm().getTerm()).isEqualTo(leaderReport.getTerm().getTerm());
         });
 
-        TypedValue typedValue = TypedValue.newBuilder().setType(STRING_TYPE).setValue(ByteString.copyFromUtf8("val")).build();
+        TypedValue typedValue = TypedValue.newBuilder().setType(STRING_TYPE).setValue(ByteString.copyFromUtf8("val"))
+                .build();
         PutRequest putRequest = PutRequest.newBuilder().setKey("key").setValue(typedValue).build();
 
         getRaftNode(leader).replicate(Operation.newBuilder().setPutRequest(putRequest).build()).join();
 
         eventually(() -> {
             GetRequest request = GetRequest.newBuilder().setKey("key").build();
-            GetResponse response = getRaftNode(newServer).<KVResponse>query(Operation.newBuilder().setGetRequest(request).build(),
-                                                                            ANY_LOCAL, 0).join().getResult().getGetResponse();
+            GetResponse response = getRaftNode(newServer)
+                    .<KVResponse>query(Operation.newBuilder().setGetRequest(request).build(), EVENTUAL_CONSISTENCY, 0)
+                    .join().getResult().getGetResponse();
             assertThat(response.getValue()).isEqualTo(putRequest.getValue());
         });
     }
@@ -236,11 +239,11 @@ public class AfloatDBTest
         crashedFollower.shutdown();
         crashedFollower.awaitTermination();
 
-        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: " + "\"localhost:6704\"\n"
-                + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \"" + leader.getConfig().getLocalEndpointConfig()
-                                                                                    .getAddress() + "\"";
+        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + leader.getConfig().getLocalEndpointConfig().getAddress() + "\"";
 
-        AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)));
+        AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)), true);
     }
 
     @Test
@@ -251,16 +254,16 @@ public class AfloatDBTest
         crashedFollower.awaitTermination();
 
         RaftEndpointProto crashedFollowerEndpoint = AfloatDBEndpoint.extract(crashedFollower.getLocalEndpoint());
-        RemoveRaftEndpointRequest removeEndpointRequest = RemoveRaftEndpointRequest.newBuilder().setGroupMembersCommitIndex(0)
-                                                                                   .setEndpoint(crashedFollowerEndpoint).build();
+        RemoveRaftEndpointRequest removeEndpointRequest = RemoveRaftEndpointRequest.newBuilder()
+                .setGroupMembersCommitIndex(0).setEndpoint(crashedFollowerEndpoint).build();
 
         createManagementStub(leader).removeRaftEndpoint(removeEndpointRequest);
 
-        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: " + "\"localhost:6704\"\n"
-                + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \"" + leader.getConfig().getLocalEndpointConfig()
-                                                                                    .getAddress() + "\"";
+        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + leader.getConfig().getLocalEndpointConfig().getAddress() + "\"";
 
-        AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)));
+        AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)), true);
         servers.add(newServer);
 
         RaftNodeReport leaderReport = leader.getRaftNodeReport();
@@ -278,28 +281,28 @@ public class AfloatDBTest
     public void when_newServerCrashesJustAfterJoin_then_itCanRejoin() {
         AfloatDB leader = waitUntilLeaderElected(servers);
 
-        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: " + "\"localhost:6704\"\n"
-                + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \"" + leader.getConfig().getLocalEndpointConfig()
-                                                                                    .getAddress() + "\"";
+        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + leader.getConfig().getLocalEndpointConfig().getAddress() + "\"";
 
         AfloatDBConfig newServerConfig = AfloatDBConfig.from(ConfigFactory.parseString(configString));
 
         RaftEndpointProto newServerEndpoint = RaftEndpointProto.newBuilder().setId("node4").build();
 
         for (AfloatDB server : servers) {
-            AddRaftEndpointAddressRequest request = AddRaftEndpointAddressRequest.newBuilder().setEndpoint(newServerEndpoint)
-                                                                                 .setAddress("localhost:6704").build();
+            AddRaftEndpointAddressRequest request = AddRaftEndpointAddressRequest.newBuilder()
+                    .setEndpoint(newServerEndpoint).setAddress("localhost:6704").build();
             createManagementStub(server).addRaftEndpointAddress(request);
         }
 
-        AddRaftEndpointRequest addRaftEndpointRequest = AddRaftEndpointRequest.newBuilder().setEndpoint(newServerEndpoint)
-                                                                              .setGroupMembersCommitIndex(0).build();
+        AddRaftEndpointRequest addRaftEndpointRequest = AddRaftEndpointRequest.newBuilder()
+                .setEndpoint(newServerEndpoint).setGroupMembersCommitIndex(0).build();
         createManagementStub(leader).addRaftEndpoint(addRaftEndpointRequest);
 
         RaftNodeReport leaderReport = leader.getRaftNodeReport();
         assertThat(leaderReport.getCommittedMembers().getMembers()).hasSize(4);
 
-        AfloatDB newServer = AfloatDB.join(newServerConfig);
+        AfloatDB newServer = AfloatDB.join(newServerConfig, true);
         servers.add(newServer);
 
         eventually(() -> {
@@ -318,7 +321,8 @@ public class AfloatDBTest
         int keyCount = leader.getConfig().getRaftConfig().getCommitCountToTakeSnapshot();
         for (int keyIndex = 1; keyIndex <= keyCount; keyIndex++) {
             String key = "key" + keyIndex;
-            TypedValue typedValue = TypedValue.newBuilder().setType(STRING_TYPE).setValue(ByteString.copyFromUtf8(key)).build();
+            TypedValue typedValue = TypedValue.newBuilder().setType(STRING_TYPE).setValue(ByteString.copyFromUtf8(key))
+                    .build();
             SetRequest request = SetRequest.newBuilder().setKey(key).setValue(typedValue).build();
             Operation operation = Operation.newBuilder().setSetRequest(request).build();
             raftNode.replicate(operation).join();
@@ -330,18 +334,18 @@ public class AfloatDBTest
             }
         });
 
-        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: " + "\"localhost:6704\"\n"
-                + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \"" + leader.getConfig().getLocalEndpointConfig()
-                                                                                    .getAddress() + "\"";
+        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + leader.getConfig().getLocalEndpointConfig().getAddress() + "\"";
 
-        AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)));
+        AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)), true);
         servers.add(newServer);
 
         eventually(() -> {
-            SizeResponse sizeResponse = getRaftNode(newServer).<KVResponse>query(
-                    Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build(), ANY_LOCAL, 0).join()
-                                                                                                                  .getResult()
-                                                                                                                  .getSizeResponse();
+            SizeResponse sizeResponse = getRaftNode(newServer)
+                    .<KVResponse>query(Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build(),
+                            EVENTUAL_CONSISTENCY, 0)
+                    .join().getResult().getSizeResponse();
             assertThat(sizeResponse.getSize()).isEqualTo(keyCount);
         });
     }
@@ -350,28 +354,28 @@ public class AfloatDBTest
     public void when_joinConfigProvided_then_cannotBootstrapNewServer() {
         AfloatDB leader = waitUntilLeaderElected(servers);
 
-        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: " + "\"localhost:6704\"\n"
-                + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \"" + leader.getConfig().getLocalEndpointConfig()
-                                                                                    .getAddress() + "\"";
+        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + leader.getConfig().getLocalEndpointConfig().getAddress() + "\"";
 
         AfloatDB.bootstrap(AfloatDBConfig.from(ConfigFactory.parseString(configString)));
     }
 
     @Test(expected = AfloatDBException.class)
     public void when_bootstrapConfigProvided_then_cannotJoin() {
-        AfloatDB.join(CONFIG_3);
+        AfloatDB.join(CONFIG_3, true);
     }
 
     @Test
-    public void when_observerStubConnects_then_itGetsCurrentGroupMembersImmediately()
-            throws InterruptedException {
+    public void when_observerStubConnects_then_itGetsCurrentGroupMembersImmediately() throws InterruptedException {
         AfloatDB leader = waitUntilLeaderElected(servers);
         AfloatDBClusterServiceStub stub = createAfloatDBClusterServiceStub(leader);
 
         AtomicReference<AfloatDBClusterEndpoints> endpointsRef = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
 
-        AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId("client1").build();
+        AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId("client1")
+                .build();
         stub.listenClusterEndpoints(request, new StreamObserver<AfloatDBClusterEndpointsResponse>() {
             @Override
             public void onNext(AfloatDBClusterEndpointsResponse response) {
@@ -410,7 +414,8 @@ public class AfloatDBTest
 
         AtomicReference<AfloatDBClusterEndpoints> endpointsRef = new AtomicReference<>();
 
-        AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId("client1").build();
+        AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId("client1")
+                .build();
         stub.listenClusterEndpoints(request, new StreamObserver<AfloatDBClusterEndpointsResponse>() {
             @Override
             public void onNext(AfloatDBClusterEndpointsResponse response) {
@@ -432,14 +437,14 @@ public class AfloatDBTest
         follower.shutdown();
         follower.awaitTermination();
 
-        createManagementStub(leader).removeRaftEndpoint(
-                RemoveRaftEndpointRequest.newBuilder().setEndpoint(AfloatDBEndpoint.extract(follower.getLocalEndpoint()))
-                                         .build());
+        createManagementStub(leader).removeRaftEndpoint(RemoveRaftEndpointRequest.newBuilder()
+                .setEndpoint(AfloatDBEndpoint.extract(follower.getLocalEndpoint())).build());
 
         eventually(() -> {
             AfloatDBClusterEndpoints endpoints = endpointsRef.get();
             assertThat(endpoints).isNotNull();
-            List<AfloatDBEndpointConfig> initialEndpoints = leader.getConfig().getRaftGroupConfig().getInitialEndpoints();
+            List<AfloatDBEndpointConfig> initialEndpoints = leader.getConfig().getRaftGroupConfig()
+                    .getInitialEndpoints();
             assertThat(endpoints.getEndpointMap().size()).isEqualTo(initialEndpoints.size() - 1);
             assertThat(endpoints.getEndpointMap()).doesNotContainKey((String) follower.getLocalEndpoint().getId());
         });
@@ -452,7 +457,8 @@ public class AfloatDBTest
 
         AtomicReference<AfloatDBClusterEndpoints> endpointsRef = new AtomicReference<>();
 
-        AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId("client1").build();
+        AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId("client1")
+                .build();
         stub.listenClusterEndpoints(request, new StreamObserver<AfloatDBClusterEndpointsResponse>() {
             @Override
             public void onNext(AfloatDBClusterEndpointsResponse response) {
@@ -470,17 +476,18 @@ public class AfloatDBTest
 
         eventually(() -> assertThat(endpointsRef.get()).isNotNull());
 
-        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: " + "\"localhost:6704\"\n"
-                + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \"" + leader.getConfig().getLocalEndpointConfig()
-                                                                                    .getAddress() + "\"";
+        String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + leader.getConfig().getLocalEndpointConfig().getAddress() + "\"";
 
-        AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)));
+        AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)), true);
         servers.add(newServer);
 
         eventually(() -> {
             AfloatDBClusterEndpoints endpoints = endpointsRef.get();
             assertThat(endpoints).isNotNull();
-            List<AfloatDBEndpointConfig> initialEndpoints = leader.getConfig().getRaftGroupConfig().getInitialEndpoints();
+            List<AfloatDBEndpointConfig> initialEndpoints = leader.getConfig().getRaftGroupConfig()
+                    .getInitialEndpoints();
             assertThat(endpoints.getEndpointMap().size()).isEqualTo(initialEndpoints.size() + 1);
             assertThat(endpoints.getEndpointMap()).containsEntry("node4", "localhost:6704");
         });
@@ -492,7 +499,8 @@ public class AfloatDBTest
     }
 
     private AfloatDBClusterServiceStub createAfloatDBClusterServiceStub(AfloatDB server) {
-        return AfloatDBClusterServiceGrpc.newStub(createChannel(server.getConfig().getLocalEndpointConfig().getAddress()));
+        return AfloatDBClusterServiceGrpc
+                .newStub(createChannel(server.getConfig().getLocalEndpointConfig().getAddress()));
     }
 
 }

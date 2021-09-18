@@ -60,8 +60,7 @@ import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_SUPPLIER_KEY;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
-public class AfloatDBImpl
-        implements AfloatDB {
+public class AfloatDBImpl implements AfloatDB {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AfloatDB.class);
 
@@ -76,7 +75,7 @@ public class AfloatDBImpl
     private volatile boolean terminationCompleted;
 
     private AfloatDBImpl(AfloatDBConfig config, RaftEndpoint localEndpoint, List<RaftEndpoint> initialEndpoints,
-                         Map<RaftEndpoint, String> endpointAddresses) {
+            Map<RaftEndpoint, String> endpointAddresses) {
         try {
             this.config = config;
             this.localEndpoint = localEndpoint;
@@ -158,8 +157,10 @@ public class AfloatDBImpl
             return;
         }
 
-        injector.getAllBindings().values().stream().filter(binding -> binding.getProvider().get() instanceof TerminationAware)
-                .map(binding -> (TerminationAware) binding.getProvider().get()).forEach(TerminationAware::awaitTermination);
+        injector.getAllBindings().values().stream()
+                .filter(binding -> binding.getProvider().get() instanceof TerminationAware)
+                .map(binding -> (TerminationAware) binding.getProvider().get())
+                .forEach(TerminationAware::awaitTermination);
         terminationCompleted = true;
     }
 
@@ -176,8 +177,7 @@ public class AfloatDBImpl
         LATENT, RUNNING, SHUTTING_DOWN, SHUT_DOWN
     }
 
-    public static class AfloatDBBootstrapper
-            implements Supplier<AfloatDBImpl> {
+    public static class AfloatDBBootstrapper implements Supplier<AfloatDBImpl> {
         final AfloatDBConfig config;
 
         public AfloatDBBootstrapper(AfloatDBConfig config) {
@@ -194,8 +194,7 @@ public class AfloatDBImpl
 
         private List<RaftEndpoint> getInitialEndpoints(AfloatDBConfig config) {
             List<RaftEndpoint> initialEndpoints = config.getRaftGroupConfig().getInitialEndpoints().stream()
-                                                        .map(AfloatDBImpl::toProtoRaftEndpoint).map(AfloatDBEndpoint::wrap)
-                                                        .collect(toList());
+                    .map(AfloatDBImpl::toProtoRaftEndpoint).map(AfloatDBEndpoint::wrap).collect(toList());
             if (initialEndpoints.size() < 2) {
                 throw new AfloatDBException(
                         "Cannot bootstrap new AfloatDB cluster with " + initialEndpoints.size() + " endpoint!");
@@ -205,23 +204,24 @@ public class AfloatDBImpl
         }
 
         private Map<RaftEndpoint, String> getEndpointAddresses(AfloatDBConfig config) {
-            return config.getRaftGroupConfig().getInitialEndpoints().stream()
-                         .collect(toMap(c -> AfloatDBEndpoint.wrap(toProtoRaftEndpoint(c)), AfloatDBEndpointConfig::getAddress));
+            return config.getRaftGroupConfig().getInitialEndpoints().stream().collect(
+                    toMap(c -> AfloatDBEndpoint.wrap(toProtoRaftEndpoint(c)), AfloatDBEndpointConfig::getAddress));
         }
 
     }
 
-    public static class AfloatDBJoiner
-            implements Supplier<AfloatDBImpl> {
+    public static class AfloatDBJoiner implements Supplier<AfloatDBImpl> {
 
         final AfloatDBConfig config;
         final List<RaftEndpoint> initialMembers = new ArrayList<>();
         final Map<RaftEndpoint, String> endpointAddresses = new HashMap<>();
         final RaftEndpointProto localEndpoint;
+        final boolean votingMember;
 
-        public AfloatDBJoiner(AfloatDBConfig config) {
+        public AfloatDBJoiner(AfloatDBConfig config, boolean votingMember) {
             this.config = config;
             this.localEndpoint = toProtoRaftEndpoint(config.getLocalEndpointConfig());
+            this.votingMember = votingMember;
         }
 
         public AfloatDBImpl get() {
@@ -230,7 +230,8 @@ public class AfloatDBImpl
                 throw new AfloatDBException("Join address is missing!");
             }
 
-            LOGGER.debug("{} joining via {}", localEndpoint.getId(), joinAddress);
+            LOGGER.debug("{} joining as {} via {}", localEndpoint.getId(),
+                    votingMember ? "voting member" : "non-voting member", joinAddress);
 
             GetRaftNodeReportResponse reportResponse = getReport(joinAddress);
 
@@ -239,15 +240,18 @@ public class AfloatDBImpl
             if (reportResponse.getReport().getCommittedMembers().getMemberList().contains(localEndpoint)) {
                 populateDBInitState(reportResponse);
 
-                LOGGER.warn("{} already joined to the Raft group before. AfloatDB will be created with initial "
-                        + "endpoints: {} and addresses: {}", localEndpoint.getId(), initialMembers, endpointAddresses);
+                LOGGER.warn(
+                        "{} already joined to the Raft group before. AfloatDB will be created with initial "
+                                + "endpoints: {} and addresses: {}",
+                        localEndpoint.getId(), initialMembers, endpointAddresses);
 
-                return new AfloatDBImpl(config, AfloatDBEndpoint.wrap(localEndpoint), initialMembers, endpointAddresses);
+                return new AfloatDBImpl(config, AfloatDBEndpoint.wrap(localEndpoint), initialMembers,
+                        endpointAddresses);
             }
 
             String localAddress = config.getLocalEndpointConfig().getAddress();
-            AddRaftEndpointAddressRequest request = AddRaftEndpointAddressRequest.newBuilder().setEndpoint(localEndpoint)
-                                                                                 .setAddress(localAddress).build();
+            AddRaftEndpointAddressRequest request = AddRaftEndpointAddressRequest.newBuilder()
+                    .setEndpoint(localEndpoint).setAddress(localAddress).build();
 
             for (RaftEndpointProto endpoint : reportResponse.getReport().getEffectiveMembers().getMemberList()) {
                 String address = reportResponse.getEndpointAddressOrDefault(endpoint.getId(), null);
@@ -256,8 +260,8 @@ public class AfloatDBImpl
 
             addRaftEndpoint(reportResponse);
 
-            LOGGER.info("{} joined to the Raft group. AfloatDB is created with initial endpoints: {} and " + "addresses: {}",
-                    localEndpoint.getId(), initialMembers, endpointAddresses);
+            LOGGER.info("{} joined to the Raft group. AfloatDB is created with initial endpoints: {} and "
+                    + "addresses: {}", localEndpoint.getId(), initialMembers, endpointAddresses);
 
             return new AfloatDBImpl(config, AfloatDBEndpoint.wrap(localEndpoint), initialMembers, endpointAddresses);
         }
@@ -267,7 +271,7 @@ public class AfloatDBImpl
             GetRaftNodeReportResponse reportResponse;
             try {
                 reportResponse = ManagementRequestHandlerGrpc.newBlockingStub(reportChannel)
-                                                             .getRaftNodeReport(GetRaftNodeReportRequest.getDefaultInstance());
+                        .getRaftNodeReport(GetRaftNodeReportRequest.getDefaultInstance());
             } finally {
                 reportChannel.shutdownNow();
             }
@@ -293,26 +297,27 @@ public class AfloatDBImpl
 
             for (RaftEndpointProto endpoint : report.getEffectiveMembers().getMemberList()) {
                 if (reportResponse.getEndpointAddressOrDefault(endpoint.getId(), null) == null) {
-                    throw new AfloatDBException(
-                            "Cannot join via " + joinAddress + " because the address of the Raft " + "endpoint: " + endpoint
-                                    .getId() + " is not known!");
+                    throw new AfloatDBException("Cannot join via " + joinAddress + " because the address of the Raft "
+                            + "endpoint: " + endpoint.getId() + " is not known!");
                 }
             }
 
             if (report.getTerm().getLeaderEndpoint() == null) {
-                throw new AfloatDBException("Cannot join via " + joinAddress + " because the Raft leader is not " + "known!");
+                throw new AfloatDBException(
+                        "Cannot join via " + joinAddress + " because the Raft leader is not " + "known!");
             }
         }
 
         private void broadcastLocalAddress(AddRaftEndpointAddressRequest request, RaftEndpointProto target,
-                                           String targetAddress) {
-            LOGGER.debug("{} adding local address: {} to {} at {}", localEndpoint.getId(), request.getAddress(), target,
-                         targetAddress);
+                String targetAddress) {
+            LOGGER.info("{} sending local address: {} to {} at {}", localEndpoint.getId(), request.getAddress(),
+                    target.getId(), targetAddress);
             ManagedChannel channel = createChannel(targetAddress);
             try {
                 ManagementRequestHandlerGrpc.newBlockingStub(channel).addRaftEndpointAddress(request);
             } catch (Throwable t) {
-                throw new AfloatDBException("Could not add Raft endpoint address to " + target + " at " + targetAddress, t);
+                throw new AfloatDBException("Could not add Raft endpoint address to " + target + " at " + targetAddress,
+                        t);
             } finally {
                 channel.shutdownNow();
             }
@@ -325,17 +330,17 @@ public class AfloatDBImpl
             ManagedChannel leaderChannel = createChannel(leaderAddress);
             long groupMembersCommitIndex = report.getCommittedMembers().getLogIndex();
 
-            LOGGER.info("{} adding Raft endpoint at group members commit index: {} via the Raft leader: {} at {}",
-                        localEndpoint.getId(), groupMembersCommitIndex, leaderEndpoint.getId(), leaderAddress);
+            LOGGER.info("{} adding Raft endpoint as {} at group members commit index: {} via the Raft leader: {} at {}",
+                    localEndpoint.getId(), votingMember ? "voting member" : "non-voting member",
+                    groupMembersCommitIndex, leaderEndpoint.getId(), leaderAddress);
 
             AddRaftEndpointRequest request = AddRaftEndpointRequest.newBuilder().setEndpoint(localEndpoint)
-                                                                   .setGroupMembersCommitIndex(groupMembersCommitIndex).build();
+                    .setVotingMember(votingMember).setGroupMembersCommitIndex(groupMembersCommitIndex).build();
             try {
                 ManagementRequestHandlerGrpc.newBlockingStub(leaderChannel).addRaftEndpoint(request);
             } catch (Throwable t) {
-                throw new AfloatDBException(
-                        localEndpoint.getId() + " failure during add Raft endpoint via the Raft " + "leader: " + leaderEndpoint
-                                + " at " + leaderAddress, t);
+                throw new AfloatDBException(localEndpoint.getId() + " failure during add Raft endpoint via the Raft "
+                        + "leader: " + leaderEndpoint + " at " + leaderAddress, t);
             } finally {
                 leaderChannel.shutdownNow();
             }

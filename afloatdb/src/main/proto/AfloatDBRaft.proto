@@ -9,15 +9,17 @@ option java_multiple_files = true;
 
 
 message UpdateRaftGroupMembersOpProto {
-    repeated RaftEndpointProto groupMember = 1;
-    RaftEndpointProto endpoint = 2;
+    repeated RaftEndpointProto member = 1;
+    repeated RaftEndpointProto votingMember = 2;
+    RaftEndpointProto endpoint = 3;
 
     enum MembershipChangeModeProto {
-        ADD = 0;
-        REMOVE = 1;
+        ADD_LEARNER = 0;
+        ADD_OR_PROMOTE_TO_FOLLOWER = 1;
+        REMOVE_MEMBER = 2;
     }
 
-    MembershipChangeModeProto mode = 3;
+    MembershipChangeModeProto mode = 4;
 }
 
 message StartNewTermOpProto {
@@ -55,22 +57,26 @@ message KVSnapshotChunkData {
     //    bytes data = 1;
 }
 
+message RaftGroupMembersViewProto {
+    int64 logIndex = 1;
+    repeated RaftEndpointProto member = 2;
+    repeated RaftEndpointProto votingMember = 3;
+}
+
 message KVSnapshotChunk {
     int32 term = 1;
     int64 index = 2;
     KVSnapshotChunkData operation = 3;
     int32 snapshotChunkIndex = 4;
     int32 snapshotChunkCount = 5;
-    int64 groupMembersLogIndex = 6;
-    repeated RaftEndpointProto groupMember = 7;
+    RaftGroupMembersViewProto groupMembersView = 6;
 }
 
 message SnapshotEntryProto {
     int32 term = 1;
     int64 index = 2;
     repeated KVSnapshotChunk snapshotChunk = 3;
-    int64 groupMembersLogIndex = 4;
-    repeated RaftEndpointProto groupMember = 5;
+    RaftGroupMembersViewProto groupMembersView = 4;
 }
 
 message VoteRequestProto {
@@ -129,8 +135,7 @@ message InstallSnapshotRequestProto {
     int32 totalSnapshotChunkCount = 7;
     KVSnapshotChunk snapshotChunk = 8;
     repeated RaftEndpointProto snapshottedMember = 9;
-    int64 groupMembersLogIndex = 10;
-    repeated RaftEndpointProto groupMember = 11;
+    RaftGroupMembersViewProto groupMembersView = 10;
     int64 querySequenceNumber = 12;
     int64 flowControlSequenceNumber = 13;
 }
@@ -195,9 +200,10 @@ message QueryRequest {
     Operation operation = 1;
 
     enum QUERY_POLICY {
-        ANY_LOCAL = 0;
-        LEADER_LOCAL = 1;
-        LINEARIZABLE = 2;
+        EVENTUAL_CONSISTENCY = 0;
+        BOUNDED_STALENESS = 1;
+        LEADER_LEASE = 2;
+        LINEARIZABLE = 3;
     }
 
     QUERY_POLICY queryPolicy = 2;

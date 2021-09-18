@@ -35,12 +35,11 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import static io.afloatdb.internal.utils.Exceptions.wrap;
-import static io.microraft.QueryPolicy.ANY_LOCAL;
+import static io.microraft.QueryPolicy.EVENTUAL_CONSISTENCY;
 import static io.microraft.QueryPolicy.LINEARIZABLE;
 
 @Singleton
-public class KVRequestHandler
-        extends KVRequestHandlerImplBase {
+public class KVRequestHandler extends KVRequestHandlerImplBase {
 
     private final InvocationService invocationService;
 
@@ -66,7 +65,8 @@ public class KVRequestHandler
 
     @Override
     public void contains(ContainsRequest request, StreamObserver<KVResponse> responseObserver) {
-        query(Operation.newBuilder().setContainsRequest(request).build(), request.getMinCommitIndex(), responseObserver);
+        query(Operation.newBuilder().setContainsRequest(request).build(), request.getMinCommitIndex(),
+                responseObserver);
     }
 
     @Override
@@ -107,16 +107,16 @@ public class KVRequestHandler
     }
 
     private void query(Operation request, long minCommitIndex, StreamObserver<KVResponse> responseObserver) {
-        invocationService.query(request, minCommitIndex == 0 ? LINEARIZABLE : ANY_LOCAL, minCommitIndex)
-                         .whenComplete((response, throwable) -> {
-                             // TODO [basri] bottleneck. offload to IO thread...
-                             if (throwable == null) {
-                                 responseObserver.onNext(response.getResult());
-                             } else {
-                                 responseObserver.onError(wrap(throwable));
-                             }
-                             responseObserver.onCompleted();
-                         });
+        invocationService.query(request, minCommitIndex == 0 ? LINEARIZABLE : EVENTUAL_CONSISTENCY, minCommitIndex)
+                .whenComplete((response, throwable) -> {
+                    // TODO [basri] bottleneck. offload to IO thread...
+                    if (throwable == null) {
+                        responseObserver.onNext(response.getResult());
+                    } else {
+                        responseObserver.onError(wrap(throwable));
+                    }
+                    responseObserver.onCompleted();
+                });
     }
 
 }
