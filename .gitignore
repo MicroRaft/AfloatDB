@@ -4,6 +4,7 @@
 
 .settings/
 .vscode/
+.project
 
 ### Intellij+all ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
