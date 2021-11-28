@@ -107,7 +107,7 @@ public class KVRequestHandler extends KVRequestHandlerImplBase {
     }
 
     private void query(Operation request, long minCommitIndex, StreamObserver<KVResponse> responseObserver) {
-        invocationService.query(request, minCommitIndex == 0 ? LINEARIZABLE : EVENTUAL_CONSISTENCY, minCommitIndex)
+        invocationService.query(request, minCommitIndex == -1 ? LINEARIZABLE : EVENTUAL_CONSISTENCY, Math.max(0, minCommitIndex))
                 .whenComplete((response, throwable) -> {
                     // TODO [basri] bottleneck. offload to IO thread...
                     if (throwable == null) {

@@ -18,42 +18,118 @@ package io.afloatdb.client.kv;
 
 import javax.annotation.Nonnull;
 
-public interface KV
-        extends Put, Set, Get, Contains, Delete, Remove, Replace {
+public interface KV {
 
-    default boolean isEmpty() {
-        return isEmpty(0L);
-    }
+    @Nonnull
+    Ordered<byte[]> put(@Nonnull String key, @Nonnull byte[] value);
 
-    default boolean isEmpty(long minCommitIndex) {
-        return size(minCommitIndex) == 0;
-    }
+    @Nonnull
+    Ordered<Integer> put(@Nonnull String key, int value);
 
-    default @Nonnull
-    Ordered<Boolean> isEmptyOrdered() {
-        return isEmptyOrdered(0L);
+    @Nonnull
+    Ordered<Long> put(@Nonnull String key, long value);
+
+    @Nonnull
+    Ordered<String> put(@Nonnull String key, @Nonnull String value);
+
+    @Nonnull
+    Ordered<byte[]> putIfAbsent(@Nonnull String key, @Nonnull byte[] value);
+
+    @Nonnull
+    Ordered<Integer> putIfAbsent(@Nonnull String key, int value);
+
+    @Nonnull
+    Ordered<Long> putIfAbsent(@Nonnull String key, long value);
+
+    @Nonnull
+    Ordered<String> putIfAbsent(@Nonnull String key, @Nonnull String value);
+
+    Ordered<Void> set(String key, @Nonnull byte[] value);
+
+    Ordered<Void> set(String key, int value);
+
+    Ordered<Void> set(String key, long value);
+
+    Ordered<Void> set(String key, @Nonnull String value);
+
+    @Nonnull
+    Ordered<Boolean> replace(@Nonnull String key, @Nonnull Object oldValue, @Nonnull Object newValue);
+
+    @Nonnull
+    <T> Ordered<T> remove(@Nonnull String key);
+
+    @Nonnull
+    Ordered<Boolean> remove(@Nonnull String key, byte[] value);
+
+    @Nonnull
+    Ordered<Boolean> remove(@Nonnull String key, int value);
+
+    @Nonnull
+    Ordered<Boolean> remove(@Nonnull String key, long value);
+
+    @Nonnull
+    Ordered<Boolean> remove(@Nonnull String key, @Nonnull String value);
+
+    @Nonnull
+    Ordered<Boolean> delete(@Nonnull String key);
+
+    default @Nonnull <T> Ordered<T> get(@Nonnull String key) {
+        return get(key, -1L);
     }
 
     @Nonnull
-    Ordered<Boolean> isEmptyOrdered(long minCommitIndex);
+    <T> Ordered<T> get(@Nonnull String key, long minCommitIndex);
 
-    default int size() {
-        return size(0L);
-    }
-
-    int size(long minCommitIndex);
-
-    default @Nonnull
-    Ordered<Integer> sizeOrdered() {
-        return sizeOrdered(0L);
+    default @Nonnull Ordered<Boolean> containsKey(@Nonnull String key) {
+        return containsKey(key, -1L);
     }
 
     @Nonnull
-    Ordered<Integer> sizeOrdered(long minCommitIndex);
+    Ordered<Boolean> containsKey(@Nonnull String key, long minCommitIndex);
 
-    int clear();
+    default @Nonnull Ordered<Boolean> contains(@Nonnull String key, @Nonnull byte[] value) {
+        return contains(key, value, -1L);
+    }
 
     @Nonnull
-    Ordered<Integer> clearOrdered();
+    Ordered<Boolean> contains(@Nonnull String key, @Nonnull byte[] value, long minCommitIndex);
+
+    default @Nonnull Ordered<Boolean> contains(@Nonnull String key, int value) {
+        return contains(key, value, -1L);
+    }
+
+    @Nonnull
+    Ordered<Boolean> contains(@Nonnull String key, int value, long minCommitIndex);
+
+    default @Nonnull Ordered<Boolean> contains(@Nonnull String key, long value) {
+        return contains(key, value, -1L);
+    }
+
+    @Nonnull
+    Ordered<Boolean> contains(@Nonnull String key, long value, long minCommitIndex);
+
+    default @Nonnull Ordered<Boolean> contains(@Nonnull String key, @Nonnull String value) {
+        return contains(key, value, -1L);
+    }
+
+    @Nonnull
+    Ordered<Boolean> contains(@Nonnull String key, @Nonnull String value, long minCommitIndex);
+
+    default @Nonnull Ordered<Boolean> isEmpty() {
+        return isEmpty(-1L);
+    }
+
+    @Nonnull
+    Ordered<Boolean> isEmpty(long minCommitIndex);
+
+    default @Nonnull Ordered<Integer> size() {
+        return size(-1L);
+    }
+
+    @Nonnull
+    Ordered<Integer> size(long minCommitIndex);
+
+    @Nonnull
+    Ordered<Integer> clear();
 
 }
