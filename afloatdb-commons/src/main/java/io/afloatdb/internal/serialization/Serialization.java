@@ -5,6 +5,8 @@ import io.afloatdb.kv.proto.TypedValue;
 
 import static java.util.Objects.requireNonNull;
 
+import javax.annotation.Nonnull;
+
 public final class Serialization {
 
     public static final int BYTE_ARRAY_TYPE = 0;
@@ -15,7 +17,7 @@ public final class Serialization {
     private Serialization() {
     }
 
-    public static ByteString serializeBytes(byte[] b) {
+    public static ByteString serializeBytes(@Nonnull byte[] b) {
         return ByteString.copyFrom(requireNonNull(b));
     }
 
@@ -43,13 +45,12 @@ public final class Serialization {
         return ByteString.copyFrom(bytes);
     }
 
-    public static ByteString serializeString(String s) {
+    public static ByteString serializeString(@Nonnull String s) {
         return ByteString.copyFromUtf8(requireNonNull(s));
     }
 
-    public static Object deserialize(TypedValue typedValue) {
-
-        switch (requireNonNull(typedValue).getType()) {
+    public static Object deserialize(@Nonnull TypedValue typedValue) {
+        switch (typedValue.getType()) {
             case BYTE_ARRAY_TYPE:
                 return deserializeBytes(typedValue.getValue());
             case INT_TYPE:
@@ -63,11 +64,11 @@ public final class Serialization {
         }
     }
 
-    public static byte[] deserializeBytes(ByteString bytes) {
+    public static byte[] deserializeBytes(@Nonnull ByteString bytes) {
         return bytes.toByteArray();
     }
 
-    public static long deserializeLong(ByteString bytes) {
+    public static long deserializeLong(@Nonnull ByteString bytes) {
         long byte7 = (long) bytes.byteAt(0) << 56;
         long byte6 = (long) (bytes.byteAt(1) & 0xFF) << 48;
         long byte5 = (long) (bytes.byteAt(2) & 0xFF) << 40;
@@ -80,7 +81,7 @@ public final class Serialization {
         return byte7 | byte6 | byte5 | byte4 | byte3 | byte2 | byte1 | byte0;
     }
 
-    public static int deserializeInt(ByteString bytes) {
+    public static int deserializeInt(@Nonnull ByteString bytes) {
         int byte3 = (bytes.byteAt(0) & 0xFF) << 24;
         int byte2 = (bytes.byteAt(1) & 0xFF) << 16;
         int byte1 = (bytes.byteAt(2) & 0xFF) << 8;
@@ -89,11 +90,15 @@ public final class Serialization {
         return byte3 | byte2 | byte1 | byte0;
     }
 
-    public static String deserializeString(ByteString bytes) {
+    public static String deserializeString(@Nonnull ByteString bytes) {
         return bytes.toStringUtf8();
     }
 
-    public static TypedValue getTypedValue(Object object) {
+    public static TypedValue getTypedValue(@Nonnull Object object) {
+        if (object == null) {
+            throw new NullPointerException();
+        }
+
         if (object instanceof byte[]) {
             return getTypedValue((byte[]) object);
         } else if (object instanceof Integer) {
@@ -107,7 +112,7 @@ public final class Serialization {
         throw new IllegalArgumentException(object + " has invalid type!");
     }
 
-    public static TypedValue getTypedValue(String value) {
+    public static TypedValue getTypedValue(@Nonnull String value) {
         return TypedValue.newBuilder().setType(STRING_TYPE).setValue(serializeString(value)).build();
     }
 

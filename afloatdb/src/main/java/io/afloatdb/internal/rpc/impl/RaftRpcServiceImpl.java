@@ -75,9 +75,10 @@ public class RaftRpcServiceImpl
     private final long rpcTimeoutSecs;
 
     @Inject
-    public RaftRpcServiceImpl(@Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint, @Named(CONFIG_KEY) AfloatDBConfig config,
-                              @Named(RAFT_ENDPOINT_ADDRESSES_KEY) Map<RaftEndpoint, String> addresses,
-                              ProcessTerminationLogger processTerminationLogger) {
+    public RaftRpcServiceImpl(@Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
+            @Named(CONFIG_KEY) AfloatDBConfig config,
+            @Named(RAFT_ENDPOINT_ADDRESSES_KEY) Map<RaftEndpoint, String> addresses,
+            ProcessTerminationLogger processTerminationLogger) {
         this.localEndpoint = localEndpoint;
         this.addresses = new ConcurrentHashMap<>(addresses);
         this.processTerminationLogger = processTerminationLogger;
@@ -102,7 +103,8 @@ public class RaftRpcServiceImpl
         if (currentAddress == null) {
             LOGGER.info("{} added address: {} for {}", localEndpoint.getId(), address, endpoint.getId());
         } else if (!currentAddress.equals(address)) {
-            LOGGER.warn("{} replaced current address: {} new address: {} for {}", localEndpoint.getId(), currentAddress, address,
+            LOGGER.warn("{} replaced current address: {} new address: {} for {}", localEndpoint.getId(), currentAddress,
+                    address,
                     endpoint.getId());
         }
     }
@@ -157,8 +159,8 @@ public class RaftRpcServiceImpl
         String address = addresses.get(target);
 
         ManagedChannel channel = ManagedChannelBuilder.forTarget(address).disableRetry().usePlaintext()
-                                                      //                                                      .directExecutor()
-                                                      .build();
+                // .directExecutor()
+                .build();
 
         RaftMessageHandlerStub replicationStub = RaftMessageHandlerGrpc.newStub(channel);
         RaftInvocationHandlerFutureStub invocationStub = RaftInvocationHandlerGrpc.newFutureStub(channel);
@@ -186,9 +188,10 @@ public class RaftRpcServiceImpl
             try {
                 executor.schedule(() -> {
                     initializingEndpoints.remove(target);
-                }, 1, SECONDS); // TODO [basri] improve this part
+                }, 1, SECONDS);
             } catch (RejectedExecutionException e) {
-                LOGGER.warn("{} could not schedule task for channel creation to: {}.", localEndpoint.getId(), target.getId());
+                LOGGER.warn("{} could not schedule task for channel creation to: {}.", localEndpoint.getId(),
+                        target.getId());
                 initializingEndpoints.remove(target);
             }
         }
@@ -203,7 +206,7 @@ public class RaftRpcServiceImpl
         StreamObserver<RaftMessageRequest> raftMessageSender;
 
         RaftRpcContext(RaftEndpoint targetEndpoint, ManagedChannel channel, RaftMessageHandlerStub replicationStub,
-                       RaftInvocationHandlerFutureStub invocationStub) {
+                RaftInvocationHandlerFutureStub invocationStub) {
             this.targetEndpoint = targetEndpoint;
             this.channel = channel;
             this.replicationStub = replicationStub;
@@ -221,11 +224,13 @@ public class RaftRpcServiceImpl
                 raftMessageSender.onNext(wrap(message));
             } catch (Throwable t) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.error(localEndpoint.getId() + " failure during sending " + message.getClass().getSimpleName() + " to "
+                    LOGGER.error(localEndpoint.getId() + " failure during sending " + message.getClass().getSimpleName()
+                            + " to "
                             + targetEndpoint, t);
                 } else {
                     LOGGER.error("{} failure during sending {} to {}. Exception: {} Message: {}", localEndpoint.getId(),
-                            message.getClass().getSimpleName(), targetEndpoint, t.getClass().getSimpleName(), t.getMessage());
+                            message.getClass().getSimpleName(), targetEndpoint, t.getClass().getSimpleName(),
+                            t.getMessage());
                 }
             }
         }
@@ -252,13 +257,15 @@ public class RaftRpcServiceImpl
         @Override
         public void onNext(RaftMessageResponse response) {
             LOGGER.warn("{} received {} from Raft RPC stream to {}", localEndpoint.getId(), response,
-                        context.targetEndpoint.getId());
+                    context.targetEndpoint.getId());
         }
 
         @Override
         public void onError(Throwable t) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.error(localEndpoint.getId() + " streaming Raft RPC to " + context.targetEndpoint.getId() + " has failed.",
+                LOGGER.error(
+                        localEndpoint.getId() + " streaming Raft RPC to " + context.targetEndpoint.getId()
+                                + " has failed.",
                         t);
             } else {
                 LOGGER.error("{} Raft RPC stream to {} has failed. Exception: {} Message: {}", localEndpoint.getId(),
@@ -270,7 +277,8 @@ public class RaftRpcServiceImpl
 
         @Override
         public void onCompleted() {
-            LOGGER.warn("{} Raft RPC stream to {} has completed.", localEndpoint.getId(), context.targetEndpoint.getId());
+            LOGGER.warn("{} Raft RPC stream to {} has completed.", localEndpoint.getId(),
+                    context.targetEndpoint.getId());
         }
 
     }

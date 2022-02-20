@@ -82,17 +82,17 @@ public class AfloatDBClientConfig {
         private Boolean singleConnection;
         private Integer rpcTimeoutSecs;
 
-        public AfloatDBClientConfigBuilder setConfig(Config config) {
+        public AfloatDBClientConfigBuilder setConfig(@Nonnull Config config) {
             clientConfig.config = requireNonNull(config);
             return this;
         }
 
-        public AfloatDBClientConfigBuilder setClientId(String clientId) {
+        public AfloatDBClientConfigBuilder setClientId(@Nonnull String clientId) {
             clientConfig.clientId = requireNonNull(clientId);
             return this;
         }
 
-        public AfloatDBClientConfigBuilder setServerAddress(String serverAddress) {
+        public AfloatDBClientConfigBuilder setServerAddress(@Nonnull String serverAddress) {
             clientConfig.serverAddress = requireNonNull(serverAddress);
             return this;
         }

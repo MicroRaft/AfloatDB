@@ -47,7 +47,7 @@ import static io.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
 
 @Singleton
 public class RpcServerImpl
-        implements RpcServer, TerminationAware {
+        implements RpcServer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RpcServer.class);
 

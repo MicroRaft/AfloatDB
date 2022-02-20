@@ -107,6 +107,7 @@ public class InvocationServiceImpl implements InvocationService {
         }
 
         final void retry() {
+            // TODO [basri] poor man's retry
             ++retryCount;
             if (retryCount > retryLimit) {
                 fail(RESOURCE_EXHAUSTED.withDescription("Retry limit exceeded.").asRuntimeException());

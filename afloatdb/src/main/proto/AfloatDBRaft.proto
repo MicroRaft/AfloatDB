@@ -211,20 +211,15 @@ message QueryRequest {
 }
 
 service RaftMessageHandler {
-
     rpc handle (stream RaftMessageRequest) returns (RaftMessageResponse) {
     }
-
 }
 
 service RaftInvocationHandler {
-
     rpc replicate (ReplicateRequest) returns (io.afloatdb.kv.proto.KVResponse) {
     }
-
     rpc query (QueryRequest) returns (io.afloatdb.kv.proto.KVResponse) {
     }
-
 }
 
 

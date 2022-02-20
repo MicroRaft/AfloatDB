@@ -61,7 +61,6 @@ public class AfloatDBModule
     public static final String INITIAL_ENDPOINTS_KEY = "InitialEndpoints";
     public static final String RAFT_ENDPOINT_ADDRESSES_KEY = "RaftEndpointAddresses";
     public static final String RAFT_NODE_SUPPLIER_KEY = "RaftNodeSupplier";
-    public static final String PROCESS_TERMINATION_FLAG_KEY = "ProcessTerminationFlag";
 
     private final AfloatDBConfig config;
     private final RaftEndpoint localEndpoint;
@@ -70,7 +69,7 @@ public class AfloatDBModule
     private final AtomicBoolean processTerminationFlag;
 
     public AfloatDBModule(AfloatDBConfig config, RaftEndpoint localEndpoint, List<RaftEndpoint> initialEndpoints,
-                          Map<RaftEndpoint, String> addresses, AtomicBoolean processTerminationFlag) {
+            Map<RaftEndpoint, String> addresses, AtomicBoolean processTerminationFlag) {
         this.config = config;
         this.localEndpoint = localEndpoint;
         this.initialEndpoints = initialEndpoints;
@@ -80,7 +79,8 @@ public class AfloatDBModule
 
     @Override
     protected void configure() {
-        bind(AtomicBoolean.class).annotatedWith(named(PROCESS_TERMINATION_FLAG_KEY)).toInstance(processTerminationFlag);
+        bind(AtomicBoolean.class).annotatedWith(named(ProcessTerminationLoggerImpl.PROCESS_TERMINATION_FLAG_KEY))
+                .toInstance(processTerminationFlag);
         bind(ProcessTerminationLogger.class).to(ProcessTerminationLoggerImpl.class);
 
         bind(AfloatDBConfig.class).annotatedWith(named(CONFIG_KEY)).toInstance(config);

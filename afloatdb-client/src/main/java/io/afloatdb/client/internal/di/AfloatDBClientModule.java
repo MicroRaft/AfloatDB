@@ -41,7 +41,6 @@ public class AfloatDBClientModule
     public static final String CONFIG_KEY = "Config";
     public static final String KV_STUB_KEY = "KVStub";
     public static final String KV_STORE_KEY = "KVStore";
-    public static final String PROCESS_TERMINATION_FLAG_KEY = "ProcessTerminationFlag";
 
     private final AfloatDBClientConfig config;
     private final AtomicBoolean processTerminationFlag;
@@ -55,7 +54,8 @@ public class AfloatDBClientModule
     protected void configure() {
         bind(String.class).annotatedWith(named(CLIENT_ID_KEY)).toInstance(config.getClientId());
         bind(AfloatDBClientConfig.class).annotatedWith(named(CONFIG_KEY)).toInstance(config);
-        bind(AtomicBoolean.class).annotatedWith(named(PROCESS_TERMINATION_FLAG_KEY)).toInstance(processTerminationFlag);
+        bind(AtomicBoolean.class).annotatedWith(named(ProcessTerminationLoggerImpl.PROCESS_TERMINATION_FLAG_KEY))
+                .toInstance(processTerminationFlag);
         bind(ProcessTerminationLogger.class).to(ProcessTerminationLoggerImpl.class);
         bind(ChannelManager.class).to(ChannelManagerImpl.class);
         bind(new TypeLiteral<Supplier<KV>>() {

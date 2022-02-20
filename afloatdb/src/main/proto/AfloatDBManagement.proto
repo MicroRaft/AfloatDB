@@ -104,17 +104,12 @@ message RemoveRaftEndpointResponse {
 
 
 service ManagementRequestHandler {
-
     rpc getRaftNodeReport (GetRaftNodeReportRequest) returns (GetRaftNodeReportResponse) {
     }
-
     rpc addRaftEndpointAddress (AddRaftEndpointAddressRequest) returns (AddRaftEndpointAddressResponse) {
     }
-
     rpc addRaftEndpoint (AddRaftEndpointRequest) returns (AddRaftEndpointResponse) {
     }
-
     rpc removeRaftEndpoint (RemoveRaftEndpointRequest) returns (RemoveRaftEndpointResponse) {
     }
-
 }

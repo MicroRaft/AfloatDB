@@ -10,8 +10,8 @@ public interface ChannelManager {
     @Nonnull
     ManagedChannel getOrCreateChannel(@Nonnull String address);
 
-    void checkChannel(String address, ManagedChannel channel);
+    void checkChannel(@Nonnull String address, @Nonnull ManagedChannel channel);
 
-    void retainChannels(Collection<String> addresses);
+    void retainChannels(@Nonnull Collection<String> addresses);
 
 }

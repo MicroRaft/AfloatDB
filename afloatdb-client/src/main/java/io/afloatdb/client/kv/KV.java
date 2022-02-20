@@ -44,13 +44,13 @@ public interface KV {
     @Nonnull
     Ordered<String> putIfAbsent(@Nonnull String key, @Nonnull String value);
 
-    Ordered<Void> set(String key, @Nonnull byte[] value);
+    Ordered<Void> set(@Nonnull String key, @Nonnull byte[] value);
 
-    Ordered<Void> set(String key, int value);
+    Ordered<Void> set(@Nonnull String key, int value);
 
-    Ordered<Void> set(String key, long value);
+    Ordered<Void> set(@Nonnull String key, long value);
 
-    Ordered<Void> set(String key, @Nonnull String value);
+    Ordered<Void> set(@Nonnull String key, @Nonnull String value);
 
     @Nonnull
     Ordered<Boolean> replace(@Nonnull String key, @Nonnull Object oldValue, @Nonnull Object newValue);
@@ -59,7 +59,7 @@ public interface KV {
     <T> Ordered<T> remove(@Nonnull String key);
 
     @Nonnull
-    Ordered<Boolean> remove(@Nonnull String key, byte[] value);
+    Ordered<Boolean> remove(@Nonnull String key, @Nonnull byte[] value);
 
     @Nonnull
     Ordered<Boolean> remove(@Nonnull String key, int value);

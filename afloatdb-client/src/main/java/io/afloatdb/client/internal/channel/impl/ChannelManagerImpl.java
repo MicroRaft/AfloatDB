@@ -58,16 +58,16 @@ public class ChannelManagerImpl
     }
 
     @Override
-    public void checkChannel(String address, ManagedChannel channel) {
-        if (channel.getState(true) == ConnectivityState.SHUTDOWN && channels.remove(requireNonNull(address), channel)) {
+    public void checkChannel(@Nonnull String address, @Nonnull ManagedChannel channel) {
+        if (channel.getState(true) == ConnectivityState.SHUTDOWN && channels.remove(address, channel)) {
             silentlyShutdownNow(channel);
             LOGGER.warn("{} removed the shutdown-channel to: {}.", config.getClientId(), address);
         }
     }
 
     @Override
-    public void retainChannels(Collection<String> addresses) {
-        if (channels.keySet().retainAll(requireNonNull(addresses))) {
+    public void retainChannels(@Nonnull Collection<String> addresses) {
+        if (channels.keySet().retainAll(addresses)) {
             LOGGER.info("{} retained channels to addresses: {}.", config.getClientId(), addresses);
         }
 

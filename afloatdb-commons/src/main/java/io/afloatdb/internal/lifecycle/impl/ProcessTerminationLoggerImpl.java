@@ -19,6 +19,7 @@ package io.afloatdb.internal.lifecycle.impl;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -26,16 +27,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ProcessTerminationLoggerImpl
         implements ProcessTerminationLogger {
 
+    public static final String PROCESS_TERMINATION_FLAG_KEY = "ProcessTerminationFlag";
+
     private final AtomicBoolean terminating;
 
     @Inject
-    public ProcessTerminationLoggerImpl(AtomicBoolean terminating) {
+    public ProcessTerminationLoggerImpl(@Named(PROCESS_TERMINATION_FLAG_KEY) AtomicBoolean terminating) {
         this.terminating = terminating;
     }
 
     @Override
     public boolean isCurrentProcessTerminating() {
-        return false;
+        return terminating.get();
     }
 
 }

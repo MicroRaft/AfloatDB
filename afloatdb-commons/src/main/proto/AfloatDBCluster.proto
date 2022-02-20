@@ -21,7 +21,5 @@ message AfloatDBClusterEndpointsResponse {
 }
 
 service AfloatDBClusterService {
-
     rpc listenClusterEndpoints (AfloatDBClusterEndpointsRequest) returns (stream AfloatDBClusterEndpointsResponse);
-
 }

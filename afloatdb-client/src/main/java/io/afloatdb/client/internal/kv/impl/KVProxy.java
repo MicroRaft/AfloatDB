@@ -45,8 +45,8 @@ public class KVProxy implements KV {
 
     private final Supplier<KVRequestHandlerBlockingStub> kvStubSupplier;
 
-    public KVProxy(Supplier<KVRequestHandlerBlockingStub> kvStubSupplier) {
-        this.kvStubSupplier = kvStubSupplier;
+    public KVProxy(@Nonnull Supplier<KVRequestHandlerBlockingStub> kvStubSupplier) {
+        this.kvStubSupplier = requireNonNull(kvStubSupplier);
     }
 
     @Nonnull
@@ -70,13 +70,13 @@ public class KVProxy implements KV {
     @Nonnull
     @Override
     public Ordered<String> put(@Nonnull String key, @Nonnull String value) {
-        return putOrdered(key, getTypedValue(requireNonNull(value)), false);
+        return putOrdered(key, getTypedValue(value), false);
     }
 
     @Nonnull
     @Override
     public Ordered<byte[]> putIfAbsent(@Nonnull String key, @Nonnull byte[] value) {
-        return putOrdered(key, getTypedValue(requireNonNull(value)), true);
+        return putOrdered(key, getTypedValue(value), true);
     }
 
     @Nonnull
@@ -94,7 +94,7 @@ public class KVProxy implements KV {
     @Nonnull
     @Override
     public Ordered<String> putIfAbsent(@Nonnull String key, @Nonnull String value) {
-        return putOrdered(key, getTypedValue(requireNonNull(value)), true);
+        return putOrdered(key, getTypedValue(value), true);
     }
 
     private <T> Ordered<T> putOrdered(String key, TypedValue value, boolean absent) {
@@ -107,26 +107,26 @@ public class KVProxy implements KV {
     }
 
     @Override
-    public Ordered<Void> set(String key, @Nonnull byte[] value) {
-        return set(key, getTypedValue(requireNonNull(value)));
-    }
-
-    @Override
-    public Ordered<Void> set(String key, int value) {
+    public Ordered<Void> set(@Nonnull String key, @Nonnull byte[] value) {
         return set(key, getTypedValue(value));
     }
 
     @Override
-    public Ordered<Void> set(String key, long value) {
+    public Ordered<Void> set(@Nonnull String key, int value) {
         return set(key, getTypedValue(value));
     }
 
     @Override
-    public Ordered<Void> set(String key, @Nonnull String value) {
-        return set(key, getTypedValue(requireNonNull(value)));
+    public Ordered<Void> set(@Nonnull String key, long value) {
+        return set(key, getTypedValue(value));
     }
 
-    private Ordered<Void> set(String key, TypedValue value) {
+    @Override
+    public Ordered<Void> set(@Nonnull String key, @Nonnull String value) {
+        return set(key, getTypedValue(value));
+    }
+
+    private Ordered<Void> set(@Nonnull String key, @Nonnull TypedValue value) {
         SetRequest request = SetRequest.newBuilder().setKey(requireNonNull(key)).setValue(value).build();
         KVResponse response = kvStubSupplier.get().set(request);
         return new OrderedImpl<>(response.getCommitIndex(), null);
@@ -155,28 +155,28 @@ public class KVProxy implements KV {
     @Nonnull
     @Override
     public Ordered<Boolean> contains(@Nonnull String key, @Nonnull byte[] value, long minCommitIndex) {
-        return contains(key, getTypedValue(requireNonNull(value)), minCommitIndex);
+        return contains(key, getTypedValue(value), minCommitIndex);
     }
 
     @Nonnull
     @Override
     public Ordered<Boolean> contains(@Nonnull String key, int value, long minCommitIndex) {
-        return contains(key, getTypedValue(requireNonNull(value)), minCommitIndex);
+        return contains(key, getTypedValue(value), minCommitIndex);
     }
 
     @Nonnull
     @Override
     public Ordered<Boolean> contains(@Nonnull String key, long value, long minCommitIndex) {
-        return contains(key, getTypedValue(requireNonNull(value)), minCommitIndex);
+        return contains(key, getTypedValue(value), minCommitIndex);
     }
 
     @Nonnull
     @Override
     public Ordered<Boolean> contains(@Nonnull String key, @Nonnull String value, long minCommitIndex) {
-        return contains(key, getTypedValue(requireNonNull(value)), minCommitIndex);
+        return contains(key, getTypedValue(value), minCommitIndex);
     }
 
-    private Ordered<Boolean> contains(String key, TypedValue value, long minCommitIndex) {
+    private Ordered<Boolean> contains(@Nonnull String key, @Nonnull TypedValue value, long minCommitIndex) {
         ContainsRequest request = ContainsRequest.newBuilder().setKey(requireNonNull(key)).setValue(value)
                 .setMinCommitIndex(minCommitIndex).build();
         KVResponse response = kvStubSupplier.get().contains(request);
@@ -202,7 +202,7 @@ public class KVProxy implements KV {
     }
 
     @Override
-    public Ordered<Boolean> remove(@Nonnull String key, byte[] value) {
+    public Ordered<Boolean> remove(@Nonnull String key, @Nonnull byte[] value) {
         return remove(key, getTypedValue(value));
     }
 
@@ -224,7 +224,7 @@ public class KVProxy implements KV {
         return remove(key, getTypedValue(value));
     }
 
-    private Ordered<Boolean> remove(String key, TypedValue value) {
+    private Ordered<Boolean> remove(@Nonnull String key, @Nonnull TypedValue value) {
         RemoveRequest request = RemoveRequest.newBuilder().setKey(requireNonNull(key)).setValue(value).build();
         KVResponse response = kvStubSupplier.get().remove(request);
         return new OrderedImpl<>(response.getCommitIndex(), response.getRemoveResponse().getSuccess());
@@ -234,8 +234,8 @@ public class KVProxy implements KV {
     @Override
     public Ordered<Boolean> replace(@Nonnull String key, @Nonnull Object oldValue, @Nonnull Object newValue) {
         ReplaceRequest request = ReplaceRequest.newBuilder().setKey(requireNonNull(key))
-                .setOldValue(getTypedValue(requireNonNull(oldValue)))
-                .setNewValue(getTypedValue(requireNonNull(newValue))).build();
+                .setOldValue(getTypedValue(oldValue))
+                .setNewValue(getTypedValue(newValue)).build();
         KVResponse response = kvStubSupplier.get().replace(request);
         return new OrderedImpl<>(response.getCommitIndex(), response.getReplaceResponse().getSuccess());
     }
