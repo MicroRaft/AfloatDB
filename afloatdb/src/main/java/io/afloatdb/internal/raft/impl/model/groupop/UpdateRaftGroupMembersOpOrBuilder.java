@@ -27,6 +27,7 @@ import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMember
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,8 +36,8 @@ public class UpdateRaftGroupMembersOpOrBuilder implements UpdateRaftGroupMembers
 
     private UpdateRaftGroupMembersOpProto.Builder builder;
     private UpdateRaftGroupMembersOpProto op;
-    private Collection<RaftEndpoint> members;
-    private Collection<RaftEndpoint> votingMembers;
+    private Collection<RaftEndpoint> members = new LinkedHashSet<>();
+    private Collection<RaftEndpoint> votingMembers = new LinkedHashSet<>();
     private RaftEndpoint endpoint;
 
     public UpdateRaftGroupMembersOpOrBuilder() {
@@ -45,9 +46,7 @@ public class UpdateRaftGroupMembersOpOrBuilder implements UpdateRaftGroupMembers
 
     public UpdateRaftGroupMembersOpOrBuilder(UpdateRaftGroupMembersOpProto op) {
         this.op = op;
-        this.members = new LinkedHashSet<>();
         op.getMemberList().stream().map(AfloatDBEndpoint::wrap).forEach(members::add);
-        this.votingMembers = new LinkedHashSet<>();
         op.getVotingMemberList().stream().map(AfloatDBEndpoint::wrap).forEach(votingMembers::add);
         this.endpoint = AfloatDBEndpoint.wrap(op.getEndpoint());
     }
@@ -59,13 +58,13 @@ public class UpdateRaftGroupMembersOpOrBuilder implements UpdateRaftGroupMembers
     @Nonnull
     @Override
     public Collection<RaftEndpoint> getMembers() {
-        return members;
+        return Collections.unmodifiableCollection(members);
     }
 
     @Nonnull
     @Override
     public Collection<RaftEndpoint> getVotingMembers() {
-        return votingMembers;
+        return Collections.unmodifiableCollection(votingMembers);
     }
 
     @Nonnull
@@ -90,22 +89,24 @@ public class UpdateRaftGroupMembersOpOrBuilder implements UpdateRaftGroupMembers
     @Nonnull
     @Override
     public UpdateRaftGroupMembersOpBuilder setMembers(@Nonnull Collection<RaftEndpoint> members) {
-        members.stream().map(AfloatDBEndpoint::extract).forEach(builder::addMember);
-        this.members = members;
+        members.stream().map(AfloatDBEndpoint::unwrap).forEach(builder::addMember);
+        this.members.clear();
+        this.members.addAll(members);
         return this;
     }
 
     @Override
     public UpdateRaftGroupMembersOpBuilder setVotingMembers(Collection<RaftEndpoint> votingMembers) {
-        members.stream().map(AfloatDBEndpoint::extract).forEach(builder::addVotingMember);
-        this.votingMembers = votingMembers;
+        members.stream().map(AfloatDBEndpoint::unwrap).forEach(builder::addVotingMember);
+        this.votingMembers.clear();
+        this.votingMembers.addAll(votingMembers);
         return this;
     }
 
     @Nonnull
     @Override
     public UpdateRaftGroupMembersOpBuilder setEndpoint(@Nonnull RaftEndpoint endpoint) {
-        builder.setEndpoint(AfloatDBEndpoint.extract(endpoint));
+        builder.setEndpoint(AfloatDBEndpoint.unwrap(endpoint));
         this.endpoint = endpoint;
         return this;
     }

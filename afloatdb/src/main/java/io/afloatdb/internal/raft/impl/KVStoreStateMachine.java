@@ -55,6 +55,9 @@ import java.util.function.Consumer;
 
 import static io.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
 
+/**
+ * State machine implementation of KV.proto
+ */
 @Singleton
 public class KVStoreStateMachine
         implements StateMachine {

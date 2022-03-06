@@ -91,7 +91,7 @@ public class LogEntryOrBuilder
     @Nonnull
     @Override
     public Object getOperation() {
-        return Operations.extract(entry.getOperation());
+        return Operations.unwrap(entry.getOperation());
     }
 
 }

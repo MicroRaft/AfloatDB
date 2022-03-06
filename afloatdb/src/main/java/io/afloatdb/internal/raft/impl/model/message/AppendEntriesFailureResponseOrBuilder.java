@@ -60,7 +60,7 @@ public class AppendEntriesFailureResponseOrBuilder
     @Nonnull
     @Override
     public AppendEntriesFailureResponseBuilder setSender(@Nonnull RaftEndpoint sender) {
-        builder.setSender(AfloatDBEndpoint.extract(sender));
+        builder.setSender(AfloatDBEndpoint.unwrap(sender));
         this.sender = sender;
         return this;
     }

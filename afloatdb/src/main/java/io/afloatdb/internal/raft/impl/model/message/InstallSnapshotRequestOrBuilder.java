@@ -72,7 +72,7 @@ public class InstallSnapshotRequestOrBuilder implements InstallSnapshotRequest,
     @Nonnull
     @Override
     public InstallSnapshotRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
-        builder.setSender(AfloatDBEndpoint.extract(sender));
+        builder.setSender(AfloatDBEndpoint.unwrap(sender));
         this.sender = sender;
         return this;
     }
@@ -126,7 +126,7 @@ public class InstallSnapshotRequestOrBuilder implements InstallSnapshotRequest,
     @Nonnull
     @Override
     public InstallSnapshotRequestBuilder setSnapshottedMembers(@Nonnull Collection<RaftEndpoint> snapshottedMembers) {
-        snapshottedMembers.stream().map(AfloatDBEndpoint::extract).forEach(builder::addSnapshottedMember);
+        snapshottedMembers.stream().map(AfloatDBEndpoint::unwrap).forEach(builder::addSnapshottedMember);
         this.snapshottedMembers = snapshottedMembers;
         return this;
     }

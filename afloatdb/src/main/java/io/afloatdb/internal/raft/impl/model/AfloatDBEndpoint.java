@@ -38,7 +38,7 @@ public class AfloatDBEndpoint
         return cache.computeIfAbsent(endpoint.getId(), id -> new AfloatDBEndpoint(endpoint));
     }
 
-    public static RaftEndpointProto extract(@Nullable RaftEndpoint endpoint) {
+    public static RaftEndpointProto unwrap(@Nullable RaftEndpoint endpoint) {
         return endpoint != null ? ((AfloatDBEndpoint) endpoint).getEndpoint() : null;
     }
 

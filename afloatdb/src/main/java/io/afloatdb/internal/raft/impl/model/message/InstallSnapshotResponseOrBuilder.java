@@ -39,7 +39,7 @@ public class InstallSnapshotResponseOrBuilder
     @Nonnull
     @Override
     public InstallSnapshotResponseBuilder setSender(@Nonnull RaftEndpoint sender) {
-        builder.setSender(AfloatDBEndpoint.extract(sender));
+        builder.setSender(AfloatDBEndpoint.unwrap(sender));
         this.sender = sender;
         return this;
     }

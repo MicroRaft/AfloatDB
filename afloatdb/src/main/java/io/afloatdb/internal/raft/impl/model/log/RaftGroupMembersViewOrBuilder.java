@@ -41,9 +41,7 @@ public class RaftGroupMembersViewOrBuilder implements RaftGroupMembersView, Raft
 
     public RaftGroupMembersViewOrBuilder(RaftGroupMembersViewProto groupMembersView) {
         this.groupMembersView = groupMembersView;
-        members.clear();
         groupMembersView.getMemberList().stream().map(AfloatDBEndpoint::wrap).forEach(members::add);
-        votingMembers.clear();
         groupMembersView.getVotingMemberList().stream().map(AfloatDBEndpoint::wrap).forEach(votingMembers::add);
     }
 
@@ -78,7 +76,7 @@ public class RaftGroupMembersViewOrBuilder implements RaftGroupMembersView, Raft
     @Nonnull
     @Override
     public RaftGroupMembersViewBuilder setMembers(@Nonnull Collection<RaftEndpoint> members) {
-        members.stream().map(AfloatDBEndpoint::extract).forEach(builder::addMember);
+        members.stream().map(AfloatDBEndpoint::unwrap).forEach(builder::addMember);
         this.members.clear();
         this.members.addAll(members);
         return this;
@@ -87,7 +85,7 @@ public class RaftGroupMembersViewOrBuilder implements RaftGroupMembersView, Raft
     @Nonnull
     @Override
     public RaftGroupMembersViewBuilder setVotingMembers(@Nonnull Collection<RaftEndpoint> votingMembers) {
-        votingMembers.stream().map(AfloatDBEndpoint::extract).forEach(builder::addVotingMember);
+        votingMembers.stream().map(AfloatDBEndpoint::unwrap).forEach(builder::addVotingMember);
         this.votingMembers.clear();
         this.votingMembers.addAll(votingMembers);
         return this;

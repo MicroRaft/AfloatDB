@@ -56,7 +56,7 @@ public final class Serialization {
 
     public static RaftNodeReportProto toProto(RaftNodeReport report) {
         return RaftNodeReportProto.newBuilder().setReason(toProto(report.getReason()))
-                .setGroupId((String) report.getGroupId()).setEndpoint(AfloatDBEndpoint.extract(report.getEndpoint()))
+                .setGroupId((String) report.getGroupId()).setEndpoint(AfloatDBEndpoint.unwrap(report.getEndpoint()))
                 .setInitialMembers(toProto(report.getInitialMembers()))
                 .setCommittedMembers(toProto(report.getCommittedMembers()))
                 .setEffectiveMembers(toProto(report.getEffectiveMembers())).setRole(toProto(report.getRole()))
@@ -89,7 +89,7 @@ public final class Serialization {
         RaftGroupMembersProto.Builder builder = RaftGroupMembersProto.newBuilder();
         builder.setLogIndex(groupMembers.getLogIndex());
 
-        groupMembers.getMembers().stream().map(AfloatDBEndpoint::extract).forEach(builder::addMember);
+        groupMembers.getMembers().stream().map(AfloatDBEndpoint::unwrap).forEach(builder::addMember);
 
         return builder.build();
     }
@@ -131,11 +131,11 @@ public final class Serialization {
         builder.setTerm(term.getTerm());
 
         if (term.getLeaderEndpoint() != null) {
-            builder.setLeaderEndpoint(AfloatDBEndpoint.extract(term.getLeaderEndpoint()));
+            builder.setLeaderEndpoint(AfloatDBEndpoint.unwrap(term.getLeaderEndpoint()));
         }
 
         if (term.getVotedEndpoint() != null) {
-            builder.setVotedEndpoint(AfloatDBEndpoint.extract(term.getVotedEndpoint()));
+            builder.setVotedEndpoint(AfloatDBEndpoint.unwrap(term.getVotedEndpoint()));
         }
 
         return builder.build();

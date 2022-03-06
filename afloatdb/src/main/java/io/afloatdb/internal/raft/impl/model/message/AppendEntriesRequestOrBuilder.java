@@ -70,7 +70,7 @@ public class AppendEntriesRequestOrBuilder
     @Nonnull
     @Override
     public AppendEntriesRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
-        builder.setSender(AfloatDBEndpoint.extract(sender));
+        builder.setSender(AfloatDBEndpoint.unwrap(sender));
         this.sender = sender;
         return this;
     }

@@ -22,6 +22,9 @@ import io.afloatdb.AfloatDB;
 import io.afloatdb.client.config.AfloatDBClientConfig;
 import io.afloatdb.client.kv.KV;
 import io.afloatdb.client.kv.Ordered;
+import io.afloatdb.internal.utils.Exceptions;
+import io.grpc.Status;
+import io.microraft.exception.LaggingCommitIndexException;
 import io.microraft.test.util.BaseTest;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -641,10 +644,17 @@ public class KVTest extends BaseTest {
             String val = "val" + i;
 
             long commitIndex = kv.set(key, val).getCommitIndex();
-
-            Ordered<String> result = kv.get(key, commitIndex);
-            assertThat(result.getCommitIndex()).isEqualTo(commitIndex);
-            assertThat(result.get()).isEqualTo(val);
+            while (true) {
+                try {
+                    Ordered<String> result = kv.get(key, commitIndex);
+                    assertThat(result.getCommitIndex()).isEqualTo(commitIndex);
+                    assertThat(result.get()).isEqualTo(val);
+                    break;
+                } catch (io.grpc.StatusRuntimeException e) {
+                    assertThat(e.getStatus()).isEqualTo(Status.FAILED_PRECONDITION);
+                    assertTrue(Exceptions.isRaftException(e.getMessage(), LaggingCommitIndexException.class));
+                }
+            }
         }
     }
 

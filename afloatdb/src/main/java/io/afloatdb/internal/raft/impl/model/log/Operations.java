@@ -24,7 +24,7 @@ public final class Operations {
     private Operations() {
     }
 
-    public static Object extract(Operation operation) {
+    public static Object unwrap(Operation operation) {
         if (operation.getOperationCase() == Operation.OperationCase.UPDATERAFTGROUPMEMBERSOP) {
             return new UpdateRaftGroupMembersOpOrBuilder(operation.getUpdateRaftGroupMembersOp());
         }

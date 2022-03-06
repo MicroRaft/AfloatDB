@@ -55,7 +55,7 @@ public class VoteRequestOrBuilder
     @Nonnull
     @Override
     public VoteRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
-        builder.setSender(AfloatDBEndpoint.extract(sender));
+        builder.setSender(AfloatDBEndpoint.unwrap(sender));
         this.sender = sender;
         return this;
     }

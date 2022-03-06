@@ -42,9 +42,17 @@ public final class Exceptions {
 
     public static boolean isRaftException(String message) {
         return message != null && (message.contains("RAFT:" + NotLeaderException.class.getSimpleName()) || message
-                .contains("RAFT:" + CannotReplicateException.class.getSimpleName()) || message
-                .contains("RAFT:" + IndeterminateStateException.class.getSimpleName()) || message
-                .contains("RAFT:" + MismatchingRaftGroupMembersCommitIndexException.class.getSimpleName()));
+                .contains("RAFT:" + CannotReplicateException.class.getSimpleName())
+                || message
+                        .contains("RAFT:" + IndeterminateStateException.class.getSimpleName())
+                || message
+                        .contains("RAFT:" + MismatchingRaftGroupMembersCommitIndexException.class.getSimpleName())
+                || message
+                        .contains("RAFT:" + LaggingCommitIndexException.class.getSimpleName()));
+    }
+
+    public static boolean isRaftException(String message, Class<? extends RaftException> e) {
+        return message != null && message.contains("RAFT:" + e.getSimpleName());
     }
 
     public static StatusRuntimeException wrap(Throwable t) {
