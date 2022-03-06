@@ -103,7 +103,8 @@ public class RaftRpcServiceImpl
         if (currentAddress == null) {
             LOGGER.info("{} added address: {} for {}", localEndpoint.getId(), address, endpoint.getId());
         } else if (!currentAddress.equals(address)) {
-            LOGGER.warn("{} replaced current address: {} new address: {} for {}", localEndpoint.getId(), currentAddress,
+            LOGGER.warn("{} replaced current address: {} with new address: {} for {}", localEndpoint.getId(),
+                    currentAddress,
                     address,
                     endpoint.getId());
         }
@@ -156,22 +157,23 @@ public class RaftRpcServiceImpl
             return null;
         }
 
-        String address = addresses.get(target);
+        try {
+            String address = addresses.get(target);
+            ManagedChannel channel = ManagedChannelBuilder.forTarget(address).disableRetry().usePlaintext()
+                    // .directExecutor()
+                    .build();
 
-        ManagedChannel channel = ManagedChannelBuilder.forTarget(address).disableRetry().usePlaintext()
-                // .directExecutor()
-                .build();
+            RaftMessageHandlerStub replicationStub = RaftMessageHandlerGrpc.newStub(channel);
+            RaftInvocationHandlerFutureStub invocationStub = RaftInvocationHandlerGrpc.newFutureStub(channel);
+            RaftRpcContext context = new RaftRpcContext(target, channel, replicationStub, invocationStub);
+            context.raftMessageSender = replicationStub.handle(new ResponseStreamObserver(context));
 
-        RaftMessageHandlerStub replicationStub = RaftMessageHandlerGrpc.newStub(channel);
-        RaftInvocationHandlerFutureStub invocationStub = RaftInvocationHandlerGrpc.newFutureStub(channel);
+            stubs.put(target, context);
 
-        RaftRpcContext context = new RaftRpcContext(target, channel, replicationStub, invocationStub);
-        context.raftMessageSender = replicationStub.handle(new ResponseStreamObserver(context));
-
-        stubs.put(target, context);
-        initializingEndpoints.remove(target);
-
-        return context;
+            return context;
+        } finally {
+            initializingEndpoints.remove(target);
+        }
     }
 
     private void checkChannel(RaftRpcContext context) {

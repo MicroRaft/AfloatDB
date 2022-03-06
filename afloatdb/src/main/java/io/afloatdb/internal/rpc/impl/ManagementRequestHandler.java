@@ -125,7 +125,8 @@ public class ManagementRequestHandler extends ManagementRequestHandlerImplBase {
     public void addRaftEndpoint(AddRaftEndpointRequest request,
             StreamObserver<AddRaftEndpointResponse> responseObserver) {
         RaftEndpoint endpoint = AfloatDBEndpoint.wrap(request.getEndpoint());
-        if (!raftRpcService.getAddresses().containsKey(endpoint)) {
+        String address = raftRpcService.getAddresses().get(endpoint);
+        if (address == null) {
             LOGGER.error("{} cannot add {} because its address is not known!", raftNode.getLocalEndpoint().getId(),
                     endpoint.getId());
             responseObserver.onError(new StatusRuntimeException(Status.FAILED_PRECONDITION));
@@ -136,12 +137,15 @@ public class ManagementRequestHandler extends ManagementRequestHandlerImplBase {
         MembershipChangeMode mode = request.getVotingMember() ? MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER
                 : MembershipChangeMode.ADD_LEARNER;
 
-        LOGGER.info("Adding {} with mode: {}.", endpoint, mode);
+        LOGGER.info("{} is adding {} with mode: {} and address: {}.", raftNode.getLocalEndpoint().getId(),
+                endpoint.getId(), mode, address);
 
         raftNode.changeMembership(endpoint, mode, request.getGroupMembersCommitIndex())
                 .whenComplete((result, throwable) -> {
                     if (throwable == null) {
                         long newCommitIndex = result.getCommitIndex();
+                        LOGGER.info("{} added {} with address: {}.", raftNode.getLocalEndpoint().getId(),
+                                endpoint.getId(), address);
                         AddRaftEndpointResponse response = AddRaftEndpointResponse.newBuilder()
                                 .setGroupMembersCommitIndex(newCommitIndex).build();
                         responseObserver.onNext(response);

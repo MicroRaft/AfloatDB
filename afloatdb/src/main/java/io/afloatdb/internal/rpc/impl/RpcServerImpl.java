@@ -56,21 +56,23 @@ public class RpcServerImpl
     private final ProcessTerminationLogger processTerminationLogger;
 
     @Inject
-    public RpcServerImpl(@Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint, @Named(CONFIG_KEY) AfloatDBConfig config,
-                         KVRequestHandler kvRequestHandler, RaftMessageHandler raftMessageHandler,
-                         RaftInvocationHandler raftInvocationHandler, ManagementRequestHandler managementRequestHandler,
-                         RaftNodeReportSupplier raftNodeReportSupplier, ProcessTerminationLogger processTerminationLogger) {
+    public RpcServerImpl(@Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
+            @Named(CONFIG_KEY) AfloatDBConfig config,
+            KVRequestHandler kvRequestHandler, RaftMessageHandler raftMessageHandler,
+            RaftInvocationHandler raftInvocationHandler, ManagementRequestHandler managementRequestHandler,
+            RaftNodeReportSupplier raftNodeReportSupplier, ProcessTerminationLogger processTerminationLogger) {
         this.localEndpoint = localEndpoint;
         // TODO [basri] do perf analysis for this setup
         EventLoopGroup boss = new NioEventLoopGroup(1);
         EventLoopGroup worker = new NioEventLoopGroup(1);
         Class<? extends ServerChannel> channelType = NioServerSocketChannel.class;
-        this.server = NettyServerBuilder.forAddress(config.getLocalEndpointConfig().getSocketAddress()).bossEventLoopGroup(boss)
-                                        .workerEventLoopGroup(worker).channelType(channelType).addService(kvRequestHandler)
-                                        .addService(raftMessageHandler).addService(raftInvocationHandler)
-                                        .addService(managementRequestHandler)
-                                        .addService((AfloatDBClusterServiceImplBase) raftNodeReportSupplier).directExecutor()
-                                        .build();
+        this.server = NettyServerBuilder.forAddress(config.getLocalEndpointConfig().getSocketAddress())
+                .bossEventLoopGroup(boss)
+                .workerEventLoopGroup(worker).channelType(channelType).addService(kvRequestHandler)
+                .addService(raftMessageHandler).addService(raftInvocationHandler)
+                .addService(managementRequestHandler)
+                .addService((AfloatDBClusterServiceImplBase) raftNodeReportSupplier).directExecutor()
+                .build();
         this.processTerminationLogger = processTerminationLogger;
     }
 
@@ -100,10 +102,12 @@ public class RpcServerImpl
     @Override
     public void awaitTermination() {
         try {
+            // TODO [basri] make this configurable
             server.awaitTermination(30, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            processTerminationLogger.logWarn(LOGGER, localEndpoint.getId() + " await termination of RpcServer interrupted!");
+            processTerminationLogger.logWarn(LOGGER,
+                    localEndpoint.getId() + " await termination of RpcServer interrupted!");
         }
     }
 

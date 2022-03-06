@@ -32,6 +32,7 @@ public class RaftInvocationHandler
 
     @Override
     public void replicate(ReplicateRequest request, StreamObserver<KVResponse> responseObserver) {
+        // TODO [basri] offload to io thread pool
         raftNode.<KVResponse>replicate(request.getOperation()).whenComplete((response, throwable) -> {
             if (throwable == null) {
                 responseObserver.onNext(response.getResult());
@@ -51,6 +52,7 @@ public class RaftInvocationHandler
             return;
         }
 
+        // TODO [basri] offload to io thread pool
         raftNode.<KVResponse>query(request.getOperation(), queryPolicy, request.getMinCommitIndex())
                 .whenComplete((response, throwable) -> {
                     if (throwable == null) {

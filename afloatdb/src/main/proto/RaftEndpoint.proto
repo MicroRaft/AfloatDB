@@ -4,6 +4,10 @@ package io.afloatdb.raft.proto;
 
 option java_multiple_files = true;
 
+// Represents a Raft endpoint. 
+// This message will be embedded into other Raft rpc messages.
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftEndpoint.java
 message RaftEndpointProto {
+    // Unique id of a Raft endpoint
     string id = 1;
 }

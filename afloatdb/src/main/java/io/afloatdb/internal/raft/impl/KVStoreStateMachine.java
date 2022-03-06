@@ -101,19 +101,15 @@ public class KVStoreStateMachine
             case CLEARREQUEST:
                 return clear(commitIndex);
             default:
-                throw new IllegalArgumentException("Invalid operation: " + operation + " at commit index: " + commitIndex);
+                throw new IllegalArgumentException(
+                        "Invalid operation: " + operation + " at commit index: " + commitIndex);
         }
     }
 
     private KVResponse put(long commitIndex, PutRequest request) {
-        TypedValue prev;
+        TypedValue prev = request.getAbsent() ? map.putIfAbsent(request.getKey(), request.getValue())
+                : map.put(request.getKey(), request.getValue());
         PutResponse.Builder builder = PutResponse.newBuilder();
-        if (request.getAbsent()) {
-            prev = map.putIfAbsent(request.getKey(), request.getValue());
-        } else {
-            prev = map.put(request.getKey(), request.getValue());
-        }
-
         if (prev != null) {
             builder.setValue(prev);
         }
@@ -124,7 +120,8 @@ public class KVStoreStateMachine
     private KVResponse set(long commitIndex, SetRequest request) {
         map.put(request.getKey(), request.getValue());
 
-        return KVResponse.newBuilder().setCommitIndex(commitIndex).setSetResponse(SetResponse.getDefaultInstance()).build();
+        return KVResponse.newBuilder().setCommitIndex(commitIndex).setSetResponse(SetResponse.getDefaultInstance())
+                .build();
     }
 
     private KVResponse get(long commitIndex, GetRequest request) {
@@ -138,23 +135,18 @@ public class KVStoreStateMachine
     }
 
     private KVResponse contains(long commitIndex, ContainsRequest request) {
-        boolean success;
-
-        if (request.hasValue()) {
-            success = request.getValue().equals(map.get(request.getKey()));
-        } else {
-            success = map.containsKey(request.getKey());
-        }
+        boolean success = request.hasValue() ? request.getValue().equals(map.get(request.getKey()))
+                : map.containsKey(request.getKey());
 
         return KVResponse.newBuilder().setCommitIndex(commitIndex)
-                         .setContainsResponse(ContainsResponse.newBuilder().setSuccess(success).build()).build();
+                .setContainsResponse(ContainsResponse.newBuilder().setSuccess(success).build()).build();
     }
 
     private KVResponse delete(long commitIndex, DeleteRequest request) {
         boolean success = map.remove(request.getKey()) != null;
 
         return KVResponse.newBuilder().setCommitIndex(commitIndex)
-                         .setDeleteResponse(DeleteResponse.newBuilder().setSuccess(success).build()).build();
+                .setDeleteResponse(DeleteResponse.newBuilder().setSuccess(success).build()).build();
     }
 
     private KVResponse remove(long commitIndex, RemoveRequest request) {
@@ -171,21 +163,22 @@ public class KVStoreStateMachine
             success = val != null;
         }
 
-        return KVResponse.newBuilder().setCommitIndex(commitIndex).setRemoveResponse(builder.setSuccess(success).build()).build();
+        return KVResponse.newBuilder().setCommitIndex(commitIndex)
+                .setRemoveResponse(builder.setSuccess(success).build()).build();
     }
 
     private KVResponse replace(long commitIndex, ReplaceRequest request) {
         boolean success = map.replace(request.getKey(), request.getOldValue(), request.getNewValue());
 
         return KVResponse.newBuilder().setCommitIndex(commitIndex)
-                         .setReplaceResponse(ReplaceResponse.newBuilder().setSuccess(success).build()).build();
+                .setReplaceResponse(ReplaceResponse.newBuilder().setSuccess(success).build()).build();
     }
 
     private KVResponse size(long commitIndex) {
         int size = map.size();
 
         return KVResponse.newBuilder().setCommitIndex(commitIndex)
-                         .setSizeResponse(SizeResponse.newBuilder().setSize(size).build()).build();
+                .setSizeResponse(SizeResponse.newBuilder().setSize(size).build()).build();
     }
 
     private KVResponse clear(long commitIndex) {
@@ -193,7 +186,7 @@ public class KVStoreStateMachine
         map.clear();
 
         return KVResponse.newBuilder().setCommitIndex(commitIndex)
-                         .setClearResponse(ClearResponse.newBuilder().setSize(size).build()).build();
+                .setClearResponse(ClearResponse.newBuilder().setSize(size).build()).build();
     }
 
     @Override
@@ -217,29 +210,30 @@ public class KVStoreStateMachine
             chunkCount++;
         }
 
-        LOGGER.info("{} took snapshot with {} chunks and {} keys at log index: {}", localMember.getId(), chunkCount, keyCount,
+        LOGGER.info("{} took snapshot with {} chunks and {} keys at log index: {}", localMember.getId(), chunkCount,
+                keyCount,
                 commitIndex);
 
-        //        try {
-        //            Output out = ByteString.newOutput();
-        //            DataOutputStream os = new DataOutputStream(out);
-        //            os.writeInt(map.size());
-        //            for (Entry<ByteString, ByteString> entry : map.entrySet()) {
-        //                ByteString key = entry.getKey();
-        //                ByteString value = entry.getValue();
-        //                os.writeInt(key.size());
-        //                for (int i = 0; i < key.size(); i++) {
-        //                    os.writeByte(key.byteAt(i));
-        //                }
-        //                os.writeInt(value.size());
-        //                for (int i = 0; i < value.size(); i++) {
-        //                    os.writeByte(value.byteAt(i));
-        //                }
-        //            }
-        //            builder.setData(out.toByteString());
-        //        } catch (IOException e) {
-        //            throw new RuntimeException("Failure during take snapshot", e);
-        //        }
+        // try {
+        // Output out = ByteString.newOutput();
+        // DataOutputStream os = new DataOutputStream(out);
+        // os.writeInt(map.size());
+        // for (Entry<ByteString, ByteString> entry : map.entrySet()) {
+        // ByteString key = entry.getKey();
+        // ByteString value = entry.getValue();
+        // os.writeInt(key.size());
+        // for (int i = 0; i < key.size(); i++) {
+        // os.writeByte(key.byteAt(i));
+        // }
+        // os.writeInt(value.size());
+        // for (int i = 0; i < value.size(); i++) {
+        // os.writeByte(value.byteAt(i));
+        // }
+        // }
+        // builder.setData(out.toByteString());
+        // } catch (IOException e) {
+        // throw new RuntimeException("Failure during take snapshot", e);
+        // }
     }
 
     @Override
@@ -252,32 +246,34 @@ public class KVStoreStateMachine
             }
         }
 
-        //        try {
-        //            ByteString bs = snapshot.getData();
-        //            DataInputStream in = new DataInputStream(bs.newInput());
-        //            int entryCount = in.readInt();
-        //            for (int i = 0; i < entryCount; i++) {
-        //                int keySize = in.readInt();
-        //                ByteString key = readBytes(in, keySize);
-        //                int valueSize = in.readInt();
-        //                ByteString value = readBytes(in, valueSize);
-        //                map.put(key, value);
-        //            }
-        //        } catch (IOException e) {
-        //            throw new RuntimeException("Failure during snapshot restore", e);
-        //        }
+        // try {
+        // ByteString bs = snapshot.getData();
+        // DataInputStream in = new DataInputStream(bs.newInput());
+        // int entryCount = in.readInt();
+        // for (int i = 0; i < entryCount; i++) {
+        // int keySize = in.readInt();
+        // ByteString key = readBytes(in, keySize);
+        // int valueSize = in.readInt();
+        // ByteString value = readBytes(in, valueSize);
+        // map.put(key, value);
+        // }
+        // } catch (IOException e) {
+        // throw new RuntimeException("Failure during snapshot restore", e);
+        // }
 
-        LOGGER.info("{} restored snapshot with {} keys at commit index: {}", localMember.getId(), map.size(), commitIndex);
+        LOGGER.info("{} restored snapshot with {} keys at commit index: {}", localMember.getId(), map.size(),
+                commitIndex);
     }
 
-    //    private ByteString readBytes(DataInputStream in, int count) throws IOException {
-    //        Output out = ByteString.newOutput(count);
-    //        for (int j = 0; j < count; j++) {
-    //            out.write(in.readByte());
-    //        }
+    // private ByteString readBytes(DataInputStream in, int count) throws
+    // IOException {
+    // Output out = ByteString.newOutput(count);
+    // for (int j = 0; j < count; j++) {
+    // out.write(in.readByte());
+    // }
     //
-    //        return out.toByteString();
-    //    }
+    // return out.toByteString();
+    // }
 
     @Nonnull
     @Override

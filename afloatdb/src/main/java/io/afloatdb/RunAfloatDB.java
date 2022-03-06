@@ -17,6 +17,10 @@
 package io.afloatdb;
 
 import com.typesafe.config.ConfigFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.afloatdb.config.AfloatDBConfig;
 
 import java.io.IOException;
@@ -27,9 +31,11 @@ import static java.nio.file.Files.readAllLines;
 
 public class RunAfloatDB {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RunAfloatDB.class);
+
     public static void main(String[] args) {
         String configFileName = getConfigFileName(args);
-        System.out.println("Reading config from " + configFileName);
+        LOGGER.info("Reading config from " + configFileName);
 
         AfloatDBConfig config = readConfigFile(configFileName);
         AfloatDB server = AfloatDB.bootstrap(config);
@@ -43,8 +49,8 @@ public class RunAfloatDB {
         } else if (prop != null) {
             return prop;
         } else {
-            System.err.println("Config file location must be provided either via program argument or system parameter: "
-                                       + "\"afloatdb.config\"! If both are present, program argument is used.");
+            LOGGER.error("Config file location must be provided either via program argument or system parameter: "
+                    + "\"afloatdb.config\"! If both are present, program argument is used.");
             System.exit(-1);
             return null;
         }
@@ -55,8 +61,7 @@ public class RunAfloatDB {
             String config = String.join("\n", readAllLines(Paths.get(configFileName), StandardCharsets.UTF_8));
             return AfloatDBConfig.from(ConfigFactory.parseString(config));
         } catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("Cannot read config file: " + configFileName);
+            LOGGER.error("Cannot read config file: " + configFileName, e);
             System.exit(-1);
             return null;
         }

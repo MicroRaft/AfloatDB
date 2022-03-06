@@ -7,17 +7,20 @@ import "RaftEndpoint.proto";
 option java_multiple_files = true;
 
 
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftGroupMembers.java
 message RaftGroupMembersProto {
     int64 logIndex = 1;
     repeated io.afloatdb.raft.proto.RaftEndpointProto member = 2;
 }
 
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftTerm.java
 message RaftTermProto {
     int32 term = 1;
     io.afloatdb.raft.proto.RaftEndpointProto leaderEndpoint = 2;
     io.afloatdb.raft.proto.RaftEndpointProto votedEndpoint = 3;
 }
 
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftRole.java
 enum RaftRoleProto {
     LEADER = 0;
     CANDIDATE = 1;
@@ -25,6 +28,7 @@ enum RaftRoleProto {
     LEARNER = 3;
 }
 
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftNodeReport.java
 enum RaftNodeReportReasonProto {
     STATUS_CHANGE = 0;
     ROLE_CHANGE = 1;
@@ -35,6 +39,7 @@ enum RaftNodeReportReasonProto {
     API_CALL = 6;
 }
 
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNodeStatus.java
 enum RaftNodeStatusProto {
     INITIAL = 0;
     ACTIVE = 1;
@@ -42,6 +47,7 @@ enum RaftNodeStatusProto {
     TERMINATED = 3;
 }
 
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftLogStats.java
 message RaftLogStatsProto {
     int64 commitIndex = 1;
     int64 lastLogOrSnapshotTerm = 2;
@@ -53,6 +59,7 @@ message RaftLogStatsProto {
     map<string, int64> followerMatchIndex = 8;
 }
 
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftNodeReport.java
 message RaftNodeReportProto {
     RaftNodeReportReasonProto reason = 1;
     string groupId = 2;
@@ -66,17 +73,26 @@ message RaftNodeReportProto {
     RaftLogStatsProto log = 10;
 }
 
+// The request/response messages below are for managing AfloatDB clusters by
+// querying states and changing group memberships.
 
 message GetRaftNodeReportRequest {
 }
 
 message GetRaftNodeReportResponse {
+    // RaftNodeReport fetched from the RaftNode object running in the contacted
+    // AfloatDB instance.
     RaftNodeReportProto report = 1;
+    // RaftEndpoint -> address pairs known by a contacted AfloatDB instance.
     map<string, string> endpointAddress = 2;
 }
 
 message AddRaftEndpointAddressRequest {
+    // RaftEndpoint for which the address is going to be specified.
     io.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
+
+    // Address of the RaftEndpoint which will be used by AfloatDB instances to
+    // communicate for that RaftEndpoint.
     string address = 2;
 }
 
@@ -104,12 +120,34 @@ message RemoveRaftEndpointResponse {
 
 
 service ManagementRequestHandler {
+    // Fetches the RaftNodeReport object from the RaftNode object running
+    // inside the contacted AfloatDB instance
     rpc getRaftNodeReport (GetRaftNodeReportRequest) returns (GetRaftNodeReportResponse) {
     }
+
+    // Adds the given RaftEndpoint -> address mapping to the contacted AfloatDB
+    // instance. Before adding a new RaftEndpoint to the RaftGroup formed by
+    // the AfloatDB cluster, its address must be added to all AfloatDB
+    // instances via this API.
     rpc addRaftEndpointAddress (AddRaftEndpointAddressRequest) returns (AddRaftEndpointAddressResponse) {
     }
+
+    // Adds a new AfloatDB instance to the AfloatDB cluster. The new AfloatDB
+    // instance is represented by the RaftEndpoint present in the request.
+    // Once an RPC to this API successfully completes, the given AfloatDB
+    // instance is added to the cluster. If an exception or an uxpected failure
+    // occurs, the caller should get the RaftNodeReport via
+    // #getRaftNodeReport() API and check if the given AfloatDB instance has
+    // been added to the cluster or not, and then initiate a new RPC if needed.
     rpc addRaftEndpoint (AddRaftEndpointRequest) returns (AddRaftEndpointResponse) {
     }
+
+    // Removes a AfloatDB instance to the AfloatDB cluster. Once an RPC to this
+    // API successfully completes, the given AfloatDB instance is removed from
+    // the cluster. If an exception or an uxpected failure occurs, the caller
+    // should get the RaftNodeReport via #getRaftNodeReport() API and check if
+    // the given AfloatDB instance has been removed from the cluster or not,
+    // and then initiate a new RPC if needed.
     rpc removeRaftEndpoint (RemoveRaftEndpointRequest) returns (RemoveRaftEndpointResponse) {
     }
 }
