@@ -31,8 +31,7 @@ import static io.microraft.test.util.AssertionUtils.sleepMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-public class LeaderServerChangeTest
-        extends BaseTest {
+public class LeaderServerChangeTest extends BaseTest {
 
     private static List<AfloatDB> servers = new ArrayList<>();
     private static AfloatDBClient client;
@@ -44,9 +43,10 @@ public class LeaderServerChangeTest
         servers.add(AfloatDB.bootstrap(CONFIG_2));
         servers.add(AfloatDB.bootstrap(CONFIG_3));
 
-        String serverAddress = servers.get(getRandomInt(servers.size())).getConfig().getLocalEndpointConfig().getAddress();
+        String serverAddress = servers.get(getRandomInt(servers.size())).getConfig().getLocalEndpointConfig()
+                .getAddress();
         Config config = ConfigFactory.parseString("afloatdb.client.server-address: \"" + serverAddress + "\"")
-                                     .withFallback(load("client.conf"));
+                .withFallback(load("client.conf"));
         client = AfloatDBClient.newInstance(AfloatDBClientConfig.from(config));
         kv = client.getKV();
     }

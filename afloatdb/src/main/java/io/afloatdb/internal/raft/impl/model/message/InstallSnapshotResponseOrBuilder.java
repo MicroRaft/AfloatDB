@@ -134,10 +134,10 @@ public class InstallSnapshotResponseOrBuilder
             return "GrpcInstallSnapshotResponseBuilder{builder=" + builder + "}";
         }
 
-        return "GrpcInstallSnapshotResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
-                + ", snapshotIndex=" + getSnapshotIndex() + ", requestedSnapshotChunkIndex=" + getRequestedSnapshotChunkIndex()
-                + ", querySequenceNumber=" + getQuerySequenceNumber() + ", flowControlSequenceNumber="
-                + getFlowControlSequenceNumber() + '}';
+        return "GrpcInstallSnapshotResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
+                + getTerm() + ", snapshotIndex=" + getSnapshotIndex() + ", requestedSnapshotChunkIndex="
+                + getRequestedSnapshotChunkIndex() + ", querySequenceNumber=" + getQuerySequenceNumber()
+                + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';
     }
 
 }

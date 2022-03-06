@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>io.afloatdb</groupId>
+        <artifactId>afloatdb-root</artifactId>
+        <version>0.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <name>AfloatDB Client CLI</name>
+    <artifactId>afloatdb-client-cli</artifactId>
+    <packaging>jar</packaging>
+
+    <properties>
+        <root.dir>${project.parent.basedir}</root.dir>
+        <afloatdb.client.cli.main.class>io.afloatdb.client.AfloatDBClientCliRunner
+        </afloatdb.client.cli.main.class>
+
+        <javax.annotation.api.version>1.2</javax.annotation.api.version>
+        <maven.assembly.plugin.version>3.3.0</maven.assembly.plugin.version>
+        <picocli.version>3.9.6</picocli.version>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>io.afloatdb</groupId>
+            <artifactId>afloatdb-client</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>${picocli.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>${maven.assembly.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <archive>
+                                <manifest>
+                                    <mainClass>${afloatdb.client.cli.main.class}</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                           <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>maven</executable>
+                    <mainClass>${afloatdb.client.cli.main.class}</mainClass>
+                    <arguments>
+                        <argument>--help</argument>
+                    </arguments>
+               </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

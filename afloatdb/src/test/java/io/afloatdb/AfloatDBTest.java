@@ -220,7 +220,7 @@ public class AfloatDBTest extends BaseTest {
         eventually(() -> {
             GetRequest request = GetRequest.newBuilder().setKey("key").build();
             GetResponse response = getRaftNode(newServer)
-                    .<KVResponse>query(Operation.newBuilder().setGetRequest(request).build(), EVENTUAL_CONSISTENCY, 0)
+                    .<KVResponse> query(Operation.newBuilder().setGetRequest(request).build(), EVENTUAL_CONSISTENCY, 0)
                     .join().getResult().getGetResponse();
             assertThat(response.getValue()).isEqualTo(putRequest.getValue());
         });
@@ -343,7 +343,7 @@ public class AfloatDBTest extends BaseTest {
 
         eventually(() -> {
             SizeResponse sizeResponse = getRaftNode(newServer)
-                    .<KVResponse>query(Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build(),
+                    .<KVResponse> query(Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build(),
                             EVENTUAL_CONSISTENCY, 0)
                     .join().getResult().getSizeResponse();
             assertThat(sizeResponse.getSize()).isEqualTo(keyCount);

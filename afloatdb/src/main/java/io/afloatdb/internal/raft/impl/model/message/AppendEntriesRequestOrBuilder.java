@@ -190,10 +190,11 @@ public class AppendEntriesRequestOrBuilder
             return "GrpcAppendEntriesFailureResponseBuilder{builder=" + builder + "}";
         }
 
-        return "GrpcAppendEntriesRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
-                + ", commitIndex=" + getCommitIndex() + ", querySequenceNumber=" + getQuerySequenceNumber()
-                + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + ", " + "prevLogIndex=" + getPreviousLogIndex()
-                + ", prevLogTerm=" + getPreviousLogTerm() + ", entries=" + getLogEntries() + '}';
+        return "GrpcAppendEntriesRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
+                + getTerm() + ", commitIndex=" + getCommitIndex() + ", querySequenceNumber=" + getQuerySequenceNumber()
+                + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + ", " + "prevLogIndex="
+                + getPreviousLogIndex() + ", prevLogTerm=" + getPreviousLogTerm() + ", entries=" + getLogEntries()
+                + '}';
     }
 
 }

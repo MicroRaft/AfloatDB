@@ -105,8 +105,8 @@ public class RaftGroupMembersViewOrBuilder implements RaftGroupMembersView, Raft
             return "GrpcRaftGroupMembersViewBuilder{builder=" + builder + "}";
         }
 
-        return "GrpcRaftGroupMembersView{" + "logIndex=" + getLogIndex() + ", members="
-                + getMembers() + ", votingMembers=" + getVotingMembers() + '}';
+        return "GrpcRaftGroupMembersView{" + "logIndex=" + getLogIndex() + ", members=" + getMembers()
+                + ", votingMembers=" + getVotingMembers() + '}';
     }
 
 }

@@ -51,16 +51,16 @@ public final class Serialization {
 
     public static Object deserialize(@Nonnull TypedValue typedValue) {
         switch (typedValue.getType()) {
-            case BYTE_ARRAY_TYPE:
-                return deserializeBytes(typedValue.getValue());
-            case INT_TYPE:
-                return deserializeInt(typedValue.getValue());
-            case LONG_TYPE:
-                return deserializeLong(typedValue.getValue());
-            case STRING_TYPE:
-                return deserializeString(typedValue.getValue());
-            default:
-                throw new IllegalArgumentException("Invalid typed value: " + typedValue);
+        case BYTE_ARRAY_TYPE:
+            return deserializeBytes(typedValue.getValue());
+        case INT_TYPE:
+            return deserializeInt(typedValue.getValue());
+        case LONG_TYPE:
+            return deserializeLong(typedValue.getValue());
+        case STRING_TYPE:
+            return deserializeString(typedValue.getValue());
+        default:
+            throw new IllegalArgumentException("Invalid typed value: " + typedValue);
         }
     }
 

@@ -34,8 +34,7 @@ import java.util.function.Supplier;
 
 import static com.google.inject.name.Names.named;
 
-public class AfloatDBClientModule
-        extends AbstractModule {
+public class AfloatDBClientModule extends AbstractModule {
 
     public static final String CLIENT_ID_KEY = "ClientId";
     public static final String CONFIG_KEY = "Config";
@@ -60,8 +59,8 @@ public class AfloatDBClientModule
         bind(ChannelManager.class).to(ChannelManagerImpl.class);
         bind(new TypeLiteral<Supplier<KV>>() {
         }).annotatedWith(named(KV_STORE_KEY)).to(KVSupplier.class);
-        Class<? extends Supplier<KVRequestHandlerBlockingStub>> kvStubSupplierClazz = config
-                .isSingleConnection() ? UniKVServiceStubManager.class : MultiKVServiceStubManager.class;
+        Class<? extends Supplier<KVRequestHandlerBlockingStub>> kvStubSupplierClazz = config.isSingleConnection()
+                ? UniKVServiceStubManager.class : MultiKVServiceStubManager.class;
         bind(new TypeLiteral<Supplier<KVRequestHandlerBlockingStub>>() {
         }).annotatedWith(named(KV_STUB_KEY)).to(kvStubSupplierClazz);
     }

@@ -24,8 +24,7 @@ import javax.inject.Singleton;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Singleton
-public class ProcessTerminationLoggerImpl
-        implements ProcessTerminationLogger {
+public class ProcessTerminationLoggerImpl implements ProcessTerminationLogger {
 
     public static final String PROCESS_TERMINATION_FLAG_KEY = "ProcessTerminationFlag";
 

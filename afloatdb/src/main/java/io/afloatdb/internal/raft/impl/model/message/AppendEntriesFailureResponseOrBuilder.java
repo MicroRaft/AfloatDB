@@ -138,8 +138,8 @@ public class AppendEntriesFailureResponseOrBuilder
             return "GrpcAppendEntriesFailureResponseBuilder{builder=" + builder + "}";
         }
 
-        return "GrpcAppendEntriesFailureResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", " + "term="
-                + getTerm() + ", expectedNextIndex=" + getExpectedNextIndex() + ", querySequenceNumber="
+        return "GrpcAppendEntriesFailureResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
+                + "term=" + getTerm() + ", expectedNextIndex=" + getExpectedNextIndex() + ", querySequenceNumber="
                 + getQuerySequenceNumber() + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';
     }
 

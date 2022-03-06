@@ -38,8 +38,7 @@ import static com.google.inject.name.Names.named;
 import static io.afloatdb.client.internal.di.AfloatDBClientModule.CLIENT_ID_KEY;
 import static io.afloatdb.client.internal.di.AfloatDBClientModule.KV_STORE_KEY;
 
-public class AfloatDBClientImpl
-        implements AfloatDBClient {
+public class AfloatDBClientImpl implements AfloatDBClient {
 
     private final AfloatDBClientConfig config;
     private final Injector injector;
@@ -120,8 +119,10 @@ public class AfloatDBClientImpl
             return;
         }
 
-        injector.getAllBindings().values().stream().filter(binding -> binding.getProvider().get() instanceof TerminationAware)
-                .map(binding -> (TerminationAware) binding.getProvider().get()).forEach(TerminationAware::awaitTermination);
+        injector.getAllBindings().values().stream()
+                .filter(binding -> binding.getProvider().get() instanceof TerminationAware)
+                .map(binding -> (TerminationAware) binding.getProvider().get())
+                .forEach(TerminationAware::awaitTermination);
         terminationCompleted = true;
     }
 

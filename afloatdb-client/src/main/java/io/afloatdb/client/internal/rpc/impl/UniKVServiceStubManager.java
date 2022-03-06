@@ -14,8 +14,7 @@ import java.util.function.Supplier;
 import static io.afloatdb.client.internal.di.AfloatDBClientModule.CONFIG_KEY;
 
 @Singleton
-public class UniKVServiceStubManager
-        implements Supplier<KVRequestHandlerBlockingStub> {
+public class UniKVServiceStubManager implements Supplier<KVRequestHandlerBlockingStub> {
 
     private final int rpcTimeoutSecs;
     private final KVRequestHandlerBlockingStub stub;

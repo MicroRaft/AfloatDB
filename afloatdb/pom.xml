@@ -19,8 +19,7 @@
         <afloatdb.main.class>io.afloatdb.RunAfloatDB</afloatdb.main.class>
 
         <protobuf.version>3.11.1</protobuf.version>
-        <io.grpc.version>1.26.0</io.grpc.version>
-        <guava.version>31.1-jre</guava.version>
+        <io.grpc.version>1.26.0</io.grpc.version> 
         <javax.annotation.api.version>1.2</javax.annotation.api.version>
 
         <os.maven.plugin.version>1.7.0</os.maven.plugin.version>
@@ -55,12 +54,6 @@
             <groupId>io.afloatdb</groupId>
             <artifactId>afloatdb-commons</artifactId>
             <version>0.1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
         </dependency>
 
         <dependency>

@@ -22,8 +22,7 @@ import io.microraft.model.log.LogEntry.LogEntryBuilder;
 
 import javax.annotation.Nonnull;
 
-public class LogEntryOrBuilder
-        implements LogEntry, LogEntryBuilder {
+public class LogEntryOrBuilder implements LogEntry, LogEntryBuilder {
 
     private LogEntryProto.Builder builder;
     private LogEntryProto entry;

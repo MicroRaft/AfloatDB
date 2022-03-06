@@ -24,8 +24,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AfloatDBEndpointConfigTest
-        extends BaseTest {
+public class AfloatDBEndpointConfigTest extends BaseTest {
 
     @Test(expected = AfloatDBException.class)
     public void when_emptyConfigStringProvided_then_shouldNotCreateConfig() {
@@ -75,8 +74,8 @@ public class AfloatDBEndpointConfigTest
 
     @Test
     public void when_builderContainsIdAndAddress_then_shouldCreateConfig() {
-        AfloatDBEndpointConfig endpointConfig = AfloatDBEndpointConfig.newBuilder().setId("node1").setAddress("localhost:6767")
-                                                                      .build();
+        AfloatDBEndpointConfig endpointConfig = AfloatDBEndpointConfig.newBuilder().setId("node1")
+                .setAddress("localhost:6767").build();
 
         assertThat(endpointConfig.getId()).isEqualTo("node1");
         assertThat(endpointConfig.getAddress()).isEqualTo("localhost:6767");

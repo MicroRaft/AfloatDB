@@ -46,8 +46,7 @@ import static io.afloatdb.client.internal.di.AfloatDBClientModule.CONFIG_KEY;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Singleton
-public class MultiKVServiceStubManager
-        implements Supplier<KVRequestHandlerBlockingStub> {
+public class MultiKVServiceStubManager implements Supplier<KVRequestHandlerBlockingStub> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MultiKVServiceStubManager.class);
     private static final long START_TIMEOUT_SECONDS = 60;
@@ -90,13 +89,15 @@ public class MultiKVServiceStubManager
         while (true) {
             AfloatDBClusterEndpoints currentEndpoints = endpointsRef.get();
             if (currentEndpoints == null || currentEndpoints.getTerm() < newEndpoints.getTerm()
-                    || currentEndpoints.getEndpointsCommitIndex() < newEndpoints.getEndpointsCommitIndex() || (
-                    currentEndpoints.getTerm() == newEndpoints.getTerm()
+                    || currentEndpoints.getEndpointsCommitIndex() < newEndpoints.getEndpointsCommitIndex()
+                    || (currentEndpoints.getTerm() == newEndpoints.getTerm()
                             && currentEndpoints.getEndpointsCommitIndex() == newEndpoints.getEndpointsCommitIndex()
-                            && isNullOrEmpty(currentEndpoints.getLeaderId()) && !isNullOrEmpty(newEndpoints.getLeaderId()))) {
+                            && isNullOrEmpty(currentEndpoints.getLeaderId())
+                            && !isNullOrEmpty(newEndpoints.getLeaderId()))) {
                 if (endpointsRef.compareAndSet(currentEndpoints, newEndpoints)) {
-                    LOGGER.info("{} updated cluster endpoints to: {} with commit index: {} and leader: {}", config.getClientId(),
-                            newEndpoints.getEndpointMap(), newEndpoints.getEndpointsCommitIndex(), newEndpoints.getLeaderId());
+                    LOGGER.info("{} updated cluster endpoints to: {} with commit index: {} and leader: {}",
+                            config.getClientId(), newEndpoints.getEndpointMap(), newEndpoints.getEndpointsCommitIndex(),
+                            newEndpoints.getLeaderId());
                     synchronized (endpointsRef) {
                         if (endpointsRef.get().getEndpointsCommitIndex() != newEndpoints.getEndpointsCommitIndex()) {
                             return;
@@ -118,7 +119,8 @@ public class MultiKVServiceStubManager
 
     private void tryUpdateKVStub(AfloatDBClusterEndpoints newEndpoints) {
         if (!isNullOrEmpty(newEndpoints.getLeaderId()) && !newEndpoints.getLeaderId().equals(kvStubServerId)) {
-            LOGGER.info("{} switching the KV stub to the new leader: {}", config.getClientId(), newEndpoints.getLeaderId());
+            LOGGER.info("{} switching the KV stub to the new leader: {}", config.getClientId(),
+                    newEndpoints.getLeaderId());
 
             String leaderAddress = newEndpoints.getEndpointMap().get(newEndpoints.getLeaderId());
             stub = KVRequestHandlerGrpc.newBlockingStub(channelManager.getOrCreateChannel(leaderAddress));
@@ -136,8 +138,8 @@ public class MultiKVServiceStubManager
         }
 
         LOGGER.info("{} created the cluster service stub for address: {}", config.getClientId(), address);
-        AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder().setClientId(config.getClientId())
-                                                                                 .build();
+        AfloatDBClusterEndpointsRequest request = AfloatDBClusterEndpointsRequest.newBuilder()
+                .setClientId(config.getClientId()).build();
         stub.listenClusterEndpoints(request, new AfloatDBClusterEndpointsResponseObserver(address, channel, stub));
     }
 
@@ -147,13 +149,13 @@ public class MultiKVServiceStubManager
         }
     }
 
-    private class AfloatDBClusterEndpointsResponseObserver
-            implements StreamObserver<AfloatDBClusterEndpointsResponse> {
+    private class AfloatDBClusterEndpointsResponseObserver implements StreamObserver<AfloatDBClusterEndpointsResponse> {
         final String address;
         final ManagedChannel channel;
         final AfloatDBClusterServiceStub stub;
 
-        AfloatDBClusterEndpointsResponseObserver(String address, ManagedChannel channel, AfloatDBClusterServiceStub stub) {
+        AfloatDBClusterEndpointsResponseObserver(String address, ManagedChannel channel,
+                AfloatDBClusterServiceStub stub) {
             this.address = address;
             this.channel = channel;
             this.stub = stub;
@@ -166,10 +168,9 @@ public class MultiKVServiceStubManager
                 LOGGER.debug("{} received {} from {}.", config.getClientId(), response, address);
                 tryUpdateClusterEndpoints(endpoints);
             } catch (Exception e) {
-                LOGGER.error(
-                        config.getClientId() + " handling of " + endpoints.getEndpointMap() + " with commit index: " + endpoints
-                                .getEndpointsCommitIndex() + " term: " + endpoints.getTerm() + " leader: " + endpoints
-                                .getLeaderId() + " failed.", e);
+                LOGGER.error(config.getClientId() + " handling of " + endpoints.getEndpointMap()
+                        + " with commit index: " + endpoints.getEndpointsCommitIndex() + " term: " + endpoints.getTerm()
+                        + " leader: " + endpoints.getLeaderId() + " failed.", e);
             }
         }
 
@@ -178,8 +179,8 @@ public class MultiKVServiceStubManager
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.error(config.getClientId() + " cluster observer of " + address + " failed.", t);
             } else {
-                LOGGER.error("{} cluster observer of {} failed. Exception: {} Message: {}", config.getClientId(), address,
-                        t.getClass().getSimpleName(), t.getMessage());
+                LOGGER.error("{} cluster observer of {} failed. Exception: {} Message: {}", config.getClientId(),
+                        address, t.getClass().getSimpleName(), t.getMessage());
             }
 
             removeClusterStub(address, stub);

@@ -29,8 +29,7 @@ import java.util.Set;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RaftGroupConfigTest
-        extends BaseTest {
+public class RaftGroupConfigTest extends BaseTest {
 
     @Test(expected = AfloatDBException.class)
     public void when_emptyConfigStringProvided_then_shouldNotCreateConfig() {
@@ -48,18 +47,18 @@ public class RaftGroupConfigTest
 
     @Test(expected = AfloatDBException.class)
     public void when_initialEndpointsAndJoinToPresentInConfigString_then_shouldNotCreateConfig() {
-        Config config = ConfigFactory.parseString(
-                "id: \"group1\"\ninitial-endpoints: [{id: \"node1\", address: " + "\"localhost:6767\"}, {id: \"node2\", address: "
-                        + "\"localhost:6768\"}, {id: \"node3\", address: " + "\"localhost:6769\"}]\njoin-to:\"localhost:6767\"");
+        Config config = ConfigFactory.parseString("id: \"group1\"\ninitial-endpoints: [{id: \"node1\", address: "
+                + "\"localhost:6767\"}, {id: \"node2\", address: " + "\"localhost:6768\"}, {id: \"node3\", address: "
+                + "\"localhost:6769\"}]\njoin-to:\"localhost:6767\"");
 
         RaftGroupConfig.from(config);
     }
 
     @Test
     public void when_initialEndpointsPresent_then_shouldCreateConfig() {
-        Config config = ConfigFactory.parseString(
-                "id: \"group1\"\ninitial-endpoints: [{id: \"node1\", address: " + "\"localhost:6767\"}, {id: \"node2\", address: "
-                        + "\"localhost:6768\"}, {id: \"node3\", address: " + "\"localhost:6769\"}]");
+        Config config = ConfigFactory.parseString("id: \"group1\"\ninitial-endpoints: [{id: \"node1\", address: "
+                + "\"localhost:6767\"}, {id: \"node2\", address: " + "\"localhost:6768\"}, {id: \"node3\", address: "
+                + "\"localhost:6769\"}]");
 
         RaftGroupConfig groupConfig = RaftGroupConfig.from(config);
 
@@ -89,18 +88,18 @@ public class RaftGroupConfigTest
 
     @Test(expected = AfloatDBException.class)
     public void when_duplicateIdExistsInConfig_then_shouldNotCreateConfig() {
-        Config config = ConfigFactory.parseString(
-                "id: \"group1\"\ninitial-endpoints: [{id: \"node1\", address: " + "\"localhost:6767\"}, {id: \"node2\", address: "
-                        + "\"localhost:6768\"}, {id: \"node1\", address: " + "\"localhost:6769\"}]");
+        Config config = ConfigFactory.parseString("id: \"group1\"\ninitial-endpoints: [{id: \"node1\", address: "
+                + "\"localhost:6767\"}, {id: \"node2\", address: " + "\"localhost:6768\"}, {id: \"node1\", address: "
+                + "\"localhost:6769\"}]");
 
         RaftGroupConfig.from(config);
     }
 
     @Test(expected = AfloatDBException.class)
     public void when_duplicateAddressExistsInConfig_then_shouldNotCreateConfig() {
-        Config config = ConfigFactory.parseString(
-                "id: \"group1\"\ninitial-endpoints: [{id: \"node1\", address: " + "\"localhost:6767\"}, {id: \"node2\", address: "
-                        + "\"localhost:6768\"}, {id: \"node3\", address: " + "\"localhost:6767\"}]");
+        Config config = ConfigFactory.parseString("id: \"group1\"\ninitial-endpoints: [{id: \"node1\", address: "
+                + "\"localhost:6767\"}, {id: \"node2\", address: " + "\"localhost:6768\"}, {id: \"node3\", address: "
+                + "\"localhost:6767\"}]");
 
         RaftGroupConfig.from(config);
     }
@@ -126,14 +125,14 @@ public class RaftGroupConfigTest
     @Test
     public void when_initialEndpointsPresentInBuilder_then_shouldCreateConfig() {
         AfloatDBEndpointConfig endpointConfig1 = AfloatDBEndpointConfig.newBuilder().setId("node1")
-                                                                       .setAddress("localhost" + ":6767").build();
+                .setAddress("localhost" + ":6767").build();
         AfloatDBEndpointConfig endpointConfig2 = AfloatDBEndpointConfig.newBuilder().setId("node2")
-                                                                       .setAddress("localhost" + ":6768").build();
+                .setAddress("localhost" + ":6768").build();
         AfloatDBEndpointConfig endpointConfig3 = AfloatDBEndpointConfig.newBuilder().setId("node3")
-                                                                       .setAddress("localhost" + ":6769").build();
+                .setAddress("localhost" + ":6769").build();
 
-        RaftGroupConfig groupConfig = RaftGroupConfig.newBuilder().setId("group1").setInitialEndpoints(
-                Arrays.asList(endpointConfig1, endpointConfig2, endpointConfig3)).build();
+        RaftGroupConfig groupConfig = RaftGroupConfig.newBuilder().setId("group1")
+                .setInitialEndpoints(Arrays.asList(endpointConfig1, endpointConfig2, endpointConfig3)).build();
 
         assertThat(groupConfig.getId()).isEqualTo("group1");
         assertThat(groupConfig.getInitialEndpoints()).hasSize(3);
@@ -143,27 +142,27 @@ public class RaftGroupConfigTest
     @Test(expected = AfloatDBException.class)
     public void when_duplicateIdExistsInBuilder_then_shouldNotCreateConfig() {
         AfloatDBEndpointConfig endpointConfig1 = AfloatDBEndpointConfig.newBuilder().setId("node1")
-                                                                       .setAddress("localhost" + ":6767").build();
+                .setAddress("localhost" + ":6767").build();
         AfloatDBEndpointConfig endpointConfig2 = AfloatDBEndpointConfig.newBuilder().setId("node2")
-                                                                       .setAddress("localhost" + ":6768").build();
+                .setAddress("localhost" + ":6768").build();
         AfloatDBEndpointConfig endpointConfig3 = AfloatDBEndpointConfig.newBuilder().setId("node1")
-                                                                       .setAddress("localhost" + ":6769").build();
+                .setAddress("localhost" + ":6769").build();
 
         RaftGroupConfig.newBuilder().setId("group1")
-                       .setInitialEndpoints(Arrays.asList(endpointConfig1, endpointConfig2, endpointConfig3)).build();
+                .setInitialEndpoints(Arrays.asList(endpointConfig1, endpointConfig2, endpointConfig3)).build();
     }
 
     @Test(expected = AfloatDBException.class)
     public void when_duplicateAddressExistsInBuilder_then_shouldNotCreateConfig() {
         AfloatDBEndpointConfig endpointConfig1 = AfloatDBEndpointConfig.newBuilder().setId("node1")
-                                                                       .setAddress("localhost" + ":6767").build();
+                .setAddress("localhost" + ":6767").build();
         AfloatDBEndpointConfig endpointConfig2 = AfloatDBEndpointConfig.newBuilder().setId("node2")
-                                                                       .setAddress("localhost" + ":6768").build();
+                .setAddress("localhost" + ":6768").build();
         AfloatDBEndpointConfig endpointConfig3 = AfloatDBEndpointConfig.newBuilder().setId("node3")
-                                                                       .setAddress("localhost" + ":6767").build();
+                .setAddress("localhost" + ":6767").build();
 
         RaftGroupConfig.newBuilder().setId("group1")
-                       .setInitialEndpoints(Arrays.asList(endpointConfig1, endpointConfig2, endpointConfig3)).build();
+                .setInitialEndpoints(Arrays.asList(endpointConfig1, endpointConfig2, endpointConfig3)).build();
     }
 
 }

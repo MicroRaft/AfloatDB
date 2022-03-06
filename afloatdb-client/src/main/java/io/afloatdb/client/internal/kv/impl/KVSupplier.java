@@ -27,8 +27,7 @@ import java.util.function.Supplier;
 import static io.afloatdb.client.internal.di.AfloatDBClientModule.KV_STUB_KEY;
 
 @Singleton
-public class KVSupplier
-        implements Supplier<KV> {
+public class KVSupplier implements Supplier<KV> {
 
     private final KV kv;
 

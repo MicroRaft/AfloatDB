@@ -216,10 +216,10 @@ public class KVTest extends BaseTest {
     @Test
     public void testSetByteArray() {
         Ordered<Void> result1 = kv.set(KEY, BYTES_1);
-        assertThat(kv.<byte[]>get(KEY).get()).isEqualTo(BYTES_1);
+        assertThat(kv.<byte[]> get(KEY).get()).isEqualTo(BYTES_1);
 
         Ordered<Void> result2 = kv.set(KEY, BYTES_2);
-        assertThat(kv.<byte[]>get(KEY).get()).isEqualTo(BYTES_2);
+        assertThat(kv.<byte[]> get(KEY).get()).isEqualTo(BYTES_2);
 
         assertThat(result1.getCommitIndex()).isGreaterThan(0);
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
@@ -228,10 +228,10 @@ public class KVTest extends BaseTest {
     @Test
     public void testSetInt() {
         Ordered<Void> result1 = kv.set(KEY, INT_1);
-        assertThat(kv.<Integer>get(KEY).get()).isEqualTo(INT_1);
+        assertThat(kv.<Integer> get(KEY).get()).isEqualTo(INT_1);
 
         Ordered<Void> result2 = kv.set(KEY, INT_2);
-        assertThat(kv.<Integer>get(KEY).get()).isEqualTo(INT_2);
+        assertThat(kv.<Integer> get(KEY).get()).isEqualTo(INT_2);
 
         assertThat(result1.getCommitIndex()).isGreaterThan(0);
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
@@ -240,10 +240,10 @@ public class KVTest extends BaseTest {
     @Test
     public void testSetLong() {
         Ordered<Void> result1 = kv.set(KEY, LONG_1);
-        assertThat(kv.<Long>get(KEY).get()).isEqualTo(LONG_1);
+        assertThat(kv.<Long> get(KEY).get()).isEqualTo(LONG_1);
 
         Ordered<Void> result2 = kv.set(KEY, LONG_2);
-        assertThat(kv.<Long>get(KEY).get()).isEqualTo(LONG_2);
+        assertThat(kv.<Long> get(KEY).get()).isEqualTo(LONG_2);
 
         assertThat(result1.getCommitIndex()).isGreaterThan(0);
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
@@ -252,10 +252,10 @@ public class KVTest extends BaseTest {
     @Test
     public void testSetString() {
         Ordered<Void> result1 = kv.set(KEY, STRING_1);
-        assertThat(kv.<String>get(KEY).get()).isEqualTo(STRING_1);
+        assertThat(kv.<String> get(KEY).get()).isEqualTo(STRING_1);
 
         Ordered<Void> result2 = kv.set(KEY, STRING_2);
-        assertThat(kv.<String>get(KEY).get()).isEqualTo(STRING_2);
+        assertThat(kv.<String> get(KEY).get()).isEqualTo(STRING_2);
 
         assertThat(result1.getCommitIndex()).isGreaterThan(0);
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
@@ -267,7 +267,7 @@ public class KVTest extends BaseTest {
         String val1 = "val1";
         String val2 = "val2";
 
-        String val = kv.<String>get(key).get();
+        String val = kv.<String> get(key).get();
         assertThat(val).isNull();
 
         boolean contains = kv.containsKey(key).get();
@@ -275,12 +275,12 @@ public class KVTest extends BaseTest {
 
         kv.set(key, val1);
 
-        val = kv.<String>get(key).get();
+        val = kv.<String> get(key).get();
         assertThat(val).isEqualTo(val1);
 
         kv.set(key, val2);
 
-        val = kv.<String>get(key).get();
+        val = kv.<String> get(key).get();
         assertThat(val).isEqualTo(val2);
     }
 
@@ -355,24 +355,24 @@ public class KVTest extends BaseTest {
         String key = "key1";
         String val1 = "val1";
 
-        String val = kv.<String>get(key).get();
+        String val = kv.<String> get(key).get();
         assertThat(val).isNull();
 
         kv.set(key, val1);
 
-        val = kv.<String>get(key).get();
+        val = kv.<String> get(key).get();
         assertThat(val).isEqualTo(val1);
 
         Ordered<Boolean> result1 = kv.delete(key);
         assertTrue(result1.get());
 
-        val = kv.<String>get(key).get();
+        val = kv.<String> get(key).get();
         assertThat(val).isNull();
 
         Ordered<Boolean> result2 = kv.delete(key);
         assertFalse(result2.get());
 
-        val = kv.<String>get(key).get();
+        val = kv.<String> get(key).get();
         assertThat(val).isNull();
 
         assertThat(result1.getCommitIndex()).isGreaterThan(0);

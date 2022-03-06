@@ -100,8 +100,9 @@ public class TriggerLeaderElectionRequestOrBuilder
             return "GrpcTriggerLeaderElectionRequestBuilder{builder=" + builder + "}";
         }
 
-        return "GrpcTriggerLeaderElectionRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", " + "term="
-                + getTerm() + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex() + '}';
+        return "GrpcTriggerLeaderElectionRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
+                + "term=" + getTerm() + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex()
+                + '}';
     }
 
     @Override

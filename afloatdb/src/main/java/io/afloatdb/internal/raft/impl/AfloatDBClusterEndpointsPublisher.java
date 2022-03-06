@@ -47,8 +47,7 @@ import static io.microraft.report.RaftNodeReport.RaftNodeReportReason.PERIODIC;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Singleton
-public class AfloatDBClusterEndpointsPublisher
-        extends AfloatDBClusterServiceImplBase
+public class AfloatDBClusterEndpointsPublisher extends AfloatDBClusterServiceImplBase
         implements RaftNodeReportSupplier {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AfloatDBClusterEndpointsPublisher.class);
@@ -63,12 +62,12 @@ public class AfloatDBClusterEndpointsPublisher
 
     @Inject
     public AfloatDBClusterEndpointsPublisher(@Named(CONFIG_KEY) AfloatDBConfig config,
-                                             @Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
-                                             RaftRpcService raftRpcService) {
+            @Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint, RaftRpcService raftRpcService) {
         this.config = config;
         this.localEndpoint = localEndpoint;
         this.raftRpcService = raftRpcService;
-        this.raftNodeReportIdlePublishTimestamp = System.currentTimeMillis() - CLUSTER_ENDPOINTS_IDLE_PUBLISH_DURATION_MILLIS;
+        this.raftNodeReportIdlePublishTimestamp = System.currentTimeMillis()
+                - CLUSTER_ENDPOINTS_IDLE_PUBLISH_DURATION_MILLIS;
     }
 
     @PreDestroy
@@ -78,10 +77,11 @@ public class AfloatDBClusterEndpointsPublisher
 
     @Override
     public void listenClusterEndpoints(AfloatDBClusterEndpointsRequest request,
-                                       StreamObserver<AfloatDBClusterEndpointsResponse> responseObserver) {
+            StreamObserver<AfloatDBClusterEndpointsResponse> responseObserver) {
         StreamObserver<AfloatDBClusterEndpointsResponse> prev = observers.put(request.getClientId(), responseObserver);
         if (prev != null) {
-            LOGGER.warn("{} completing already existing stream observer for {}.", localEndpoint.getId(), request.getClientId());
+            LOGGER.warn("{} completing already existing stream observer for {}.", localEndpoint.getId(),
+                    request.getClientId());
             runSilently(prev::onCompleted);
         }
 
@@ -93,10 +93,11 @@ public class AfloatDBClusterEndpointsPublisher
                 LOGGER.debug("{} sent {} to {}.", localEndpoint.getId(), lastReport, request.getClientId());
             } catch (Throwable t) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.warn(localEndpoint.getId() + " could not send cluster endpoints to " + request.getClientId(), t);
+                    LOGGER.warn(localEndpoint.getId() + " could not send cluster endpoints to " + request.getClientId(),
+                            t);
                 } else {
-                    LOGGER.warn("{} could not send cluster endpoints to {}. Exception: {} Message: {}", localEndpoint.getId(),
-                            request.getClientId(), t.getClass().getSimpleName(), t.getMessage());
+                    LOGGER.warn("{} could not send cluster endpoints to {}. Exception: {} Message: {}",
+                            localEndpoint.getId(), request.getClientId(), t.getClass().getSimpleName(), t.getMessage());
                 }
 
                 observers.remove(request.getClientId(), responseObserver);
@@ -107,7 +108,8 @@ public class AfloatDBClusterEndpointsPublisher
     @Override
     public void accept(@Nonnull RaftNodeReport report) {
         long now = System.currentTimeMillis();
-        boolean publishForIdleState = now - raftNodeReportIdlePublishTimestamp >= CLUSTER_ENDPOINTS_IDLE_PUBLISH_DURATION_MILLIS;
+        boolean publishForIdleState = now
+                - raftNodeReportIdlePublishTimestamp >= CLUSTER_ENDPOINTS_IDLE_PUBLISH_DURATION_MILLIS;
         if (publishForIdleState) {
             raftNodeReportIdlePublishTimestamp = now;
         }
@@ -132,8 +134,8 @@ public class AfloatDBClusterEndpointsPublisher
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.warn(localEndpoint.getId() + " could not send cluster endpoints to " + clientId, t);
                 } else {
-                    LOGGER.warn("{} could not send cluster endpoints to {}. Exception: {} Message: {}", localEndpoint.getId(),
-                            clientId, t.getClass().getSimpleName(), t.getMessage());
+                    LOGGER.warn("{} could not send cluster endpoints to {}. Exception: {} Message: {}",
+                            localEndpoint.getId(), clientId, t.getClass().getSimpleName(), t.getMessage());
                 }
                 it.remove();
 
@@ -154,8 +156,9 @@ public class AfloatDBClusterEndpointsPublisher
 
         endpointsBuilder.setTerm(report.getTerm().getTerm());
 
-        raftRpcService.getAddresses().entrySet().stream().filter(e -> committedMembers.getMembers().contains(e.getKey()))
-                      .forEach(e -> endpointsBuilder.putEndpoint((String) e.getKey().getId(), e.getValue()));
+        raftRpcService.getAddresses().entrySet().stream()
+                .filter(e -> committedMembers.getMembers().contains(e.getKey()))
+                .forEach(e -> endpointsBuilder.putEndpoint((String) e.getKey().getId(), e.getValue()));
 
         return AfloatDBClusterEndpointsResponse.newBuilder().setEndpoints(endpointsBuilder.build()).build();
     }

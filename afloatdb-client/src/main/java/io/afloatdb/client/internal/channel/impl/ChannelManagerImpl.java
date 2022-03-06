@@ -23,8 +23,7 @@ import static io.afloatdb.client.internal.di.AfloatDBClientModule.CONFIG_KEY;
 import static java.util.Objects.requireNonNull;
 
 @Singleton
-public class ChannelManagerImpl
-        implements ChannelManager {
+public class ChannelManagerImpl implements ChannelManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChannelManager.class);
 
@@ -33,7 +32,8 @@ public class ChannelManagerImpl
     private final ProcessTerminationLogger processTerminationLogger;
 
     @Inject
-    public ChannelManagerImpl(@Named(CONFIG_KEY) AfloatDBClientConfig config, ProcessTerminationLogger processTerminationLogger) {
+    public ChannelManagerImpl(@Named(CONFIG_KEY) AfloatDBClientConfig config,
+            ProcessTerminationLogger processTerminationLogger) {
         this.config = config;
         this.processTerminationLogger = processTerminationLogger;
     }

@@ -59,8 +59,7 @@ import static io.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
  * State machine implementation of KV.proto
  */
 @Singleton
-public class KVStoreStateMachine
-        implements StateMachine {
+public class KVStoreStateMachine implements StateMachine {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KVStoreStateMachine.class);
 
@@ -83,29 +82,28 @@ public class KVStoreStateMachine
 
         Operation o = (Operation) operation;
         switch (o.getOperationCase()) {
-            case STARTNEWTERMOP:
-                return null;
-            case PUTREQUEST:
-                return put(commitIndex, o.getPutRequest());
-            case SETREQUEST:
-                return set(commitIndex, o.getSetRequest());
-            case GETREQUEST:
-                return get(commitIndex, o.getGetRequest());
-            case CONTAINSREQUEST:
-                return contains(commitIndex, o.getContainsRequest());
-            case DELETEREQUEST:
-                return delete(commitIndex, o.getDeleteRequest());
-            case REMOVEREQUEST:
-                return remove(commitIndex, o.getRemoveRequest());
-            case REPLACEREQUEST:
-                return replace(commitIndex, o.getReplaceRequest());
-            case SIZEREQUEST:
-                return size(commitIndex);
-            case CLEARREQUEST:
-                return clear(commitIndex);
-            default:
-                throw new IllegalArgumentException(
-                        "Invalid operation: " + operation + " at commit index: " + commitIndex);
+        case STARTNEWTERMOP:
+            return null;
+        case PUTREQUEST:
+            return put(commitIndex, o.getPutRequest());
+        case SETREQUEST:
+            return set(commitIndex, o.getSetRequest());
+        case GETREQUEST:
+            return get(commitIndex, o.getGetRequest());
+        case CONTAINSREQUEST:
+            return contains(commitIndex, o.getContainsRequest());
+        case DELETEREQUEST:
+            return delete(commitIndex, o.getDeleteRequest());
+        case REMOVEREQUEST:
+            return remove(commitIndex, o.getRemoveRequest());
+        case REPLACEREQUEST:
+            return replace(commitIndex, o.getReplaceRequest());
+        case SIZEREQUEST:
+            return size(commitIndex);
+        case CLEARREQUEST:
+            return clear(commitIndex);
+        default:
+            throw new IllegalArgumentException("Invalid operation: " + operation + " at commit index: " + commitIndex);
         }
     }
 
@@ -214,8 +212,7 @@ public class KVStoreStateMachine
         }
 
         LOGGER.info("{} took snapshot with {} chunks and {} keys at log index: {}", localMember.getId(), chunkCount,
-                keyCount,
-                commitIndex);
+                keyCount, commitIndex);
 
         // try {
         // Output out = ByteString.newOutput();

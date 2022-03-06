@@ -25,8 +25,7 @@ import io.microraft.model.message.VoteRequest.VoteRequestBuilder;
 
 import javax.annotation.Nonnull;
 
-public class VoteRequestOrBuilder
-        implements VoteRequest, VoteRequestBuilder, RaftMessageRequestAware {
+public class VoteRequestOrBuilder implements VoteRequest, VoteRequestBuilder, RaftMessageRequestAware {
 
     private VoteRequestProto.Builder builder;
     private VoteRequestProto request;
@@ -108,7 +107,8 @@ public class VoteRequestOrBuilder
         }
 
         return "GrpcVoteRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
-                + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex() + ", sticky=" + isSticky() + '}';
+                + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex() + ", sticky=" + isSticky()
+                + '}';
     }
 
     @Override

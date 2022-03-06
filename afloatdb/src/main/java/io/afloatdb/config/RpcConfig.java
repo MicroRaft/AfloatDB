@@ -54,7 +54,6 @@ public class RpcConfig {
         return "RpcConfig{" + "rpcTimeoutSecs=" + rpcTimeoutSecs + ", retryLimit=" + retryLimit + '}';
     }
 
-
     public static class RpcConfigBuilder {
 
         private RpcConfig config = new RpcConfig();
@@ -64,7 +63,8 @@ public class RpcConfig {
 
         public RpcConfigBuilder setRpcTimeoutSecs(long rpcTimeoutSecs) {
             if (rpcTimeoutSecs < 1) {
-                throw new IllegalArgumentException("Rpc timeout seconds: " + rpcTimeoutSecs + " cannot be non-positive!");
+                throw new IllegalArgumentException(
+                        "Rpc timeout seconds: " + rpcTimeoutSecs + " cannot be non-positive!");
             }
 
             config.rpcTimeoutSecs = rpcTimeoutSecs;

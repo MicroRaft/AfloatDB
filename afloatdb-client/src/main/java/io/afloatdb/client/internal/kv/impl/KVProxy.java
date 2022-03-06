@@ -234,8 +234,7 @@ public class KVProxy implements KV {
     @Override
     public Ordered<Boolean> replace(@Nonnull String key, @Nonnull Object oldValue, @Nonnull Object newValue) {
         ReplaceRequest request = ReplaceRequest.newBuilder().setKey(requireNonNull(key))
-                .setOldValue(getTypedValue(oldValue))
-                .setNewValue(getTypedValue(newValue)).build();
+                .setOldValue(getTypedValue(oldValue)).setNewValue(getTypedValue(newValue)).build();
         KVResponse response = kvStubSupplier.get().replace(request);
         return new OrderedImpl<>(response.getCommitIndex(), response.getReplaceResponse().getSuccess());
     }
@@ -281,6 +280,11 @@ public class KVProxy implements KV {
         @Override
         public T get() {
             return value;
+        }
+
+        @Override
+        public String toString() {
+            return "Ordered{commitIndex=" + commitIndex + ", value=" + value + "}";
         }
 
     }

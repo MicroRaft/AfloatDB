@@ -69,7 +69,8 @@ public class AfloatDBClientConfig {
     @Override
     public String toString() {
         return "AfloatDBClientConfig{" + "config=" + config + ", clientId='" + clientId + '\'' + ", serverAddress='"
-                + serverAddress + '\'' + ", singleConnection=" + singleConnection + ", rpcTimeoutSecs=" + rpcTimeoutSecs + '}';
+                + serverAddress + '\'' + ", singleConnection=" + singleConnection + ", rpcTimeoutSecs=" + rpcTimeoutSecs
+                + '}';
     }
 
     public boolean isSingleConnection() {
@@ -104,7 +105,8 @@ public class AfloatDBClientConfig {
 
         public AfloatDBClientConfigBuilder setRpcTimeoutSecs(int rpcTimeoutSecs) {
             if (rpcTimeoutSecs < 1) {
-                throw new IllegalArgumentException("Rpc timeout seconds: " + rpcTimeoutSecs + " cannot be non-positive!");
+                throw new IllegalArgumentException(
+                        "Rpc timeout seconds: " + rpcTimeoutSecs + " cannot be non-positive!");
             }
             this.rpcTimeoutSecs = rpcTimeoutSecs;
             return this;

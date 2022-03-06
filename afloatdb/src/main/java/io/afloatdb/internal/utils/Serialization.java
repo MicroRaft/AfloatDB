@@ -66,22 +66,22 @@ public final class Serialization {
 
     public static RaftNodeReportReasonProto toProto(RaftNodeReportReason reason) {
         switch (reason) {
-            case STATUS_CHANGE:
-                return RaftNodeReportReasonProto.STATUS_CHANGE;
-            case ROLE_CHANGE:
-                return RaftNodeReportReasonProto.ROLE_CHANGE;
-            case GROUP_MEMBERS_CHANGE:
-                return RaftNodeReportReasonProto.GROUP_MEMBERS_CHANGE;
-            case TAKE_SNAPSHOT:
-                return RaftNodeReportReasonProto.TAKE_SNAPSHOT;
-            case INSTALL_SNAPSHOT:
-                return RaftNodeReportReasonProto.INSTALL_SNAPSHOT;
-            case PERIODIC:
-                return RaftNodeReportReasonProto.PERIODIC;
-            case API_CALL:
-                return RaftNodeReportReasonProto.API_CALL;
-            default:
-                throw new IllegalArgumentException("Invalid RaftNodeReportReason: " + reason);
+        case STATUS_CHANGE:
+            return RaftNodeReportReasonProto.STATUS_CHANGE;
+        case ROLE_CHANGE:
+            return RaftNodeReportReasonProto.ROLE_CHANGE;
+        case GROUP_MEMBERS_CHANGE:
+            return RaftNodeReportReasonProto.GROUP_MEMBERS_CHANGE;
+        case TAKE_SNAPSHOT:
+            return RaftNodeReportReasonProto.TAKE_SNAPSHOT;
+        case INSTALL_SNAPSHOT:
+            return RaftNodeReportReasonProto.INSTALL_SNAPSHOT;
+        case PERIODIC:
+            return RaftNodeReportReasonProto.PERIODIC;
+        case API_CALL:
+            return RaftNodeReportReasonProto.API_CALL;
+        default:
+            throw new IllegalArgumentException("Invalid RaftNodeReportReason: " + reason);
         }
     }
 
@@ -96,32 +96,32 @@ public final class Serialization {
 
     public static RaftRoleProto toProto(RaftRole role) {
         switch (role) {
-            case LEADER:
-                return RaftRoleProto.LEADER;
-            case CANDIDATE:
-                return RaftRoleProto.CANDIDATE;
-            case FOLLOWER:
-                return RaftRoleProto.FOLLOWER;
-            case LEARNER:
-                return RaftRoleProto.LEARNER;
+        case LEADER:
+            return RaftRoleProto.LEADER;
+        case CANDIDATE:
+            return RaftRoleProto.CANDIDATE;
+        case FOLLOWER:
+            return RaftRoleProto.FOLLOWER;
+        case LEARNER:
+            return RaftRoleProto.LEARNER;
 
-            default:
-                throw new IllegalArgumentException("Invalid RaftRole: " + role);
+        default:
+            throw new IllegalArgumentException("Invalid RaftRole: " + role);
         }
     }
 
     public static RaftNodeStatusProto toProto(RaftNodeStatus status) {
         switch (status) {
-            case INITIAL:
-                return RaftNodeStatusProto.INITIAL;
-            case ACTIVE:
-                return RaftNodeStatusProto.ACTIVE;
-            case UPDATING_RAFT_GROUP_MEMBER_LIST:
-                return RaftNodeStatusProto.UPDATING_RAFT_GROUP_MEMBER_LIST;
-            case TERMINATED:
-                return RaftNodeStatusProto.TERMINATED;
-            default:
-                throw new IllegalArgumentException("Invalid RaftNodeStatus: " + status);
+        case INITIAL:
+            return RaftNodeStatusProto.INITIAL;
+        case ACTIVE:
+            return RaftNodeStatusProto.ACTIVE;
+        case UPDATING_RAFT_GROUP_MEMBER_LIST:
+            return RaftNodeStatusProto.UPDATING_RAFT_GROUP_MEMBER_LIST;
+        case TERMINATED:
+            return RaftNodeStatusProto.TERMINATED;
+        default:
+            throw new IllegalArgumentException("Invalid RaftNodeStatus: " + status);
         }
     }
 
@@ -156,58 +156,58 @@ public final class Serialization {
 
     public static QUERY_POLICY toProto(@Nonnull QueryPolicy queryPolicy) {
         switch (queryPolicy) {
-            case EVENTUAL_CONSISTENCY:
-                return QUERY_POLICY.EVENTUAL_CONSISTENCY;
-            case BOUNDED_STALENESS:
-                return QUERY_POLICY.BOUNDED_STALENESS;
-            case LEADER_LEASE:
-                return QUERY_POLICY.LEADER_LEASE;
-            case LINEARIZABLE:
-                return QUERY_POLICY.LINEARIZABLE;
-            default:
-                throw new IllegalArgumentException("Invalid query policy: " + queryPolicy);
+        case EVENTUAL_CONSISTENCY:
+            return QUERY_POLICY.EVENTUAL_CONSISTENCY;
+        case BOUNDED_STALENESS:
+            return QUERY_POLICY.BOUNDED_STALENESS;
+        case LEADER_LEASE:
+            return QUERY_POLICY.LEADER_LEASE;
+        case LINEARIZABLE:
+            return QUERY_POLICY.LINEARIZABLE;
+        default:
+            throw new IllegalArgumentException("Invalid query policy: " + queryPolicy);
         }
     }
 
     public static QueryPolicy fromProto(QUERY_POLICY queryPolicy) {
         switch (queryPolicy.getNumber()) {
-            case QUERY_POLICY.EVENTUAL_CONSISTENCY_VALUE:
-                return QueryPolicy.EVENTUAL_CONSISTENCY;
-            case QUERY_POLICY.BOUNDED_STALENESS_VALUE:
-                return QueryPolicy.BOUNDED_STALENESS;
-            case QUERY_POLICY.LEADER_LEASE_VALUE:
-                return QueryPolicy.LEADER_LEASE;
-            case QUERY_POLICY.LINEARIZABLE_VALUE:
-                return QueryPolicy.LINEARIZABLE;
-            default:
-                return null;
+        case QUERY_POLICY.EVENTUAL_CONSISTENCY_VALUE:
+            return QueryPolicy.EVENTUAL_CONSISTENCY;
+        case QUERY_POLICY.BOUNDED_STALENESS_VALUE:
+            return QueryPolicy.BOUNDED_STALENESS;
+        case QUERY_POLICY.LEADER_LEASE_VALUE:
+            return QueryPolicy.LEADER_LEASE;
+        case QUERY_POLICY.LINEARIZABLE_VALUE:
+            return QueryPolicy.LINEARIZABLE;
+        default:
+            return null;
         }
     }
 
     public static RaftMessage unwrap(@Nonnull RaftMessageRequest request) {
         switch (request.getMessageCase()) {
-            case VOTEREQUEST:
-                return new VoteRequestOrBuilder(request.getVoteRequest());
-            case VOTERESPONSE:
-                return new VoteResponseOrBuilder(request.getVoteResponse());
-            case APPENDENTRIESREQUEST:
-                return new AppendEntriesRequestOrBuilder(request.getAppendEntriesRequest());
-            case APPENDENTRIESSUCCESSRESPONSE:
-                return new AppendEntriesSuccessResponseOrBuilder(request.getAppendEntriesSuccessResponse());
-            case APPENDENTRIESFAILURERESPONSE:
-                return new AppendEntriesFailureResponseOrBuilder(request.getAppendEntriesFailureResponse());
-            case INSTALLSNAPSHOTREQUEST:
-                return new InstallSnapshotRequestOrBuilder(request.getInstallSnapshotRequest());
-            case INSTALLSNAPSHOTRESPONSE:
-                return new InstallSnapshotResponseOrBuilder(request.getInstallSnapshotResponse());
-            case PREVOTEREQUEST:
-                return new PreVoteRequestOrBuilder(request.getPreVoteRequest());
-            case PREVOTERESPONSE:
-                return new PreVoteResponseOrBuilder(request.getPreVoteResponse());
-            case TRIGGERLEADERELECTIONREQUEST:
-                return new TriggerLeaderElectionRequestOrBuilder(request.getTriggerLeaderElectionRequest());
-            default:
-                throw new IllegalArgumentException("Invalid request: " + request);
+        case VOTEREQUEST:
+            return new VoteRequestOrBuilder(request.getVoteRequest());
+        case VOTERESPONSE:
+            return new VoteResponseOrBuilder(request.getVoteResponse());
+        case APPENDENTRIESREQUEST:
+            return new AppendEntriesRequestOrBuilder(request.getAppendEntriesRequest());
+        case APPENDENTRIESSUCCESSRESPONSE:
+            return new AppendEntriesSuccessResponseOrBuilder(request.getAppendEntriesSuccessResponse());
+        case APPENDENTRIESFAILURERESPONSE:
+            return new AppendEntriesFailureResponseOrBuilder(request.getAppendEntriesFailureResponse());
+        case INSTALLSNAPSHOTREQUEST:
+            return new InstallSnapshotRequestOrBuilder(request.getInstallSnapshotRequest());
+        case INSTALLSNAPSHOTRESPONSE:
+            return new InstallSnapshotResponseOrBuilder(request.getInstallSnapshotResponse());
+        case PREVOTEREQUEST:
+            return new PreVoteRequestOrBuilder(request.getPreVoteRequest());
+        case PREVOTERESPONSE:
+            return new PreVoteResponseOrBuilder(request.getPreVoteResponse());
+        case TRIGGERLEADERELECTIONREQUEST:
+            return new TriggerLeaderElectionRequestOrBuilder(request.getTriggerLeaderElectionRequest());
+        default:
+            throw new IllegalArgumentException("Invalid request: " + request);
         }
     }
 

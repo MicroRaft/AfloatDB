@@ -28,13 +28,13 @@ public class AfloatDBClientBenchmarkRunner {
     @Option(name = "--timeUnit")
     private TimeUnit timeUnit;
 
-    public void runBenchmark(String[] args)
-            throws RunnerException, CmdLineException {
+    public void runBenchmark(String[] args) throws RunnerException, CmdLineException {
         CmdLineParser parser = new CmdLineParser(this);
         parser.getProperties().withUsageWidth(80);
         parser.parseArgument(args);
 
-        ChainedOptionsBuilder optionsBuilder = new OptionsBuilder().include(AfloatDBClientBenchmark.class.getSimpleName());
+        ChainedOptionsBuilder optionsBuilder = new OptionsBuilder()
+                .include(AfloatDBClientBenchmark.class.getSimpleName());
 
         if (threads > 0) {
             optionsBuilder.threads(threads);
@@ -59,8 +59,7 @@ public class AfloatDBClientBenchmarkRunner {
         new Runner(optionsBuilder.build()).run();
     }
 
-    public static void main(String[] args)
-            throws RunnerException, CmdLineException {
+    public static void main(String[] args) throws RunnerException, CmdLineException {
         new AfloatDBClientBenchmarkRunner().runBenchmark(args);
     }
 

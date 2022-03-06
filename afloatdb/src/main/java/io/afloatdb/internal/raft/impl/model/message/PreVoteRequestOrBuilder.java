@@ -25,8 +25,7 @@ import io.microraft.model.message.PreVoteRequest.PreVoteRequestBuilder;
 
 import javax.annotation.Nonnull;
 
-public class PreVoteRequestOrBuilder
-        implements PreVoteRequest, PreVoteRequestBuilder, RaftMessageRequestAware {
+public class PreVoteRequestOrBuilder implements PreVoteRequest, PreVoteRequestBuilder, RaftMessageRequestAware {
 
     private PreVoteRequestProto.Builder builder;
     private PreVoteRequestProto request;

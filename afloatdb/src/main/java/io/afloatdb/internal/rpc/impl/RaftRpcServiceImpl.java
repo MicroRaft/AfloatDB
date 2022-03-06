@@ -61,8 +61,7 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Singleton
-public class RaftRpcServiceImpl
-        implements RaftRpcService {
+public class RaftRpcServiceImpl implements RaftRpcService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RaftRpcService.class);
 
@@ -104,9 +103,7 @@ public class RaftRpcServiceImpl
             LOGGER.info("{} added address: {} for {}", localEndpoint.getId(), address, endpoint.getId());
         } else if (!currentAddress.equals(address)) {
             LOGGER.warn("{} replaced current address: {} with new address: {} for {}", localEndpoint.getId(),
-                    currentAddress,
-                    address,
-                    endpoint.getId());
+                    currentAddress, address, endpoint.getId());
         }
     }
 
@@ -199,8 +196,7 @@ public class RaftRpcServiceImpl
         }
     }
 
-    private class RaftRpcContext
-            implements RaftRpc {
+    private class RaftRpcContext implements RaftRpc {
         final RaftEndpoint targetEndpoint;
         final ManagedChannel channel;
         final RaftMessageHandlerStub replicationStub;
@@ -227,8 +223,7 @@ public class RaftRpcServiceImpl
             } catch (Throwable t) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.error(localEndpoint.getId() + " failure during sending " + message.getClass().getSimpleName()
-                            + " to "
-                            + targetEndpoint, t);
+                            + " to " + targetEndpoint, t);
                 } else {
                     LOGGER.error("{} failure during sending {} to {}. Exception: {} Message: {}", localEndpoint.getId(),
                             message.getClass().getSimpleName(), targetEndpoint, t.getClass().getSimpleName(),
@@ -248,8 +243,7 @@ public class RaftRpcServiceImpl
         }
     }
 
-    private class ResponseStreamObserver
-            implements StreamObserver<RaftMessageResponse> {
+    private class ResponseStreamObserver implements StreamObserver<RaftMessageResponse> {
         final RaftRpcContext context;
 
         private ResponseStreamObserver(RaftRpcContext context) {
@@ -265,10 +259,8 @@ public class RaftRpcServiceImpl
         @Override
         public void onError(Throwable t) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.error(
-                        localEndpoint.getId() + " streaming Raft RPC to " + context.targetEndpoint.getId()
-                                + " has failed.",
-                        t);
+                LOGGER.error(localEndpoint.getId() + " streaming Raft RPC to " + context.targetEndpoint.getId()
+                        + " has failed.", t);
             } else {
                 LOGGER.error("{} Raft RPC stream to {} has failed. Exception: {} Message: {}", localEndpoint.getId(),
                         context.targetEndpoint.getId(), t.getClass().getSimpleName(), t.getMessage());

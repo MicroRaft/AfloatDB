@@ -16,12 +16,10 @@
 
 package io.afloatdb.client;
 
-public class AfloatDBClientException
-        extends RuntimeException {
+public class AfloatDBClientException extends RuntimeException {
 
     /**
-     * Constructs a new runtime exception with {@code null} as its
-     * detail message.
+     * Constructs a new runtime exception with {@code null} as its detail message.
      */
     public AfloatDBClientException() {
         super();
@@ -30,23 +28,22 @@ public class AfloatDBClientException
     /**
      * Constructs a new runtime exception with the specified detail message.
      *
-     * @param message the detail message. The detail message is saved for
-     *                later retrieval by the {@link #getMessage()} method.
+     * @param message
+     *            the detail message. The detail message is saved for later retrieval by the {@link #getMessage()}
+     *            method.
      */
     public AfloatDBClientException(String message) {
         super(message);
     }
 
     /**
-     * Constructs a new runtime exception with the specified detail message and
-     * cause.
+     * Constructs a new runtime exception with the specified detail message and cause.
      *
-     * @param message the detail message (which is saved for later retrieval
-     *                by the {@link #getMessage()} method).
-     * @param cause   the cause (which is saved for later retrieval by the
-     *                {@link #getCause()} method).  (A {@code null} value is
-     *                permitted, and indicates that the cause is nonexistent or
-     *                unknown.)
+     * @param message
+     *            the detail message (which is saved for later retrieval by the {@link #getMessage()} method).
+     * @param cause
+     *            the cause (which is saved for later retrieval by the {@link #getCause()} method). (A {@code null}
+     *            value is permitted, and indicates that the cause is nonexistent or unknown.)
      */
     public AfloatDBClientException(String message, Throwable cause) {
         super(message, cause);

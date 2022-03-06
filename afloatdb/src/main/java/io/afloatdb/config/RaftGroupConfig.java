@@ -53,9 +53,8 @@ public class RaftGroupConfig {
 
             if (config.hasPath("initial-endpoints")) {
                 List<AfloatDBEndpointConfig> initialEndpoints = config.getList("initial-endpoints").stream()
-                                                                      .map(configVal -> configVal.atKey("endpoint")
-                                                                                                 .getConfig("endpoint"))
-                                                                      .map(AfloatDBEndpointConfig::from).collect(toList());
+                        .map(configVal -> configVal.atKey("endpoint").getConfig("endpoint"))
+                        .map(AfloatDBEndpointConfig::from).collect(toList());
                 builder.setInitialEndpoints(initialEndpoints);
             }
 
@@ -91,8 +90,8 @@ public class RaftGroupConfig {
 
     @Override
     public String toString() {
-        return "RaftGroupConfig{" + "id='" + id + '\'' + ", initialEndpoints=" + initialEndpoints + ", joinTo='" + joinTo + '\''
-                + '}';
+        return "RaftGroupConfig{" + "id='" + id + '\'' + ", initialEndpoints=" + initialEndpoints + ", joinTo='"
+                + joinTo + '\'' + '}';
     }
 
     public static class RaftGroupConfigBuilder {
@@ -131,8 +130,8 @@ public class RaftGroupConfig {
                 throw new AfloatDBException("Cannot build RaftGroupConfig without id!");
             }
 
-            if ((config.initialEndpoints.isEmpty() && config.joinTo == null) || (!config.initialEndpoints.isEmpty()
-                    && config.joinTo != null)) {
+            if ((config.initialEndpoints.isEmpty() && config.joinTo == null)
+                    || (!config.initialEndpoints.isEmpty() && config.joinTo != null)) {
                 throw new AfloatDBException("Either initial-endpoints or join-to must be set!");
             }
 
@@ -146,7 +145,8 @@ public class RaftGroupConfig {
                 throw new AfloatDBException("Duplicate endpoint ids!");
             }
 
-            Set<String> addresses = config.initialEndpoints.stream().map(AfloatDBEndpointConfig::getAddress).collect(toSet());
+            Set<String> addresses = config.initialEndpoints.stream().map(AfloatDBEndpointConfig::getAddress)
+                    .collect(toSet());
             if (addresses.size() != config.initialEndpoints.size()) {
                 throw new AfloatDBException("Duplicate addresses in initial endpoints!");
             }

@@ -24,9 +24,8 @@ import io.microraft.model.message.AppendEntriesSuccessResponse;
 
 import javax.annotation.Nonnull;
 
-public class AppendEntriesSuccessResponseOrBuilder
-        implements AppendEntriesSuccessResponse, AppendEntriesSuccessResponse.AppendEntriesSuccessResponseBuilder,
-                   RaftMessageRequestAware {
+public class AppendEntriesSuccessResponseOrBuilder implements AppendEntriesSuccessResponse,
+        AppendEntriesSuccessResponse.AppendEntriesSuccessResponseBuilder, RaftMessageRequestAware {
 
     private AppendEntriesSuccessResponseProto.Builder builder;
     private AppendEntriesSuccessResponseProto response;
@@ -138,9 +137,9 @@ public class AppendEntriesSuccessResponseOrBuilder
             return "GrpcAppendEntriesFailureResponseBuilder{builder=" + builder + "}";
         }
 
-        return "GrpcAppendEntriesSuccessResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", " + "term="
-                + getTerm() + ", lastLogIndex=" + getLastLogIndex() + ", querySequenceNumber=" + getQuerySequenceNumber()
-                + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';
+        return "GrpcAppendEntriesSuccessResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
+                + "term=" + getTerm() + ", lastLogIndex=" + getLastLogIndex() + ", querySequenceNumber="
+                + getQuerySequenceNumber() + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';
     }
 
 }

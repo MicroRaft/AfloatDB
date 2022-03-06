@@ -20,8 +20,7 @@ import static io.afloatdb.internal.utils.Exceptions.wrap;
 import static io.afloatdb.internal.utils.Serialization.fromProto;
 
 @Singleton
-public class RaftInvocationHandler
-        extends RaftInvocationHandlerImplBase {
+public class RaftInvocationHandler extends RaftInvocationHandlerImplBase {
 
     private final RaftNode raftNode;
 
@@ -33,7 +32,7 @@ public class RaftInvocationHandler
     @Override
     public void replicate(ReplicateRequest request, StreamObserver<KVResponse> responseObserver) {
         // TODO [basri] offload to io thread pool
-        raftNode.<KVResponse>replicate(request.getOperation()).whenComplete((response, throwable) -> {
+        raftNode.<KVResponse> replicate(request.getOperation()).whenComplete((response, throwable) -> {
             if (throwable == null) {
                 responseObserver.onNext(response.getResult());
             } else {
@@ -53,7 +52,7 @@ public class RaftInvocationHandler
         }
 
         // TODO [basri] offload to io thread pool
-        raftNode.<KVResponse>query(request.getOperation(), queryPolicy, request.getMinCommitIndex())
+        raftNode.<KVResponse> query(request.getOperation(), queryPolicy, request.getMinCommitIndex())
                 .whenComplete((response, throwable) -> {
                     if (throwable == null) {
                         responseObserver.onNext(response.getResult());

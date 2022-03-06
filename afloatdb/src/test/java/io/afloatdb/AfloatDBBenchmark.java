@@ -52,8 +52,7 @@ import static io.afloatdb.utils.AfloatDBTestUtils.waitUntilLeaderElected;
 @Fork(1)
 public class AfloatDBBenchmark {
 
-    public static void main(String[] args)
-            throws RunnerException {
+    public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder().include(AfloatDBBenchmark.class.getSimpleName()).build();
         new Runner(opt).run();
     }
@@ -64,8 +63,8 @@ public class AfloatDBBenchmark {
     @Threads(5)
     public void setTesting(Context context) {
         String key = "key" + context.random.nextInt(10000);
-        TypedValue typedValue = TypedValue.newBuilder().setType(Serialization.STRING_TYPE).setValue(ByteString.copyFromUtf8(key))
-                                          .build();
+        TypedValue typedValue = TypedValue.newBuilder().setType(Serialization.STRING_TYPE)
+                .setValue(ByteString.copyFromUtf8(key)).build();
         PutRequest request = PutRequest.newBuilder().setKey(key).setValue(typedValue).build();
         context.leader.replicate(Operation.newBuilder().setPutRequest(request).build()).join();
     }

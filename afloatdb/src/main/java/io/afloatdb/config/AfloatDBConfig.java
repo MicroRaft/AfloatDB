@@ -75,8 +75,9 @@ public final class AfloatDBConfig {
 
     @Override
     public String toString() {
-        return "AfloatDBConfig{" + "config=" + config + ", localEndpointConfig=" + localEndpointConfig + ", raftGroupConfig="
-                + raftGroupConfig + ", raftConfig=" + raftConfig + ", rpcConfig=" + rpcConfig + '}';
+        return "AfloatDBConfig{" + "config=" + config + ", localEndpointConfig=" + localEndpointConfig
+                + ", raftGroupConfig=" + raftGroupConfig + ", raftConfig=" + raftConfig + ", rpcConfig=" + rpcConfig
+                + '}';
     }
 
     public static class AfloatDBConfigBuilder {
@@ -132,7 +133,8 @@ public final class AfloatDBConfig {
                     Config config = afloatDBConfig.config.getConfig("afloatdb");
 
                     if (afloatDBConfig.localEndpointConfig == null && config.hasPath("local-endpoint")) {
-                        afloatDBConfig.localEndpointConfig = AfloatDBEndpointConfig.from(config.getConfig("local" + "-endpoint"));
+                        afloatDBConfig.localEndpointConfig = AfloatDBEndpointConfig
+                                .from(config.getConfig("local" + "-endpoint"));
                     }
 
                     if (afloatDBConfig.raftGroupConfig == null && config.hasPath("group")) {

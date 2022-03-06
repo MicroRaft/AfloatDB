@@ -25,8 +25,7 @@ import org.junit.Test;
 import static io.afloatdb.client.config.AfloatDBClientConfig.newBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AfloatDBClientConfigTest
-        extends BaseTest {
+public class AfloatDBClientConfigTest extends BaseTest {
 
     @Test(expected = AfloatDBClientException.class)
     public void when_emptyConfigStringProvided_then_shouldNotCreateConfig() {
@@ -58,7 +57,8 @@ public class AfloatDBClientConfigTest
 
     @Test
     public void when_clientIdProvided_then_shouldCreateConfigWithClientId() {
-        String configString = "afloatdb.client.server-address: \"localhost:6701\"\n" + "afloatdb.client.id: \"client1\"";
+        String configString = "afloatdb.client.server-address: \"localhost:6701\"\n"
+                + "afloatdb.client.id: \"client1\"";
         AfloatDBClientConfig config = AfloatDBClientConfig.from(ConfigFactory.parseString(configString));
 
         assertThat(config.getServerAddress()).isEqualTo("localhost:6701");
@@ -72,7 +72,8 @@ public class AfloatDBClientConfigTest
 
     @Test
     public void when_requiredFieldsProvidedToBuilderViaConfig_then_shouldCreateConfig() {
-        String configString = "afloatdb.client.server-address: \"localhost:6701\"\n" + "afloatdb.client.id: \"client1\"";
+        String configString = "afloatdb.client.server-address: \"localhost:6701\"\n"
+                + "afloatdb.client.id: \"client1\"";
         AfloatDBClientConfig config = newBuilder().setConfig(ConfigFactory.parseString(configString)).build();
 
         assertThat(config.getClientId()).isEqualTo("client1");
@@ -107,9 +108,10 @@ public class AfloatDBClientConfigTest
     @Test
     public void when_rpcTimeoutSecsProvidedInConfig_then_shouldCreateConfigWithProvidedVal() {
         int rpcTimeoutSecs = 20;
-        String configString = "afloatdb.client.rpc-timeout-secs: " + rpcTimeoutSecs + "\nafloatdb.client.id: \"client1\"";
+        String configString = "afloatdb.client.rpc-timeout-secs: " + rpcTimeoutSecs
+                + "\nafloatdb.client.id: \"client1\"";
         AfloatDBClientConfig config = newBuilder().setConfig(ConfigFactory.parseString(configString))
-                                                  .setServerAddress("localhost:6701").build();
+                .setServerAddress("localhost:6701").build();
 
         assertThat(config.getRpcTimeoutSecs()).isEqualTo(rpcTimeoutSecs);
     }
@@ -117,7 +119,8 @@ public class AfloatDBClientConfigTest
     @Test
     public void when_rpcTimeoutSecsProvided_then_shouldCreateConfigWithProvidedVal() {
         int rpcTimeoutSecs = 20;
-        AfloatDBClientConfig config = newBuilder().setServerAddress("localhost:6701").setRpcTimeoutSecs(rpcTimeoutSecs).build();
+        AfloatDBClientConfig config = newBuilder().setServerAddress("localhost:6701").setRpcTimeoutSecs(rpcTimeoutSecs)
+                .build();
 
         assertThat(config.getRpcTimeoutSecs()).isEqualTo(rpcTimeoutSecs);
     }

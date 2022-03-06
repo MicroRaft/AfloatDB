@@ -5,8 +5,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RpcConfigTest
-        extends BaseTest {
+public class RpcConfigTest extends BaseTest {
 
     @Test
     public void when_rpcTimeoutSecsProvided_then_shouldCreateConfigWithProvidedValue() {

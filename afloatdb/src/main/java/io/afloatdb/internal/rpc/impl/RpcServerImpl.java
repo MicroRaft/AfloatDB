@@ -46,8 +46,7 @@ import static io.afloatdb.internal.di.AfloatDBModule.CONFIG_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
 
 @Singleton
-public class RpcServerImpl
-        implements RpcServer {
+public class RpcServerImpl implements RpcServer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RpcServer.class);
 
@@ -57,22 +56,20 @@ public class RpcServerImpl
 
     @Inject
     public RpcServerImpl(@Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
-            @Named(CONFIG_KEY) AfloatDBConfig config,
-            KVRequestHandler kvRequestHandler, RaftMessageHandler raftMessageHandler,
-            RaftInvocationHandler raftInvocationHandler, ManagementRequestHandler managementRequestHandler,
-            RaftNodeReportSupplier raftNodeReportSupplier, ProcessTerminationLogger processTerminationLogger) {
+            @Named(CONFIG_KEY) AfloatDBConfig config, KVRequestHandler kvRequestHandler,
+            RaftMessageHandler raftMessageHandler, RaftInvocationHandler raftInvocationHandler,
+            ManagementRequestHandler managementRequestHandler, RaftNodeReportSupplier raftNodeReportSupplier,
+            ProcessTerminationLogger processTerminationLogger) {
         this.localEndpoint = localEndpoint;
         // TODO [basri] do perf analysis for this setup
         EventLoopGroup boss = new NioEventLoopGroup(1);
         EventLoopGroup worker = new NioEventLoopGroup(1);
         Class<? extends ServerChannel> channelType = NioServerSocketChannel.class;
         this.server = NettyServerBuilder.forAddress(config.getLocalEndpointConfig().getSocketAddress())
-                .bossEventLoopGroup(boss)
-                .workerEventLoopGroup(worker).channelType(channelType).addService(kvRequestHandler)
-                .addService(raftMessageHandler).addService(raftInvocationHandler)
+                .bossEventLoopGroup(boss).workerEventLoopGroup(worker).channelType(channelType)
+                .addService(kvRequestHandler).addService(raftMessageHandler).addService(raftInvocationHandler)
                 .addService(managementRequestHandler)
-                .addService((AfloatDBClusterServiceImplBase) raftNodeReportSupplier).directExecutor()
-                .build();
+                .addService((AfloatDBClusterServiceImplBase) raftNodeReportSupplier).directExecutor().build();
         this.processTerminationLogger = processTerminationLogger;
     }
 

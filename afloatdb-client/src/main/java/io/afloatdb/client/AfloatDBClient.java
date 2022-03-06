@@ -20,9 +20,11 @@ import io.afloatdb.client.config.AfloatDBClientConfig;
 import io.afloatdb.client.internal.AfloatDBClientImpl;
 import io.afloatdb.client.kv.KV;
 
+import java.io.Closeable;
+
 import javax.annotation.Nonnull;
 
-public interface AfloatDBClient {
+public interface AfloatDBClient extends Closeable {
 
     static AfloatDBClient newInstance(AfloatDBClientConfig config) {
         return new AfloatDBClientImpl(config);
@@ -39,5 +41,10 @@ public interface AfloatDBClient {
     boolean isShutdown();
 
     void awaitTermination();
+
+    default void close() {
+        shutdown();
+        awaitTermination();
+    }
 
 }

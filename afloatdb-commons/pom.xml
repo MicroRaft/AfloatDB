@@ -18,9 +18,10 @@
 
         <protobuf.version>3.19.4</protobuf.version>
         <io.grpc.version>1.44.1</io.grpc.version>
-        <guice.version>5.0.1</guice.version>
+        <guice.version>5.1.0</guice.version>
         <governator.version>1.17.12</governator.version>
         <config.version>1.4.2</config.version>
+        <guava.version>31.1-jre</guava.version>
 
         <os.maven.plugin.version>1.7.0</os.maven.plugin.version>
         <protobuf.maven.plugin.version>0.6.1</protobuf.maven.plugin.version>
@@ -70,6 +71,12 @@
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
             <version>${guice.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
         </dependency>
 
         <dependency>

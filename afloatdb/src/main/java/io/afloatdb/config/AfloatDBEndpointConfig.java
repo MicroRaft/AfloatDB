@@ -35,8 +35,8 @@ public class AfloatDBEndpointConfig {
     public static AfloatDBEndpointConfig from(@Nonnull Config config) {
         requireNonNull(config);
         try {
-            return new AfloatDBEndpointConfigBuilder().setId(config.getString("id")).setAddress(config.getString("address"))
-                                                      .build();
+            return new AfloatDBEndpointConfigBuilder().setId(config.getString("id"))
+                    .setAddress(config.getString("address")).build();
         } catch (Exception e) {
             throw new AfloatDBException("Invalid configuration: " + config, e);
         }

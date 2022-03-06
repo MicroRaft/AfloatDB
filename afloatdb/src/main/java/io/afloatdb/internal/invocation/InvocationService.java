@@ -29,5 +29,5 @@ public interface InvocationService {
     CompletableFuture<Ordered<KVResponse>> invoke(@Nonnull Operation operation);
 
     CompletableFuture<Ordered<KVResponse>> query(@Nonnull Operation operation, @Nonnull QueryPolicy queryPolicy,
-                                                 long minCommitIndex);
+            long minCommitIndex);
 }

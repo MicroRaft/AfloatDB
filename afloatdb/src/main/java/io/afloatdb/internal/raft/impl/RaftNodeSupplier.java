@@ -45,8 +45,7 @@ import static io.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
  * Creates and contains a RaftNode instance in the AfloatDB instance
  */
 @Singleton
-public class RaftNodeSupplier
-        implements Supplier<RaftNode> {
+public class RaftNodeSupplier implements Supplier<RaftNode> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RaftNodeSupplier.class);
 
@@ -57,13 +56,12 @@ public class RaftNodeSupplier
     public RaftNodeSupplier(@Named(CONFIG_KEY) AfloatDBConfig config,
             @Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
             @Named(INITIAL_ENDPOINTS_KEY) Collection<RaftEndpoint> initialGroupMembers, RaftRpcService rpcService,
-            StateMachine stateMachine, RaftModelFactory modelFactory,
-            RaftNodeReportSupplier raftNodeReportSupplier, ProcessTerminationLogger processTerminationLogger) {
+            StateMachine stateMachine, RaftModelFactory modelFactory, RaftNodeReportSupplier raftNodeReportSupplier,
+            ProcessTerminationLogger processTerminationLogger) {
         this.raftNode = RaftNode.newBuilder().setGroupId(config.getRaftGroupConfig().getId())
-                .setLocalEndpoint(localEndpoint)
-                .setInitialGroupMembers(initialGroupMembers).setConfig(config.getRaftConfig())
-                .setTransport(rpcService).setStateMachine(stateMachine).setModelFactory(modelFactory)
-                .setRaftNodeReportListener(raftNodeReportSupplier).build();
+                .setLocalEndpoint(localEndpoint).setInitialGroupMembers(initialGroupMembers)
+                .setConfig(config.getRaftConfig()).setTransport(rpcService).setStateMachine(stateMachine)
+                .setModelFactory(modelFactory).setRaftNodeReportListener(raftNodeReportSupplier).build();
         this.processTerminationLogger = processTerminationLogger;
     }
 

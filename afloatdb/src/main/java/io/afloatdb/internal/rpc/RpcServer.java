@@ -18,6 +18,5 @@ package io.afloatdb.internal.rpc;
 
 import io.afloatdb.internal.lifecycle.TerminationAware;
 
-public interface RpcServer
-        extends TerminationAware {
+public interface RpcServer extends TerminationAware {
 }

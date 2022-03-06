@@ -25,8 +25,7 @@ import io.microraft.model.message.PreVoteResponse.PreVoteResponseBuilder;
 
 import javax.annotation.Nonnull;
 
-public class PreVoteResponseOrBuilder
-        implements PreVoteResponse, PreVoteResponseBuilder, RaftMessageRequestAware {
+public class PreVoteResponseOrBuilder implements PreVoteResponse, PreVoteResponseBuilder, RaftMessageRequestAware {
 
     private PreVoteResponseProto.Builder builder;
     private PreVoteResponseProto response;

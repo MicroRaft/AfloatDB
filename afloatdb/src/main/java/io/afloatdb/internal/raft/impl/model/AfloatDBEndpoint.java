@@ -24,8 +24,7 @@ import javax.annotation.Nullable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class AfloatDBEndpoint
-        implements RaftEndpoint {
+public class AfloatDBEndpoint implements RaftEndpoint {
 
     private static final ConcurrentMap<String, AfloatDBEndpoint> cache = new ConcurrentHashMap<>();
     private RaftEndpointProto endpoint;

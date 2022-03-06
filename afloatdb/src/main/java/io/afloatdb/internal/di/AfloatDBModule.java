@@ -53,8 +53,7 @@ import java.util.function.Supplier;
 
 import static com.google.inject.name.Names.named;
 
-public class AfloatDBModule
-        extends AbstractModule {
+public class AfloatDBModule extends AbstractModule {
 
     public static final String CONFIG_KEY = "Config";
     public static final String LOCAL_ENDPOINT_KEY = "LocalEndpoint";

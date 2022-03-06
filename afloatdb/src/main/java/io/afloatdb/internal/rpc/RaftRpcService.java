@@ -22,8 +22,7 @@ import io.microraft.transport.Transport;
 import javax.annotation.Nonnull;
 import java.util.Map;
 
-public interface RaftRpcService
-        extends Transport {
+public interface RaftRpcService extends Transport {
 
     void addAddress(@Nonnull RaftEndpoint endpoint, @Nonnull String address);
 

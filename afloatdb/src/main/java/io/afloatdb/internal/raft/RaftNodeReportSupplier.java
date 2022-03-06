@@ -21,7 +21,6 @@ import io.microraft.report.RaftNodeReportListener;
 
 import java.util.function.Supplier;
 
-public interface RaftNodeReportSupplier
-        extends RaftNodeReportListener, Supplier<RaftNodeReport> {
+public interface RaftNodeReportSupplier extends RaftNodeReportListener, Supplier<RaftNodeReport> {
 
 }
