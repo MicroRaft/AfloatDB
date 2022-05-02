@@ -134,10 +134,10 @@ public class AppendEntriesSuccessResponseOrBuilder implements AppendEntriesSucce
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcAppendEntriesFailureResponseBuilder{builder=" + builder + "}";
+            return "AppendEntriesSuccessResponse{builder=" + builder + "}";
         }
 
-        return "GrpcAppendEntriesSuccessResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
+        return "AppendEntriesSuccessResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
                 + "term=" + getTerm() + ", lastLogIndex=" + getLastLogIndex() + ", querySequenceNumber="
                 + getQuerySequenceNumber() + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';
     }

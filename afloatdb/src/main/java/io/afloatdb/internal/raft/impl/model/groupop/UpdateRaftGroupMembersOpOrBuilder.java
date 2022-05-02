@@ -139,12 +139,12 @@ public class UpdateRaftGroupMembersOpOrBuilder implements UpdateRaftGroupMembers
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcUpdateRaftGroupMembersOpBuilder{builder=" + builder + "}";
+            return "UpdateRaftGroupMembersOp{builder=" + builder + "}";
         }
 
         List<Object> memberIds = members.stream().map(RaftEndpoint::getId).collect(Collectors.toList());
         List<Object> votingMemberIds = votingMembers.stream().map(RaftEndpoint::getId).collect(Collectors.toList());
-        return "GrpcUpdateRaftGroupMembersOp{" + "members=" + memberIds + ", votingMembers=" + votingMemberIds
+        return "UpdateRaftGroupMembersOp{" + "members=" + memberIds + ", votingMembers=" + votingMemberIds
                 + ", endpoint=" + endpoint.getId() + ", " + "mode=" + getMode() + '}';
     }
 

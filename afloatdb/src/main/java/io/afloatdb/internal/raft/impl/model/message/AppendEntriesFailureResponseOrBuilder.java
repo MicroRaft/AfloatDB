@@ -135,10 +135,10 @@ public class AppendEntriesFailureResponseOrBuilder
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcAppendEntriesFailureResponseBuilder{builder=" + builder + "}";
+            return "AppendEntriesFailureResponse{builder=" + builder + "}";
         }
 
-        return "GrpcAppendEntriesFailureResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
+        return "AppendEntriesFailureResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
                 + "term=" + getTerm() + ", expectedNextIndex=" + getExpectedNextIndex() + ", querySequenceNumber="
                 + getQuerySequenceNumber() + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';
     }

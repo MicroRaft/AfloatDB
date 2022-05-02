@@ -110,10 +110,10 @@ public class SnapshotEntryOrBuilder implements SnapshotEntry, SnapshotEntryBuild
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcSnapshotEntryBuilder{builder=" + builder + "}";
+            return "SnapshotEntry{builder=" + builder + "}";
         }
 
-        return "GrpcSnapshotEntry{" + "index=" + getIndex() + ", term=" + getTerm() + ", operation=" + getOperation()
+        return "SnapshotEntry{" + "index=" + getIndex() + ", term=" + getTerm() + ", operation=" + getOperation()
                 + ", groupMembersView=" + getGroupMembersView() + '}';
     }
 

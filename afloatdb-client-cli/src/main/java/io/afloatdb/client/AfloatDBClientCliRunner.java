@@ -6,18 +6,13 @@ import static java.util.Objects.requireNonNull;
 import com.typesafe.config.ConfigFactory;
 import io.afloatdb.client.config.AfloatDBClientConfig;
 import io.afloatdb.client.kv.KV;
-import io.afloatdb.client.kv.Ordered;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.function.Function;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
 @Command
 public class AfloatDBClientCliRunner implements Runnable {
@@ -86,11 +81,6 @@ public class AfloatDBClientCliRunner implements Runnable {
     private AfloatDBClient initClient() {
         AfloatDBClientConfig config = initConfig();
         return AfloatDBClient.newInstance(config);
-    }
-
-    private void shutdownClient(AfloatDBClient client) {
-        client.shutdown();
-        client.awaitTermination();
     }
 
     private Long parseValueLong() {

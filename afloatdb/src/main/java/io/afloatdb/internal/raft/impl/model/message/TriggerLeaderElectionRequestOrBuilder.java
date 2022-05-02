@@ -97,10 +97,10 @@ public class TriggerLeaderElectionRequestOrBuilder
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcTriggerLeaderElectionRequestBuilder{builder=" + builder + "}";
+            return "TriggerLeaderElectionRequest{builder=" + builder + "}";
         }
 
-        return "GrpcTriggerLeaderElectionRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
+        return "TriggerLeaderElectionRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
                 + "term=" + getTerm() + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex()
                 + '}';
     }

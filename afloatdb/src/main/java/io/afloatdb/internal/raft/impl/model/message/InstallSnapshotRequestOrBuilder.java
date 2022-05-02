@@ -233,10 +233,10 @@ public class InstallSnapshotRequestOrBuilder implements InstallSnapshotRequest,
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcInstallSnapshotRequestBuilder{builder=" + builder + "}";
+            return "InstallSnapshotRequest{builder=" + builder + "}";
         }
 
-        return "GrpcInstallSnapshotRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
+        return "InstallSnapshotRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
                 + getTerm() + ", senderLeader=" + isSenderLeader() + ", snapshotTerm=" + getSnapshotTerm()
                 + ", snapshotIndex=" + getSnapshotIndex() + ", chunkCount=" + getTotalSnapshotChunkCount()
                 + ", snapshotChunk=" + getSnapshotChunk() + ", snapshottedMembers=" + getSnapshottedMembers()

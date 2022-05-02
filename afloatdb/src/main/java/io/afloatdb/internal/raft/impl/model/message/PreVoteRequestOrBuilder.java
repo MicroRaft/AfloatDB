@@ -96,10 +96,10 @@ public class PreVoteRequestOrBuilder implements PreVoteRequest, PreVoteRequestBu
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcPreVoteRequestBuilder{builder=" + builder + "}";
+            return "PreVoteRequest{builder=" + builder + "}";
         }
 
-        return "GrpcPreVoteRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
+        return "PreVoteRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
                 + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex() + '}';
     }
 

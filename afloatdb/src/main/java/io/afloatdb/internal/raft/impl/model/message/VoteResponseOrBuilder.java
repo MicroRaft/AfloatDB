@@ -89,10 +89,10 @@ public class VoteResponseOrBuilder implements VoteResponse, VoteResponseBuilder,
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcVoteResponseBuilder{builder=" + builder + "}";
+            return "VoteResponse{builder=" + builder + "}";
         }
 
-        return "GrpcVoteResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
+        return "VoteResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
                 + ", granted=" + isGranted() + '}';
     }
 

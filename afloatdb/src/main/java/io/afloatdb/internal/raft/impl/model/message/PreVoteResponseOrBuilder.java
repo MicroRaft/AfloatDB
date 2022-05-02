@@ -89,10 +89,10 @@ public class PreVoteResponseOrBuilder implements PreVoteResponse, PreVoteRespons
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcPreVoteResponseBuilder{builder=" + builder + "}";
+            return "PreVoteResponse{builder=" + builder + "}";
         }
 
-        return "GrpcPreVoteResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
+        return "PreVoteResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
                 + ", granted=" + isGranted() + '}';
     }
 

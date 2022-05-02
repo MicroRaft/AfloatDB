@@ -131,10 +131,10 @@ public class InstallSnapshotResponseOrBuilder
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcInstallSnapshotResponseBuilder{builder=" + builder + "}";
+            return "InstallSnapshotResponse{builder=" + builder + "}";
         }
 
-        return "GrpcInstallSnapshotResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
+        return "InstallSnapshotResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
                 + getTerm() + ", snapshotIndex=" + getSnapshotIndex() + ", requestedSnapshotChunkIndex="
                 + getRequestedSnapshotChunkIndex() + ", querySequenceNumber=" + getQuerySequenceNumber()
                 + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';

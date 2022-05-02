@@ -187,10 +187,10 @@ public class AppendEntriesRequestOrBuilder
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcAppendEntriesFailureResponseBuilder{builder=" + builder + "}";
+            return "AppendEntriesRequest{builder=" + builder + "}";
         }
 
-        return "GrpcAppendEntriesRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
+        return "AppendEntriesRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
                 + getTerm() + ", commitIndex=" + getCommitIndex() + ", querySequenceNumber=" + getQuerySequenceNumber()
                 + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + ", " + "prevLogIndex="
                 + getPreviousLogIndex() + ", prevLogTerm=" + getPreviousLogTerm() + ", entries=" + getLogEntries()

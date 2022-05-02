@@ -71,10 +71,10 @@ public class LogEntryOrBuilder implements LogEntry, LogEntryBuilder {
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcLogEntryBuilder{builder=" + builder + "}";
+            return "LogEntry{builder=" + builder + "}";
         }
 
-        return "GrpcLogEntry{" + "index=" + getIndex() + ", term=" + getTerm() + ", operation=" + getOperation() + '}';
+        return "LogEntry{" + "index=" + getIndex() + ", term=" + getTerm() + ", operation=" + getOperation() + '}';
     }
 
     @Override

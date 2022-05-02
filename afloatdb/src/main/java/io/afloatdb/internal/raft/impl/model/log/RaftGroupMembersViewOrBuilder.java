@@ -102,11 +102,11 @@ public class RaftGroupMembersViewOrBuilder implements RaftGroupMembersView, Raft
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcRaftGroupMembersViewBuilder{builder=" + builder + "}";
+            return "RaftGroupMembersView{builder=" + builder + "}";
         }
 
-        return "GrpcRaftGroupMembersView{" + "logIndex=" + getLogIndex() + ", members=" + getMembers()
-                + ", votingMembers=" + getVotingMembers() + '}';
+        return "RaftGroupMembersView{" + "logIndex=" + getLogIndex() + ", members=" + getMembers() + ", votingMembers="
+                + getVotingMembers() + '}';
     }
 
 }

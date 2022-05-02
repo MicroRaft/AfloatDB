@@ -103,10 +103,10 @@ public class VoteRequestOrBuilder implements VoteRequest, VoteRequestBuilder, Ra
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcVoteRequestBuilder{builder=" + builder + "}";
+            return "VoteRequest{builder=" + builder + "}";
         }
 
-        return "GrpcVoteRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
+        return "VoteRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
                 + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex() + ", sticky=" + isSticky()
                 + '}';
     }

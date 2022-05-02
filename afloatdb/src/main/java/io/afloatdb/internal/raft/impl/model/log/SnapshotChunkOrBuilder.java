@@ -1,16 +1,12 @@
 package io.afloatdb.internal.raft.impl.model.log;
 
-import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.raft.proto.KVSnapshotChunk;
 import io.afloatdb.raft.proto.KVSnapshotChunkData;
-import io.microraft.RaftEndpoint;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotChunk.SnapshotChunkBuilder;
 import io.microraft.model.log.RaftGroupMembersView;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.LinkedHashSet;
 
 public class SnapshotChunkOrBuilder implements SnapshotChunk, SnapshotChunkBuilder {
 
@@ -86,10 +82,10 @@ public class SnapshotChunkOrBuilder implements SnapshotChunk, SnapshotChunkBuild
     @Override
     public String toString() {
         if (builder != null) {
-            return "GrpcSnapshotChunkBuilder{builder=" + builder + "}";
+            return "RaftGroupMembersView{builder=" + builder + "}";
         }
 
-        return "GrpcSnapshotChunk{" + "index=" + getIndex() + ", term=" + getTerm() + ", operation=" + getOperation()
+        return "RaftGroupMembersView{" + "index=" + getIndex() + ", term=" + getTerm() + ", operation=" + getOperation()
                 + ", snapshotChunkIndex=" + getSnapshotChunkIndex() + ", snapshotChunkCount=" + getSnapshotChunkCount()
                 + ", groupMembersView=" + getGroupMembersView() + '}';
     }
