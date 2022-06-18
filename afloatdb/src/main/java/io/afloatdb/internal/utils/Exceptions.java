@@ -37,19 +37,23 @@ import static io.grpc.Status.RESOURCE_EXHAUSTED;
 
 public final class Exceptions {
 
+    private final static String RAFT_EXCEPTION_KEYWORD = "RAFT_ERROR";
+
     private Exceptions() {
     }
 
     public static boolean isRaftException(String message) {
-        return message != null && (message.contains("RAFT:" + NotLeaderException.class.getSimpleName())
-                || message.contains("RAFT:" + CannotReplicateException.class.getSimpleName())
-                || message.contains("RAFT:" + IndeterminateStateException.class.getSimpleName())
-                || message.contains("RAFT:" + MismatchingRaftGroupMembersCommitIndexException.class.getSimpleName())
-                || message.contains("RAFT:" + LaggingCommitIndexException.class.getSimpleName()));
+        return message != null && (message
+                .contains(RAFT_EXCEPTION_KEYWORD + ":" + NotLeaderException.class.getSimpleName())
+                || message.contains(RAFT_EXCEPTION_KEYWORD + ":" + CannotReplicateException.class.getSimpleName())
+                || message.contains(RAFT_EXCEPTION_KEYWORD + ":" + IndeterminateStateException.class.getSimpleName())
+                || message.contains(RAFT_EXCEPTION_KEYWORD + ":"
+                        + MismatchingRaftGroupMembersCommitIndexException.class.getSimpleName())
+                || message.contains(RAFT_EXCEPTION_KEYWORD + ":" + LaggingCommitIndexException.class.getSimpleName()));
     }
 
     public static boolean isRaftException(String message, Class<? extends RaftException> e) {
-        return message != null && message.contains("RAFT:" + e.getSimpleName());
+        return message != null && message.contains(RAFT_EXCEPTION_KEYWORD + ":" + e.getSimpleName());
     }
 
     public static StatusRuntimeException wrap(Throwable t) {
@@ -77,7 +81,8 @@ public final class Exceptions {
         String stackTrace = getStackTraceString(t);
         StringBuilder sb = new StringBuilder();
         boolean isRaftException = t instanceof RaftException;
-        sb.append(isRaftException ? "RAFT" : "OTHER").append(":").append(t.getClass().getSimpleName()).append("\n");
+        sb.append(isRaftException ? RAFT_EXCEPTION_KEYWORD : "OTHER").append(":").append(t.getClass().getSimpleName())
+                .append("\n");
         if (isRaftException) {
             RaftEndpoint leader = ((RaftException) t).getLeader();
             sb.append(leader != null ? leader.getId() : "").append("\n");

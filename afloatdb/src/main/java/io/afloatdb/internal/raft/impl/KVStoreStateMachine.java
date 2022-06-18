@@ -16,28 +16,23 @@
 
 package io.afloatdb.internal.raft.impl;
 
-import io.afloatdb.kv.proto.ClearResponse;
-import io.afloatdb.kv.proto.ContainsRequest;
-import io.afloatdb.kv.proto.ContainsResponse;
-import io.afloatdb.kv.proto.DeleteRequest;
-import io.afloatdb.kv.proto.DeleteResponse;
-import io.afloatdb.kv.proto.GetRequest;
-import io.afloatdb.kv.proto.GetResponse;
-import io.afloatdb.kv.proto.KVResponse;
-import io.afloatdb.kv.proto.PutRequest;
-import io.afloatdb.kv.proto.PutResponse;
-import io.afloatdb.kv.proto.RemoveRequest;
-import io.afloatdb.kv.proto.RemoveResponse;
-import io.afloatdb.kv.proto.ReplaceRequest;
-import io.afloatdb.kv.proto.ReplaceResponse;
-import io.afloatdb.kv.proto.SetRequest;
-import io.afloatdb.kv.proto.SetResponse;
-import io.afloatdb.kv.proto.SizeResponse;
-import io.afloatdb.kv.proto.TypedValue;
+import io.afloatdb.kv.proto.Val;
 import io.afloatdb.raft.proto.KVEntry;
 import io.afloatdb.raft.proto.KVSnapshotChunkData;
-import io.afloatdb.raft.proto.Operation;
 import io.afloatdb.raft.proto.StartNewTermOpProto;
+import io.afloatdb.raft.proto.PutOp;
+import io.afloatdb.raft.proto.PutResult;
+import io.afloatdb.raft.proto.GetOp;
+import io.afloatdb.raft.proto.GetResult;
+import io.afloatdb.raft.proto.RemoveOp;
+import io.afloatdb.raft.proto.RemoveResult;
+import io.afloatdb.raft.proto.ReplaceOp;
+import io.afloatdb.raft.proto.ReplaceResult;
+import io.afloatdb.raft.proto.SizeOp;
+import io.afloatdb.raft.proto.SizeResult;
+import io.afloatdb.raft.proto.ClearOp;
+import io.afloatdb.raft.proto.ClearResult;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.statemachine.StateMachine;
 import org.slf4j.Logger;
@@ -65,7 +60,7 @@ public class KVStoreStateMachine implements StateMachine {
 
     // we need to keep the insertion order to create snapshot chunks
     // in a deterministic way on all servers.
-    private final Map<String, TypedValue> map = new LinkedHashMap<>();
+    private final Map<String, Val> map = new LinkedHashMap<>();
 
     private final RaftEndpoint localMember;
 
@@ -76,118 +71,77 @@ public class KVStoreStateMachine implements StateMachine {
 
     @Override
     public Object runOperation(long commitIndex, @Nonnull Object operation) {
-        if (!(operation instanceof Operation)) {
-            throw new IllegalArgumentException("Invalid operation: " + operation + " at commit index: " + commitIndex);
-        }
-
-        Operation o = (Operation) operation;
-        switch (o.getOperationCase()) {
-        case STARTNEWTERMOP:
-            return null;
-        case PUTREQUEST:
-            return put(commitIndex, o.getPutRequest());
-        case SETREQUEST:
-            return set(commitIndex, o.getSetRequest());
-        case GETREQUEST:
-            return get(commitIndex, o.getGetRequest());
-        case CONTAINSREQUEST:
-            return contains(commitIndex, o.getContainsRequest());
-        case DELETEREQUEST:
-            return delete(commitIndex, o.getDeleteRequest());
-        case REMOVEREQUEST:
-            return remove(commitIndex, o.getRemoveRequest());
-        case REPLACEREQUEST:
-            return replace(commitIndex, o.getReplaceRequest());
-        case SIZEREQUEST:
+        if (operation instanceof PutOp) {
+            return put(commitIndex, (PutOp) operation);
+        } else if (operation instanceof GetOp) {
+            return get(commitIndex, (GetOp) operation);
+        } else if (operation instanceof RemoveOp) {
+            return remove(commitIndex, (RemoveOp) operation);
+        } else if (operation instanceof ReplaceOp) {
+            return replace(commitIndex, (ReplaceOp) operation);
+        } else if (operation instanceof SizeOp) {
             return size(commitIndex);
-        case CLEARREQUEST:
+        } else if (operation instanceof ClearOp) {
             return clear(commitIndex);
-        default:
-            throw new IllegalArgumentException("Invalid operation: " + operation + " at commit index: " + commitIndex);
-        }
-    }
-
-    private KVResponse put(long commitIndex, PutRequest request) {
-        TypedValue prev = request.getAbsent() ? map.putIfAbsent(request.getKey(), request.getValue())
-                : map.put(request.getKey(), request.getValue());
-        PutResponse.Builder builder = PutResponse.newBuilder();
-        if (prev != null) {
-            builder.setValue(prev);
         }
 
-        return KVResponse.newBuilder().setCommitIndex(commitIndex).setPutResponse(builder.build()).build();
+        throw new IllegalArgumentException("Invalid operation: " + operation + " at commit index: " + commitIndex);
     }
 
-    private KVResponse set(long commitIndex, SetRequest request) {
-        map.put(request.getKey(), request.getValue());
+    private PutResult put(long commitIndex, PutOp op) {
+        Val oldVal = op.getPutIfAbsent() ? map.putIfAbsent(op.getKey(), op.getVal())
+                : map.put(op.getKey(), op.getVal());
+        PutResult.Builder builder = PutResult.newBuilder();
+        if (oldVal != null) {
+            builder.setOldVal(oldVal);
+        }
 
-        return KVResponse.newBuilder().setCommitIndex(commitIndex).setSetResponse(SetResponse.getDefaultInstance())
-                .build();
+        return builder.build();
     }
 
-    private KVResponse get(long commitIndex, GetRequest request) {
-        GetResponse.Builder builder = GetResponse.newBuilder();
-        TypedValue val = map.get(request.getKey());
+    private GetResult get(long commitIndex, GetOp op) {
+        GetResult.Builder builder = GetResult.newBuilder();
+        Val val = map.get(op.getKey());
         if (val != null) {
-            builder.setValue(val);
+            builder.setVal(val);
         }
 
-        return KVResponse.newBuilder().setCommitIndex(commitIndex).setGetResponse(builder.build()).build();
+        return builder.build();
     }
 
-    private KVResponse contains(long commitIndex, ContainsRequest request) {
-        boolean success = request.hasValue() ? request.getValue().equals(map.get(request.getKey()))
-                : map.containsKey(request.getKey());
-
-        return KVResponse.newBuilder().setCommitIndex(commitIndex)
-                .setContainsResponse(ContainsResponse.newBuilder().setSuccess(success).build()).build();
-    }
-
-    private KVResponse delete(long commitIndex, DeleteRequest request) {
-        boolean success = map.remove(request.getKey()) != null;
-
-        return KVResponse.newBuilder().setCommitIndex(commitIndex)
-                .setDeleteResponse(DeleteResponse.newBuilder().setSuccess(success).build()).build();
-    }
-
-    private KVResponse remove(long commitIndex, RemoveRequest request) {
-        RemoveResponse.Builder builder = RemoveResponse.newBuilder();
-        boolean success;
-        if (request.hasValue()) {
-            success = map.remove(request.getKey(), request.getValue());
+    private RemoveResult remove(long commitIndex, RemoveOp op) {
+        RemoveResult.Builder builder = RemoveResult.newBuilder();
+        boolean success = false;
+        if (op.hasVal()) {
+            success = map.remove(op.getKey(), op.getVal());
         } else {
-            TypedValue val = map.remove(request.getKey());
+            Val val = map.remove(op.getKey());
             if (val != null) {
-                builder.setValue(val);
+                builder.setOldVal(val);
+                success = true;
             }
-
-            success = val != null;
         }
 
-        return KVResponse.newBuilder().setCommitIndex(commitIndex)
-                .setRemoveResponse(builder.setSuccess(success).build()).build();
+        return builder.setSuccess(success).build();
     }
 
-    private KVResponse replace(long commitIndex, ReplaceRequest request) {
-        boolean success = map.replace(request.getKey(), request.getOldValue(), request.getNewValue());
+    private ReplaceResult replace(long commitIndex, ReplaceOp op) {
+        boolean success = map.replace(op.getKey(), op.getOldVal(), op.getNewVal());
 
-        return KVResponse.newBuilder().setCommitIndex(commitIndex)
-                .setReplaceResponse(ReplaceResponse.newBuilder().setSuccess(success).build()).build();
+        return ReplaceResult.newBuilder().setSuccess(success).build();
     }
 
-    private KVResponse size(long commitIndex) {
+    private SizeResult size(long commitIndex) {
         int size = map.size();
 
-        return KVResponse.newBuilder().setCommitIndex(commitIndex)
-                .setSizeResponse(SizeResponse.newBuilder().setSize(size).build()).build();
+        return SizeResult.newBuilder().setSize(size).build();
     }
 
-    private KVResponse clear(long commitIndex) {
+    private ClearResult clear(long commitIndex) {
         int size = map.size();
         map.clear();
 
-        return KVResponse.newBuilder().setCommitIndex(commitIndex)
-                .setClearResponse(ClearResponse.newBuilder().setSize(size).build()).build();
+        return ClearResult.newBuilder().setSize(size).build();
     }
 
     @Override
@@ -195,9 +149,9 @@ public class KVStoreStateMachine implements StateMachine {
         KVSnapshotChunkData.Builder chunkBuilder = KVSnapshotChunkData.newBuilder();
 
         int chunkCount = 0, keyCount = 0;
-        for (Entry<String, TypedValue> e : map.entrySet()) {
+        for (Entry<String, Val> e : map.entrySet()) {
             keyCount++;
-            KVEntry kvEntry = KVEntry.newBuilder().setKey(e.getKey()).setValue(e.getValue()).build();
+            KVEntry kvEntry = KVEntry.newBuilder().setKey(e.getKey()).setVal(e.getValue()).build();
             chunkBuilder.addEntry(kvEntry);
             if (chunkBuilder.getEntryCount() == 10000) {
                 snapshotChunkConsumer.accept(chunkBuilder.build());
@@ -213,27 +167,6 @@ public class KVStoreStateMachine implements StateMachine {
 
         LOGGER.info("{} took snapshot with {} chunks and {} keys at log index: {}", localMember.getId(), chunkCount,
                 keyCount, commitIndex);
-
-        // try {
-        // Output out = ByteString.newOutput();
-        // DataOutputStream os = new DataOutputStream(out);
-        // os.writeInt(map.size());
-        // for (Entry<ByteString, ByteString> entry : map.entrySet()) {
-        // ByteString key = entry.getKey();
-        // ByteString value = entry.getValue();
-        // os.writeInt(key.size());
-        // for (int i = 0; i < key.size(); i++) {
-        // os.writeByte(key.byteAt(i));
-        // }
-        // os.writeInt(value.size());
-        // for (int i = 0; i < value.size(); i++) {
-        // os.writeByte(value.byteAt(i));
-        // }
-        // }
-        // builder.setData(out.toByteString());
-        // } catch (IOException e) {
-        // throw new RuntimeException("Failure during take snapshot", e);
-        // }
     }
 
     @Override
@@ -242,43 +175,18 @@ public class KVStoreStateMachine implements StateMachine {
 
         for (Object chunk : snapshotChunks) {
             for (KVEntry entry : ((KVSnapshotChunkData) chunk).getEntryList()) {
-                map.put(entry.getKey(), entry.getValue());
+                map.put(entry.getKey(), entry.getVal());
             }
         }
-
-        // try {
-        // ByteString bs = snapshot.getData();
-        // DataInputStream in = new DataInputStream(bs.newInput());
-        // int entryCount = in.readInt();
-        // for (int i = 0; i < entryCount; i++) {
-        // int keySize = in.readInt();
-        // ByteString key = readBytes(in, keySize);
-        // int valueSize = in.readInt();
-        // ByteString value = readBytes(in, valueSize);
-        // map.put(key, value);
-        // }
-        // } catch (IOException e) {
-        // throw new RuntimeException("Failure during snapshot restore", e);
-        // }
 
         LOGGER.info("{} restored snapshot with {} keys at commit index: {}", localMember.getId(), map.size(),
                 commitIndex);
     }
 
-    // private ByteString readBytes(DataInputStream in, int count) throws
-    // IOException {
-    // Output out = ByteString.newOutput(count);
-    // for (int j = 0; j < count; j++) {
-    // out.write(in.readByte());
-    // }
-    //
-    // return out.toByteString();
-    // }
-
     @Nonnull
     @Override
     public Object getNewTermOperation() {
-        return Operation.newBuilder().setStartNewTermOp(StartNewTermOpProto.getDefaultInstance()).build();
+        return StartNewTermOpProto.getDefaultInstance();
     }
 
 }

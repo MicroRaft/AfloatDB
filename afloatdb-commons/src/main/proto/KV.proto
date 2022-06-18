@@ -4,27 +4,31 @@ package io.afloatdb.kv.proto;
 
 option java_multiple_files = true;
 
-message TypedValue {
-    int32 type = 1;
-    bytes value = 2;
+message Val {
+    oneof val {
+        string str = 1;
+        int64 num = 2;
+        bytes byteArray = 3;
+    }
 }
 
 message PutRequest {
     string key = 1;
-    TypedValue value = 2;
-    bool absent = 3;
+    Val val = 2;
+    bool putIfAbsent = 3;
 }
 
-message PutResponse {
-    TypedValue value = 1;
+message PutResult {
+    Val oldVal = 1;
 }
 
 message SetRequest {
     string key = 1;
-    TypedValue value = 2;
+    Val val = 2;
 }
 
-message SetResponse {
+message SetResult {
+    bool oldValExisted = 1;
 }
 
 message GetRequest {
@@ -32,17 +36,17 @@ message GetRequest {
     int64 minCommitIndex = 2;
 }
 
-message GetResponse {
-    TypedValue value = 1;
+message GetResult {
+    Val val = 1;
 }
 
 message ContainsRequest {
     string key = 1;
-    TypedValue value = 2;
+    Val val = 2;
     int64 minCommitIndex = 3;
 }
 
-message ContainsResponse {
+message ContainsResult {
     bool success = 1;
 }
 
@@ -50,27 +54,27 @@ message DeleteRequest {
     string key = 1;
 }
 
-message DeleteResponse {
+message DeleteResult {
     bool success = 1;
 }
 
 message RemoveRequest {
     string key = 1;
-    TypedValue value = 2;
+    Val val = 2;
 }
 
-message RemoveResponse {
+message RemoveResult {
     bool success = 1;
-    TypedValue value = 2;
+    Val oldVal = 2;
 }
 
 message ReplaceRequest {
     string key = 1;
-    TypedValue oldValue = 2;
-    TypedValue newValue = 3;
+    Val oldVal = 2;
+    Val newVal = 3;
 }
 
-message ReplaceResponse {
+message ReplaceResult {
     bool success = 1;
 }
 
@@ -78,29 +82,29 @@ message SizeRequest {
     int64 minCommitIndex = 1;
 }
 
-message SizeResponse {
+message SizeResult {
     int32 size = 1;
 }
 
 message ClearRequest {
 }
 
-message ClearResponse {
+message ClearResult {
     int32 size = 1;
 }
 
 message KVResponse {
     int64 commitIndex = 1;
-    oneof response {
-        PutResponse putResponse = 2;
-        SetResponse setResponse = 3;
-        GetResponse getResponse = 4;
-        ContainsResponse containsResponse = 5;
-        DeleteResponse deleteResponse = 6;
-        RemoveResponse removeResponse = 7;
-        ReplaceResponse replaceResponse = 8;
-        SizeResponse sizeResponse = 9;
-        ClearResponse clearResponse = 10;
+    oneof result {
+        PutResult putResult = 2;
+        SetResult setResult = 3;
+        GetResult getResult = 4;
+        ContainsResult containsResult = 5;
+        DeleteResult deleteResult = 6;
+        RemoveResult removeResult = 7;
+        ReplaceResult replaceResult = 8;
+        SizeResult sizeResult = 9;
+        ClearResult clearResult = 10;
     };
 }
 

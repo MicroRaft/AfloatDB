@@ -19,10 +19,8 @@ package io.afloatdb;
 import com.google.protobuf.ByteString;
 import com.typesafe.config.ConfigFactory;
 import io.afloatdb.config.AfloatDBConfig;
-import io.afloatdb.internal.serialization.Serialization;
-import io.afloatdb.kv.proto.PutRequest;
-import io.afloatdb.kv.proto.TypedValue;
-import io.afloatdb.raft.proto.Operation;
+import io.afloatdb.kv.proto.Val;
+import io.afloatdb.raft.proto.PutOp;
 import io.microraft.RaftNode;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -63,10 +61,8 @@ public class AfloatDBBenchmark {
     @Threads(5)
     public void setTesting(Context context) {
         String key = "key" + context.random.nextInt(10000);
-        TypedValue typedValue = TypedValue.newBuilder().setType(Serialization.STRING_TYPE)
-                .setValue(ByteString.copyFromUtf8(key)).build();
-        PutRequest request = PutRequest.newBuilder().setKey(key).setValue(typedValue).build();
-        context.leader.replicate(Operation.newBuilder().setPutRequest(request).build()).join();
+        PutOp put = PutOp.newBuilder().setKey(key).setVal(Val.newBuilder().setStr(key).build()).build();
+        context.leader.replicate(put).join();
     }
 
     @State(Scope.Benchmark)

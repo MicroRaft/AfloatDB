@@ -107,7 +107,6 @@ public class RaftMessageHandler extends RaftMessageHandlerImplBase {
                             t.getClass().getSimpleName(), t.getMessage());
                 }
             }
-
         }
 
         @Override

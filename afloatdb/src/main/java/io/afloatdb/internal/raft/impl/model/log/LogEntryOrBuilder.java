@@ -16,9 +16,17 @@
 
 package io.afloatdb.internal.raft.impl.model.log;
 
+import io.afloatdb.internal.raft.impl.model.groupop.UpdateRaftGroupMembersOpOrBuilder;
 import io.afloatdb.raft.proto.LogEntryProto;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
+import io.afloatdb.raft.proto.StartNewTermOpProto;
+import io.afloatdb.raft.proto.PutOp;
+import io.afloatdb.raft.proto.GetOp;
+import io.afloatdb.raft.proto.RemoveOp;
+import io.afloatdb.raft.proto.ReplaceOp;
+import io.afloatdb.raft.proto.SizeOp;
+import io.afloatdb.raft.proto.ClearOp;
 
 import javax.annotation.Nonnull;
 
@@ -56,7 +64,26 @@ public class LogEntryOrBuilder implements LogEntry, LogEntryBuilder {
     @Nonnull
     @Override
     public LogEntryBuilder setOperation(@Nonnull Object operation) {
-        builder.setOperation(Operations.wrap(operation));
+        if (operation instanceof UpdateRaftGroupMembersOpOrBuilder) {
+            builder.setUpdateRaftGroupMembersOp(((UpdateRaftGroupMembersOpOrBuilder) operation).getOp());
+        } else if (operation instanceof StartNewTermOpProto) {
+            builder.setStartNewTermOp((StartNewTermOpProto) operation);
+        } else if (operation instanceof PutOp) {
+            builder.setPutOp((PutOp) operation);
+        } else if (operation instanceof GetOp) {
+            builder.setGetOp((GetOp) operation);
+        } else if (operation instanceof RemoveOp) {
+            builder.setRemoveOp((RemoveOp) operation);
+        } else if (operation instanceof ReplaceOp) {
+            builder.setReplaceOp((ReplaceOp) operation);
+        } else if (operation instanceof SizeOp) {
+            builder.setSizeOp((SizeOp) operation);
+        } else if (operation instanceof ClearOp) {
+            builder.setClearOp((ClearOp) operation);
+        } else {
+            throw new IllegalArgumentException("Invalid operation: " + operation);
+        }
+
         return this;
     }
 
@@ -90,7 +117,26 @@ public class LogEntryOrBuilder implements LogEntry, LogEntryBuilder {
     @Nonnull
     @Override
     public Object getOperation() {
-        return Operations.unwrap(entry.getOperation());
+        switch (entry.getOperationCase()) {
+        case UPDATERAFTGROUPMEMBERSOP:
+            return new UpdateRaftGroupMembersOpOrBuilder(entry.getUpdateRaftGroupMembersOp());
+        case STARTNEWTERMOP:
+            return entry.getStartNewTermOp();
+        case PUTOP:
+            return entry.getPutOp();
+        case GETOP:
+            return entry.getGetOp();
+        case REMOVEOP:
+            return entry.getRemoveOp();
+        case REPLACEOP:
+            return entry.getReplaceOp();
+        case SIZEOP:
+            return entry.getSizeOp();
+        case CLEAROP:
+            return entry.getClearOp();
+        default:
+            throw new IllegalArgumentException("Illegal operation in " + entry);
+        }
     }
 
 }

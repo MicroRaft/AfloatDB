@@ -24,9 +24,6 @@ public interface KV {
     Ordered<byte[]> put(@Nonnull String key, @Nonnull byte[] value);
 
     @Nonnull
-    Ordered<Integer> put(@Nonnull String key, int value);
-
-    @Nonnull
     Ordered<Long> put(@Nonnull String key, long value);
 
     @Nonnull
@@ -36,17 +33,12 @@ public interface KV {
     Ordered<byte[]> putIfAbsent(@Nonnull String key, @Nonnull byte[] value);
 
     @Nonnull
-    Ordered<Integer> putIfAbsent(@Nonnull String key, int value);
-
-    @Nonnull
     Ordered<Long> putIfAbsent(@Nonnull String key, long value);
 
     @Nonnull
     Ordered<String> putIfAbsent(@Nonnull String key, @Nonnull String value);
 
     Ordered<Void> set(@Nonnull String key, @Nonnull byte[] value);
-
-    Ordered<Void> set(@Nonnull String key, int value);
 
     Ordered<Void> set(@Nonnull String key, long value);
 
@@ -60,9 +52,6 @@ public interface KV {
 
     @Nonnull
     Ordered<Boolean> remove(@Nonnull String key, @Nonnull byte[] value);
-
-    @Nonnull
-    Ordered<Boolean> remove(@Nonnull String key, int value);
 
     @Nonnull
     Ordered<Boolean> remove(@Nonnull String key, long value);
@@ -93,13 +82,6 @@ public interface KV {
 
     @Nonnull
     Ordered<Boolean> contains(@Nonnull String key, @Nonnull byte[] value, long minCommitIndex);
-
-    default @Nonnull Ordered<Boolean> contains(@Nonnull String key, int value) {
-        return contains(key, value, -1L);
-    }
-
-    @Nonnull
-    Ordered<Boolean> contains(@Nonnull String key, int value, long minCommitIndex);
 
     default @Nonnull Ordered<Boolean> contains(@Nonnull String key, long value) {
         return contains(key, value, -1L);

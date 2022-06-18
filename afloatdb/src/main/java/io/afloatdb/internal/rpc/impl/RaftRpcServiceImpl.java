@@ -16,20 +16,15 @@
 
 package io.afloatdb.internal.rpc.impl;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.afloatdb.internal.rpc.RaftRpc;
 import io.afloatdb.internal.rpc.RaftRpcService;
-import io.afloatdb.kv.proto.KVResponse;
-import io.afloatdb.raft.proto.QueryRequest;
-import io.afloatdb.raft.proto.RaftInvocationHandlerGrpc;
-import io.afloatdb.raft.proto.RaftInvocationHandlerGrpc.RaftInvocationHandlerFutureStub;
 import io.afloatdb.raft.proto.RaftMessageHandlerGrpc;
 import io.afloatdb.raft.proto.RaftMessageHandlerGrpc.RaftMessageHandlerStub;
 import io.afloatdb.raft.proto.RaftMessageRequest;
 import io.afloatdb.raft.proto.RaftMessageResponse;
-import io.afloatdb.raft.proto.ReplicateRequest;
+import io.grpc.Deadline;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
@@ -160,9 +155,9 @@ public class RaftRpcServiceImpl implements RaftRpcService {
                     // .directExecutor()
                     .build();
 
-            RaftMessageHandlerStub replicationStub = RaftMessageHandlerGrpc.newStub(channel);
-            RaftInvocationHandlerFutureStub invocationStub = RaftInvocationHandlerGrpc.newFutureStub(channel);
-            RaftRpcContext context = new RaftRpcContext(target, channel, replicationStub, invocationStub);
+            RaftMessageHandlerStub replicationStub = RaftMessageHandlerGrpc.newStub(channel)
+                    .withDeadline(Deadline.after(rpcTimeoutSecs, SECONDS));
+            RaftRpcContext context = new RaftRpcContext(target, channel);
             context.raftMessageSender = replicationStub.handle(new ResponseStreamObserver(context));
 
             stubs.put(target, context);
@@ -199,16 +194,11 @@ public class RaftRpcServiceImpl implements RaftRpcService {
     private class RaftRpcContext implements RaftRpc {
         final RaftEndpoint targetEndpoint;
         final ManagedChannel channel;
-        final RaftMessageHandlerStub replicationStub;
-        final RaftInvocationHandlerFutureStub invocationStub;
         StreamObserver<RaftMessageRequest> raftMessageSender;
 
-        RaftRpcContext(RaftEndpoint targetEndpoint, ManagedChannel channel, RaftMessageHandlerStub replicationStub,
-                RaftInvocationHandlerFutureStub invocationStub) {
+        RaftRpcContext(RaftEndpoint targetEndpoint, ManagedChannel channel) {
             this.targetEndpoint = targetEndpoint;
             this.channel = channel;
-            this.replicationStub = replicationStub;
-            this.invocationStub = invocationStub;
         }
 
         void shutdownSilently() {
@@ -230,16 +220,6 @@ public class RaftRpcServiceImpl implements RaftRpcService {
                             t.getMessage());
                 }
             }
-        }
-
-        @Override
-        public ListenableFuture<KVResponse> replicate(ReplicateRequest request) {
-            return invocationStub.withDeadlineAfter(rpcTimeoutSecs, SECONDS).replicate(request);
-        }
-
-        @Override
-        public ListenableFuture<KVResponse> query(QueryRequest request) {
-            return invocationStub.withDeadlineAfter(rpcTimeoutSecs, SECONDS).query(request);
         }
     }
 

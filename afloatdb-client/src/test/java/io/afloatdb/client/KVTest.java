@@ -45,7 +45,6 @@ import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_1;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_2;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_3;
 import static io.afloatdb.utils.AfloatDBTestUtils.waitUntilLeaderElected;
-import static io.microraft.impl.util.RandomPicker.getRandomInt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -55,8 +54,6 @@ public class KVTest extends BaseTest {
 
     private static final byte[] BYTES_1 = new byte[] { 1, 2, 3, 4 };
     private static final byte[] BYTES_2 = new byte[] { 4, 3, 2, 1 };
-    private static final int INT_1 = 753;
-    private static final int INT_2 = 1239;
     private static final long LONG_1 = 19238;
     private static final long LONG_2 = 4693;
     private static final String STRING_1 = "str1";
@@ -82,7 +79,7 @@ public class KVTest extends BaseTest {
         servers.add(AfloatDB.bootstrap(CONFIG_1));
         servers.add(AfloatDB.bootstrap(CONFIG_2));
         servers.add(AfloatDB.bootstrap(CONFIG_3));
-        waitUntilLeaderElected(servers);
+
     }
 
     @AfterClass
@@ -92,8 +89,7 @@ public class KVTest extends BaseTest {
 
     @Before
     public void initClient() {
-        String serverAddress = servers.get(getRandomInt(servers.size())).getConfig().getLocalEndpointConfig()
-                .getAddress();
+        String serverAddress = waitUntilLeaderElected(servers).getConfig().getLocalEndpointConfig().getAddress();
         Config config = ConfigFactory.parseString("afloatdb.client.server-address: \"" + serverAddress + "\"")
                 .withFallback(load("client.conf"));
         AfloatDBClientConfig clientConfig = AfloatDBClientConfig.newBuilder().setConfig(config)
@@ -122,17 +118,6 @@ public class KVTest extends BaseTest {
 
         assertThat(result1.get()).isNull();
         assertThat(result2.get()).isEqualTo(BYTES_1);
-        assertThat(result1.getCommitIndex()).isGreaterThan(0);
-        assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
-    }
-
-    @Test
-    public void testPutInt() {
-        Ordered<Integer> result1 = kv.put(KEY, INT_1);
-        Ordered<Integer> result2 = kv.put(KEY, INT_2);
-
-        assertThat(result1.get()).isNull();
-        assertThat(result2.get()).isEqualTo(INT_1);
         assertThat(result1.getCommitIndex()).isGreaterThan(0);
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
     }
@@ -176,17 +161,6 @@ public class KVTest extends BaseTest {
     }
 
     @Test
-    public void testPutIntIfAbsent() {
-        Ordered<Integer> result1 = kv.putIfAbsent(KEY, INT_1);
-        Ordered<Integer> result2 = kv.putIfAbsent(KEY, INT_2);
-
-        assertThat(result1.get()).isNull();
-        assertThat(result2.get()).isEqualTo(INT_1);
-        assertThat(result1.getCommitIndex()).isGreaterThan(0);
-        assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
-    }
-
-    @Test
     public void testPutLongIfAbsent() {
         Ordered<Long> result1 = kv.putIfAbsent(KEY, LONG_1);
         Ordered<Long> result2 = kv.putIfAbsent(KEY, LONG_2);
@@ -220,18 +194,6 @@ public class KVTest extends BaseTest {
 
         Ordered<Void> result2 = kv.set(KEY, BYTES_2);
         assertThat(kv.<byte[]> get(KEY).get()).isEqualTo(BYTES_2);
-
-        assertThat(result1.getCommitIndex()).isGreaterThan(0);
-        assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
-    }
-
-    @Test
-    public void testSetInt() {
-        Ordered<Void> result1 = kv.set(KEY, INT_1);
-        assertThat(kv.<Integer> get(KEY).get()).isEqualTo(INT_1);
-
-        Ordered<Void> result2 = kv.set(KEY, INT_2);
-        assertThat(kv.<Integer> get(KEY).get()).isEqualTo(INT_2);
 
         assertThat(result1.getCommitIndex()).isGreaterThan(0);
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
@@ -313,18 +275,6 @@ public class KVTest extends BaseTest {
     }
 
     @Test
-    public void testContainsInt() {
-        kv.set(KEY, INT_1);
-
-        assertThat(kv.containsKey(KEY).get()).isTrue();
-        assertThat(kv.contains(KEY, INT_1).get()).isTrue();
-        assertThat(kv.contains(KEY, INT_2).get()).isFalse();
-
-        kv.delete(KEY);
-        assertThat(kv.containsKey(KEY).get()).isFalse();
-    }
-
-    @Test
     public void testContainsLong() {
         long commitIndex1 = kv.set(KEY, LONG_1).getCommitIndex();
 
@@ -396,15 +346,6 @@ public class KVTest extends BaseTest {
     }
 
     @Test
-    public void testDeleteInt() {
-        kv.set(KEY, INT_1);
-
-        Ordered<Boolean> result = kv.delete(KEY);
-        assertThat(result.get()).isTrue();
-        assertThat(result.getCommitIndex()).isGreaterThan(0);
-    }
-
-    @Test
     public void testDeleteLong() {
         kv.set(KEY, LONG_1);
 
@@ -447,24 +388,6 @@ public class KVTest extends BaseTest {
 
         Ordered<byte[]> result3 = kv.remove(KEY);
         assertThat(result3.get()).isEqualTo(BYTES_2);
-        assertThat(result1.getCommitIndex()).isGreaterThan(0);
-        assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
-        assertThat(result3.getCommitIndex()).isGreaterThan(result2.getCommitIndex());
-    }
-
-    @Test
-    public void testRemoveInt() {
-        kv.set(KEY, INT_1);
-
-        Ordered<Boolean> result1 = kv.remove(KEY, INT_2);
-        Ordered<Boolean> result2 = kv.remove(KEY, INT_1);
-        assertThat(result1.get()).isFalse();
-        assertThat(result2.get()).isTrue();
-
-        kv.set(KEY, INT_2);
-
-        Ordered<Integer> result3 = kv.remove(KEY);
-        assertThat(result3.get()).isEqualTo(INT_2);
         assertThat(result1.getCommitIndex()).isGreaterThan(0);
         assertThat(result2.getCommitIndex()).isGreaterThan(result1.getCommitIndex());
         assertThat(result3.getCommitIndex()).isGreaterThan(result2.getCommitIndex());
@@ -537,21 +460,6 @@ public class KVTest extends BaseTest {
     }
 
     @Test
-    public void testReplaceInt() {
-        kv.set(KEY, INT_1);
-
-        Ordered<Boolean> result1 = kv.replace(KEY, INT_2, INT_1);
-        Ordered<Boolean> result2 = kv.replace(KEY, INT_2, STRING_1);
-        Ordered<Boolean> result3 = kv.replace(KEY, INT_1, INT_2);
-        Ordered<Boolean> result4 = kv.replace(KEY, INT_2, STRING_1);
-
-        assertThat(result1.get()).isFalse();
-        assertThat(result2.get()).isFalse();
-        assertThat(result3.get()).isTrue();
-        assertThat(result4.get()).isTrue();
-    }
-
-    @Test
     public void testReplaceLong() {
         kv.set(KEY, LONG_1);
 
@@ -571,9 +479,9 @@ public class KVTest extends BaseTest {
         kv.set(KEY, STRING_1);
 
         Ordered<Boolean> result1 = kv.replace(KEY, STRING_2, STRING_1);
-        Ordered<Boolean> result2 = kv.replace(KEY, STRING_2, INT_1);
+        Ordered<Boolean> result2 = kv.replace(KEY, STRING_2, LONG_1);
         Ordered<Boolean> result3 = kv.replace(KEY, STRING_1, STRING_2);
-        Ordered<Boolean> result4 = kv.replace(KEY, STRING_2, INT_1);
+        Ordered<Boolean> result4 = kv.replace(KEY, STRING_2, LONG_1);
 
         assertThat(result1.get()).isFalse();
         assertThat(result2.get()).isFalse();

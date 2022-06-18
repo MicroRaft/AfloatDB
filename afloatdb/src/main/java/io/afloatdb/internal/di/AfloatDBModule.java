@@ -19,9 +19,6 @@ package io.afloatdb.internal.di;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import io.afloatdb.config.AfloatDBConfig;
-import io.afloatdb.internal.invocation.InvocationService;
-import io.afloatdb.internal.invocation.impl.InvocationServiceImpl;
-import io.afloatdb.internal.invocation.impl.RaftInvocationHandler;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.afloatdb.internal.lifecycle.impl.ProcessTerminationLoggerImpl;
 import io.afloatdb.internal.raft.RaftNodeReportSupplier;
@@ -38,7 +35,6 @@ import io.afloatdb.internal.rpc.impl.RaftRpcServiceImpl;
 import io.afloatdb.internal.rpc.impl.RpcServerImpl;
 import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerImplBase;
 import io.afloatdb.management.proto.ManagementRequestHandlerGrpc.ManagementRequestHandlerImplBase;
-import io.afloatdb.raft.proto.RaftInvocationHandlerGrpc.RaftInvocationHandlerImplBase;
 import io.afloatdb.raft.proto.RaftMessageHandlerGrpc.RaftMessageHandlerImplBase;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
@@ -93,12 +89,10 @@ public class AfloatDBModule extends AbstractModule {
         bind(StateMachine.class).to(KVStoreStateMachine.class);
         bind(RaftModelFactory.class).to(ProtoRaftModelFactory.class);
         bind(RaftMessageHandlerImplBase.class).to(RaftMessageHandler.class);
-        bind(RaftInvocationHandlerImplBase.class).to(RaftInvocationHandler.class);
         bind(RpcServer.class).to(RpcServerImpl.class);
         bind(RaftRpcService.class).to(RaftRpcServiceImpl.class);
         bind(KVRequestHandlerImplBase.class).to(KVRequestHandler.class);
         bind(ManagementRequestHandlerImplBase.class).to(ManagementRequestHandler.class);
-        bind(InvocationService.class).to(InvocationServiceImpl.class);
 
         bind(new TypeLiteral<Supplier<RaftNode>>() {
         }).annotatedWith(named(RAFT_NODE_SUPPLIER_KEY)).to(RaftNodeSupplier.class);

@@ -18,248 +18,271 @@ package io.afloatdb.client.internal.kv.impl;
 
 import io.afloatdb.client.kv.KV;
 import io.afloatdb.client.kv.Ordered;
-import io.afloatdb.internal.serialization.Serialization;
+import io.afloatdb.kv.proto.Val;
 import io.afloatdb.kv.proto.ClearRequest;
 import io.afloatdb.kv.proto.ContainsRequest;
 import io.afloatdb.kv.proto.DeleteRequest;
 import io.afloatdb.kv.proto.GetRequest;
-import io.afloatdb.kv.proto.GetResponse;
-import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerBlockingStub;
+import io.afloatdb.kv.proto.GetResult;
+import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerFutureStub;
 import io.afloatdb.kv.proto.KVResponse;
 import io.afloatdb.kv.proto.PutRequest;
-import io.afloatdb.kv.proto.PutResponse;
+import io.afloatdb.kv.proto.PutResult;
 import io.afloatdb.kv.proto.RemoveRequest;
-import io.afloatdb.kv.proto.RemoveResponse;
+import io.afloatdb.kv.proto.RemoveResult;
 import io.afloatdb.kv.proto.ReplaceRequest;
 import io.afloatdb.kv.proto.SetRequest;
 import io.afloatdb.kv.proto.SizeRequest;
-import io.afloatdb.kv.proto.TypedValue;
+import com.google.protobuf.ByteString;
+
+import com.google.common.util.concurrent.ListenableFuture;
 
 import javax.annotation.Nonnull;
-import java.util.function.Supplier;
 
-import static io.afloatdb.internal.serialization.Serialization.getTypedValue;
+import java.util.function.Function;
+
 import static java.util.Objects.requireNonNull;
+
+import io.afloatdb.client.internal.rpc.InvocationService;
 
 public class KVProxy implements KV {
 
-    private final Supplier<KVRequestHandlerBlockingStub> kvStubSupplier;
+    private Object extract(@Nonnull Val val) {
+        switch (val.getValCase()) {
+        case VAL_NOT_SET:
+            return null;
+        case STR:
+            return val.getStr();
+        case NUM:
+            return val.getNum();
+        case BYTEARRAY:
+            return val.getByteArray().toByteArray();
+        default:
+            throw new IllegalArgumentException("Invalid val: " + val);
+        }
+    }
 
-    public KVProxy(@Nonnull Supplier<KVRequestHandlerBlockingStub> kvStubSupplier) {
-        this.kvStubSupplier = requireNonNull(kvStubSupplier);
+    private Val toVal(Object o) {
+        requireNonNull(o);
+        if (o instanceof String) {
+            return Val.newBuilder().setStr((String) o).build();
+        } else if (o instanceof Integer || o instanceof Long) {
+            return Val.newBuilder().setNum((long) o).build();
+        } else if (o instanceof byte[]) {
+            return Val.newBuilder().setByteArray(ByteString.copyFrom((byte[]) o)).build();
+        }
+        throw new IllegalArgumentException("Invalid type for val: " + o);
+    }
+
+    private final InvocationService invocationService;
+
+    public KVProxy(@Nonnull InvocationService invocationService) {
+        this.invocationService = requireNonNull(invocationService);
     }
 
     @Nonnull
     @Override
     public Ordered<byte[]> put(@Nonnull String key, @Nonnull byte[] value) {
-        return putOrdered(key, getTypedValue(value), false);
-    }
-
-    @Nonnull
-    @Override
-    public Ordered<Integer> put(@Nonnull String key, int value) {
-        return putOrdered(key, getTypedValue(value), false);
+        return putOrdered(key, Val.newBuilder().setByteArray(ByteString.copyFrom(value)).build(), false);
     }
 
     @Nonnull
     @Override
     public Ordered<Long> put(@Nonnull String key, long value) {
-        return putOrdered(key, getTypedValue(value), false);
+        return putOrdered(key, Val.newBuilder().setNum(value).build(), false);
     }
 
     @Nonnull
     @Override
     public Ordered<String> put(@Nonnull String key, @Nonnull String value) {
-        return putOrdered(key, getTypedValue(value), false);
+        return putOrdered(key, Val.newBuilder().setStr(value).build(), false);
     }
 
     @Nonnull
     @Override
     public Ordered<byte[]> putIfAbsent(@Nonnull String key, @Nonnull byte[] value) {
-        return putOrdered(key, getTypedValue(value), true);
-    }
-
-    @Nonnull
-    @Override
-    public Ordered<Integer> putIfAbsent(@Nonnull String key, int value) {
-        return putOrdered(key, getTypedValue(value), true);
+        return putOrdered(key, Val.newBuilder().setByteArray(ByteString.copyFrom(value)).build(), true);
     }
 
     @Nonnull
     @Override
     public Ordered<Long> putIfAbsent(@Nonnull String key, long value) {
-        return putOrdered(key, getTypedValue(value), true);
+        return putOrdered(key, Val.newBuilder().setNum(value).build(), true);
     }
 
     @Nonnull
     @Override
     public Ordered<String> putIfAbsent(@Nonnull String key, @Nonnull String value) {
-        return putOrdered(key, getTypedValue(value), true);
+        return putOrdered(key, Val.newBuilder().setStr(value).build(), true);
     }
 
-    private <T> Ordered<T> putOrdered(String key, TypedValue value, boolean absent) {
-        PutRequest request = PutRequest.newBuilder().setKey(requireNonNull(key)).setValue(value).setAbsent(absent)
-                .build();
-        KVResponse response = kvStubSupplier.get().put(request);
-        PutResponse putResponse = response.getPutResponse();
-        T result = putResponse.hasValue() ? (T) Serialization.deserialize(putResponse.getValue()) : null;
-        return new OrderedImpl<>(response.getCommitIndex(), result);
+    private <T> Ordered<T> putOrdered(String key, @Nonnull Val val, boolean absent) {
+        KVResponse response = invocationService.invoke((KVRequestHandlerFutureStub stub) -> {
+            PutRequest request = PutRequest.newBuilder().setKey(requireNonNull(key)).setVal(requireNonNull(val))
+                    .setPutIfAbsent(absent).build();
+            return stub.put(request);
+        }).join();
+        PutResult result = response.getPutResult();
+        return new OrderedImpl<>(response.getCommitIndex(), (T) extract(result.getOldVal()));
     }
 
     @Override
     public Ordered<Void> set(@Nonnull String key, @Nonnull byte[] value) {
-        return set(key, getTypedValue(value));
-    }
-
-    @Override
-    public Ordered<Void> set(@Nonnull String key, int value) {
-        return set(key, getTypedValue(value));
+        return set(key, Val.newBuilder().setByteArray(ByteString.copyFrom(value)).build());
     }
 
     @Override
     public Ordered<Void> set(@Nonnull String key, long value) {
-        return set(key, getTypedValue(value));
+        return set(key, Val.newBuilder().setNum(value).build());
     }
 
     @Override
     public Ordered<Void> set(@Nonnull String key, @Nonnull String value) {
-        return set(key, getTypedValue(value));
+        return set(key, Val.newBuilder().setStr(value).build());
     }
 
-    private Ordered<Void> set(@Nonnull String key, @Nonnull TypedValue value) {
-        SetRequest request = SetRequest.newBuilder().setKey(requireNonNull(key)).setValue(value).build();
-        KVResponse response = kvStubSupplier.get().set(request);
+    private Ordered<Void> set(@Nonnull String key, @Nonnull Val val) {
+        KVResponse response = invocationService.invoke((stub) -> {
+            SetRequest request = SetRequest.newBuilder().setKey(requireNonNull(key)).setVal(requireNonNull(val))
+                    .build();
+            return stub.set(request);
+        }).join();
         return new OrderedImpl<>(response.getCommitIndex(), null);
     }
 
     @Nonnull
     @Override
     public <T> Ordered<T> get(@Nonnull String key, long minCommitIndex) {
-        GetRequest request = GetRequest.newBuilder().setKey(requireNonNull(key)).setMinCommitIndex(minCommitIndex)
-                .build();
-        KVResponse response = kvStubSupplier.get().get(request);
-        GetResponse getResponse = response.getGetResponse();
-        T value = getResponse.hasValue() ? (T) Serialization.deserialize(getResponse.getValue()) : null;
-        return new OrderedImpl<>(response.getCommitIndex(), value);
+        KVResponse response = invocationService.invoke((stub) -> {
+            GetRequest request = GetRequest.newBuilder().setKey(requireNonNull(key)).setMinCommitIndex(minCommitIndex)
+                    .build();
+            return stub.get(request);
+        }).join();
+        GetResult result = response.getGetResult();
+        return new OrderedImpl<>(response.getCommitIndex(), (T) extract(result.getVal()));
     }
 
     @Nonnull
     @Override
     public Ordered<Boolean> containsKey(@Nonnull String key, long minCommitIndex) {
-        ContainsRequest request = ContainsRequest.newBuilder().setKey(requireNonNull(key))
-                .setMinCommitIndex(minCommitIndex).build();
-        KVResponse response = kvStubSupplier.get().contains(request);
-        return new OrderedImpl<>(response.getCommitIndex(), response.getContainsResponse().getSuccess());
+        return contains(key, (Val) null, minCommitIndex);
     }
 
     @Nonnull
     @Override
     public Ordered<Boolean> contains(@Nonnull String key, @Nonnull byte[] value, long minCommitIndex) {
-        return contains(key, getTypedValue(value), minCommitIndex);
-    }
-
-    @Nonnull
-    @Override
-    public Ordered<Boolean> contains(@Nonnull String key, int value, long minCommitIndex) {
-        return contains(key, getTypedValue(value), minCommitIndex);
+        return contains(key, Val.newBuilder().setByteArray(ByteString.copyFrom(value)).build(), minCommitIndex);
     }
 
     @Nonnull
     @Override
     public Ordered<Boolean> contains(@Nonnull String key, long value, long minCommitIndex) {
-        return contains(key, getTypedValue(value), minCommitIndex);
+        return contains(key, Val.newBuilder().setNum(value).build(), minCommitIndex);
     }
 
     @Nonnull
     @Override
     public Ordered<Boolean> contains(@Nonnull String key, @Nonnull String value, long minCommitIndex) {
-        return contains(key, getTypedValue(value), minCommitIndex);
+        return contains(key, Val.newBuilder().setStr(value).build(), minCommitIndex);
     }
 
-    private Ordered<Boolean> contains(@Nonnull String key, @Nonnull TypedValue value, long minCommitIndex) {
-        ContainsRequest request = ContainsRequest.newBuilder().setKey(requireNonNull(key)).setValue(value)
-                .setMinCommitIndex(minCommitIndex).build();
-        KVResponse response = kvStubSupplier.get().contains(request);
-        return new OrderedImpl<>(response.getCommitIndex(), response.getContainsResponse().getSuccess());
+    private Ordered<Boolean> contains(@Nonnull String key, Val val, long minCommitIndex) {
+        KVResponse response = invocationService.invoke((stub) -> {
+            ContainsRequest.Builder builder = ContainsRequest.newBuilder().setKey(requireNonNull(key))
+                    .setMinCommitIndex(minCommitIndex);
+            if (val != null) {
+                builder.setVal(val);
+            }
+            return stub.contains(builder.build());
+        }).join();
+        return new OrderedImpl<>(response.getCommitIndex(), response.getContainsResult().getSuccess());
     }
 
     @Nonnull
     @Override
     public Ordered<Boolean> delete(@Nonnull String key) {
-        DeleteRequest request = DeleteRequest.newBuilder().setKey(requireNonNull(key)).build();
-        KVResponse response = kvStubSupplier.get().delete(request);
-        return new OrderedImpl<>(response.getCommitIndex(), response.getDeleteResponse().getSuccess());
+        KVResponse response = invocationService.invoke((stub) -> {
+            DeleteRequest request = DeleteRequest.newBuilder().setKey(requireNonNull(key)).build();
+            return stub.delete(request);
+        }).join();
+        return new OrderedImpl<>(response.getCommitIndex(), response.getDeleteResult().getSuccess());
     }
 
     @Nonnull
     @Override
     public <T> Ordered<T> remove(@Nonnull String key) {
-        RemoveRequest request = RemoveRequest.newBuilder().setKey(requireNonNull(key)).build();
-        KVResponse response = kvStubSupplier.get().remove(request);
-        RemoveResponse removeResponse = response.getRemoveResponse();
-        T val = removeResponse.hasValue() ? (T) Serialization.deserialize(removeResponse.getValue()) : null;
-        return new OrderedImpl<>(response.getCommitIndex(), val);
+        KVResponse response = invocationService.invoke((stub) -> {
+            RemoveRequest request = RemoveRequest.newBuilder().setKey(requireNonNull(key)).build();
+            return stub.remove(request);
+        }).join();
+        RemoveResult result = response.getRemoveResult();
+        return new OrderedImpl<>(response.getCommitIndex(), (T) extract(result.getOldVal()));
     }
 
     @Override
     public Ordered<Boolean> remove(@Nonnull String key, @Nonnull byte[] value) {
-        return remove(key, getTypedValue(value));
-    }
-
-    @Nonnull
-    @Override
-    public Ordered<Boolean> remove(@Nonnull String key, int value) {
-        return remove(key, getTypedValue(value));
+        return remove(key, Val.newBuilder().setByteArray(ByteString.copyFrom(value)).build());
     }
 
     @Nonnull
     @Override
     public Ordered<Boolean> remove(@Nonnull String key, long value) {
-        return remove(key, getTypedValue(value));
+        return remove(key, Val.newBuilder().setNum(value).build());
     }
 
     @Nonnull
     @Override
     public Ordered<Boolean> remove(@Nonnull String key, @Nonnull String value) {
-        return remove(key, getTypedValue(value));
+        return remove(key, Val.newBuilder().setStr(value).build());
     }
 
-    private Ordered<Boolean> remove(@Nonnull String key, @Nonnull TypedValue value) {
-        RemoveRequest request = RemoveRequest.newBuilder().setKey(requireNonNull(key)).setValue(value).build();
-        KVResponse response = kvStubSupplier.get().remove(request);
-        return new OrderedImpl<>(response.getCommitIndex(), response.getRemoveResponse().getSuccess());
+    private Ordered<Boolean> remove(@Nonnull String key, @Nonnull Val val) {
+        KVResponse response = invocationService.invoke((stub) -> {
+            RemoveRequest request = RemoveRequest.newBuilder().setKey(requireNonNull(key)).setVal(requireNonNull(val))
+                    .build();
+            return stub.remove(request);
+        }).join();
+        return new OrderedImpl<>(response.getCommitIndex(), response.getRemoveResult().getSuccess());
     }
 
     @Nonnull
     @Override
     public Ordered<Boolean> replace(@Nonnull String key, @Nonnull Object oldValue, @Nonnull Object newValue) {
-        ReplaceRequest request = ReplaceRequest.newBuilder().setKey(requireNonNull(key))
-                .setOldValue(getTypedValue(oldValue)).setNewValue(getTypedValue(newValue)).build();
-        KVResponse response = kvStubSupplier.get().replace(request);
-        return new OrderedImpl<>(response.getCommitIndex(), response.getReplaceResponse().getSuccess());
+        KVResponse response = invocationService.invoke((stub) -> {
+            ReplaceRequest request = ReplaceRequest.newBuilder().setKey(requireNonNull(key)).setOldVal(toVal(oldValue))
+                    .setNewVal(toVal(newValue)).build();
+            return stub.replace(request);
+        }).join();
+        return new OrderedImpl<>(response.getCommitIndex(), response.getReplaceResult().getSuccess());
     }
 
     @Nonnull
     @Override
     public Ordered<Boolean> isEmpty(long minCommitIndex) {
-        SizeRequest request = SizeRequest.newBuilder().setMinCommitIndex(minCommitIndex).build();
-        KVResponse response = kvStubSupplier.get().size(request);
-        return new OrderedImpl<>(response.getCommitIndex(), response.getSizeResponse().getSize() == 0);
+        KVResponse response = invocationService.invoke((stub) -> {
+            SizeRequest request = SizeRequest.newBuilder().setMinCommitIndex(minCommitIndex).build();
+            return stub.size(request);
+        }).join();
+        return new OrderedImpl<>(response.getCommitIndex(), response.getSizeResult().getSize() == 0);
     }
 
     @Nonnull
     @Override
     public Ordered<Integer> size(long minCommitIndex) {
-        SizeRequest request = SizeRequest.newBuilder().setMinCommitIndex(minCommitIndex).build();
-        KVResponse response = kvStubSupplier.get().size(request);
-        return new OrderedImpl<>(response.getCommitIndex(), response.getSizeResponse().getSize());
+        KVResponse response = invocationService.invoke((stub) -> {
+            SizeRequest request = SizeRequest.newBuilder().setMinCommitIndex(minCommitIndex).build();
+            return stub.size(request);
+        }).join();
+        return new OrderedImpl<>(response.getCommitIndex(), response.getSizeResult().getSize());
     }
 
     @Nonnull
     @Override
     public Ordered<Integer> clear() {
-        KVResponse response = kvStubSupplier.get().clear(ClearRequest.getDefaultInstance());
-        return new OrderedImpl<>(response.getCommitIndex(), response.getClearResponse().getSize());
+        KVResponse response = invocationService.invoke((stub) -> {
+            return stub.clear(ClearRequest.getDefaultInstance());
+        }).join();
+        return new OrderedImpl<>(response.getCommitIndex(), response.getClearResult().getSize());
     }
 
     private static class OrderedImpl<T> implements Ordered<T> {

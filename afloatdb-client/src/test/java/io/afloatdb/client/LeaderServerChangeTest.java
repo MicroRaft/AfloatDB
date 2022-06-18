@@ -67,8 +67,8 @@ public class LeaderServerChangeTest extends BaseTest {
         eventually(() -> {
             try {
                 kv.put("key", "val");
-            } catch (StatusRuntimeException e) {
-                fail(e.getMessage());
+            } catch (Throwable t) {
+                fail(t.getMessage());
                 sleepMillis(100);
             }
         });

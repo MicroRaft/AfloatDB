@@ -49,4 +49,8 @@ public class AfloatDBClientException extends RuntimeException {
         super(message, cause);
     }
 
+    public AfloatDBClientException(Throwable cause) {
+        super(cause);
+    }
+
 }

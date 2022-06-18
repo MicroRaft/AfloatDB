@@ -17,14 +17,11 @@
 package io.afloatdb.client.internal.kv.impl;
 
 import io.afloatdb.client.kv.KV;
-import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerBlockingStub;
+import io.afloatdb.client.internal.rpc.InvocationService;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.function.Supplier;
-
-import static io.afloatdb.client.internal.di.AfloatDBClientModule.KV_STUB_KEY;
 
 @Singleton
 public class KVSupplier implements Supplier<KV> {
@@ -32,8 +29,8 @@ public class KVSupplier implements Supplier<KV> {
     private final KV kv;
 
     @Inject
-    public KVSupplier(@Named(KV_STUB_KEY) Supplier<KVRequestHandlerBlockingStub> kvStubSupplier) {
-        this.kv = new KVProxy(kvStubSupplier);
+    public KVSupplier(InvocationService invocationService) {
+        this.kv = new KVProxy(invocationService);
     }
 
     @Override

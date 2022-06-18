@@ -35,9 +35,7 @@ import io.afloatdb.management.proto.RaftNodeReportReasonProto;
 import io.afloatdb.management.proto.RaftNodeStatusProto;
 import io.afloatdb.management.proto.RaftRoleProto;
 import io.afloatdb.management.proto.RaftTermProto;
-import io.afloatdb.raft.proto.QueryRequest.QUERY_POLICY;
 import io.afloatdb.raft.proto.RaftMessageRequest;
-import io.microraft.QueryPolicy;
 import io.microraft.RaftNodeStatus;
 import io.microraft.RaftRole;
 import io.microraft.model.message.RaftMessage;
@@ -152,36 +150,6 @@ public final class Serialization {
                 .forEach((key, value) -> builder.putFollowerMatchIndex(key.getId().toString(), value));
 
         return builder.build();
-    }
-
-    public static QUERY_POLICY toProto(@Nonnull QueryPolicy queryPolicy) {
-        switch (queryPolicy) {
-        case EVENTUAL_CONSISTENCY:
-            return QUERY_POLICY.EVENTUAL_CONSISTENCY;
-        case BOUNDED_STALENESS:
-            return QUERY_POLICY.BOUNDED_STALENESS;
-        case LEADER_LEASE:
-            return QUERY_POLICY.LEADER_LEASE;
-        case LINEARIZABLE:
-            return QUERY_POLICY.LINEARIZABLE;
-        default:
-            throw new IllegalArgumentException("Invalid query policy: " + queryPolicy);
-        }
-    }
-
-    public static QueryPolicy fromProto(QUERY_POLICY queryPolicy) {
-        switch (queryPolicy.getNumber()) {
-        case QUERY_POLICY.EVENTUAL_CONSISTENCY_VALUE:
-            return QueryPolicy.EVENTUAL_CONSISTENCY;
-        case QUERY_POLICY.BOUNDED_STALENESS_VALUE:
-            return QueryPolicy.BOUNDED_STALENESS;
-        case QUERY_POLICY.LEADER_LEASE_VALUE:
-            return QueryPolicy.LEADER_LEASE;
-        case QUERY_POLICY.LINEARIZABLE_VALUE:
-            return QueryPolicy.LINEARIZABLE;
-        default:
-            return null;
-        }
     }
 
     public static RaftMessage unwrap(@Nonnull RaftMessageRequest request) {

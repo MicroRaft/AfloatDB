@@ -10,14 +10,12 @@ import io.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc.AfloatDBClusterServi
 import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.config.AfloatDBEndpointConfig;
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.kv.proto.GetRequest;
-import io.afloatdb.kv.proto.GetResponse;
-import io.afloatdb.kv.proto.KVResponse;
-import io.afloatdb.kv.proto.PutRequest;
-import io.afloatdb.kv.proto.SetRequest;
-import io.afloatdb.kv.proto.SizeRequest;
-import io.afloatdb.kv.proto.SizeResponse;
-import io.afloatdb.kv.proto.TypedValue;
+import io.afloatdb.raft.proto.GetOp;
+import io.afloatdb.raft.proto.GetResult;
+import io.afloatdb.raft.proto.PutOp;
+import io.afloatdb.raft.proto.SizeOp;
+import io.afloatdb.raft.proto.SizeResult;
+import io.afloatdb.kv.proto.Val;
 import io.afloatdb.management.proto.AddRaftEndpointAddressRequest;
 import io.afloatdb.management.proto.AddRaftEndpointRequest;
 import io.afloatdb.management.proto.GetRaftNodeReportRequest;
@@ -26,7 +24,6 @@ import io.afloatdb.management.proto.ManagementRequestHandlerGrpc.ManagementReque
 import io.afloatdb.management.proto.RaftNodeReportProto;
 import io.afloatdb.management.proto.RemoveRaftEndpointRequest;
 import io.afloatdb.management.proto.RemoveRaftEndpointResponse;
-import io.afloatdb.raft.proto.Operation;
 import io.afloatdb.raft.proto.RaftEndpointProto;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -49,7 +46,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static io.afloatdb.internal.serialization.Serialization.STRING_TYPE;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_1;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_2;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_3;
@@ -211,18 +207,15 @@ public class AfloatDBTest extends BaseTest {
             assertThat(newServerReport.getTerm().getTerm()).isEqualTo(leaderReport.getTerm().getTerm());
         });
 
-        TypedValue typedValue = TypedValue.newBuilder().setType(STRING_TYPE).setValue(ByteString.copyFromUtf8("val"))
-                .build();
-        PutRequest putRequest = PutRequest.newBuilder().setKey("key").setValue(typedValue).build();
+        PutOp put = PutOp.newBuilder().setKey("key").setVal(Val.newBuilder().setStr("val").build()).build();
 
-        getRaftNode(leader).replicate(Operation.newBuilder().setPutRequest(putRequest).build()).join();
+        getRaftNode(leader).replicate(put).join();
 
         eventually(() -> {
-            GetRequest request = GetRequest.newBuilder().setKey("key").build();
-            GetResponse response = getRaftNode(newServer)
-                    .<KVResponse> query(Operation.newBuilder().setGetRequest(request).build(), EVENTUAL_CONSISTENCY, 0)
-                    .join().getResult().getGetResponse();
-            assertThat(response.getValue()).isEqualTo(putRequest.getValue());
+            GetOp get = GetOp.newBuilder().setKey("key").build();
+            GetResult result = getRaftNode(newServer).<GetResult> query(get, EVENTUAL_CONSISTENCY, 0).join()
+                    .getResult();
+            assertThat(result.getVal()).isEqualTo(put.getVal());
         });
     }
 
@@ -321,11 +314,8 @@ public class AfloatDBTest extends BaseTest {
         int keyCount = leader.getConfig().getRaftConfig().getCommitCountToTakeSnapshot();
         for (int keyIndex = 1; keyIndex <= keyCount; keyIndex++) {
             String key = "key" + keyIndex;
-            TypedValue typedValue = TypedValue.newBuilder().setType(STRING_TYPE).setValue(ByteString.copyFromUtf8(key))
-                    .build();
-            SetRequest request = SetRequest.newBuilder().setKey(key).setValue(typedValue).build();
-            Operation operation = Operation.newBuilder().setSetRequest(request).build();
-            raftNode.replicate(operation).join();
+            PutOp put = PutOp.newBuilder().setKey(key).setVal(Val.newBuilder().setStr(key).build()).build();
+            raftNode.replicate(put).join();
         }
 
         eventually(() -> {
@@ -342,11 +332,9 @@ public class AfloatDBTest extends BaseTest {
         servers.add(newServer);
 
         eventually(() -> {
-            SizeResponse sizeResponse = getRaftNode(newServer)
-                    .<KVResponse> query(Operation.newBuilder().setSizeRequest(SizeRequest.getDefaultInstance()).build(),
-                            EVENTUAL_CONSISTENCY, 0)
-                    .join().getResult().getSizeResponse();
-            assertThat(sizeResponse.getSize()).isEqualTo(keyCount);
+            SizeResult result = getRaftNode(newServer)
+                    .<SizeResult> query(SizeOp.getDefaultInstance(), EVENTUAL_CONSISTENCY, 0).join().getResult();
+            assertThat(result.getSize()).isEqualTo(keyCount);
         });
     }
 

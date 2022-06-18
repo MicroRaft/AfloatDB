@@ -20,8 +20,6 @@ public class SnapshotChunkOrBuilder implements SnapshotChunk, SnapshotChunkBuild
 
     public SnapshotChunkOrBuilder(KVSnapshotChunk snapshotChunk) {
         this.snapshotChunk = snapshotChunk;
-        // this.groupMembers = new LinkedHashSet<>();
-        // snapshotChunk.getGroupMemberList().stream().map(AfloatDBEndpoint::wrap).forEach(groupMembers::add);
     }
 
     public KVSnapshotChunk getSnapshotChunk() {
