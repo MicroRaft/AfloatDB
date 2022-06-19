@@ -153,8 +153,8 @@ public class MultiKVServiceStubManager implements InvocationService {
             // stub = KVRequestHandlerGrpc.newBlockingStub(channelManager.getOrCreateChannel(leaderAddress));
             stubHolder = new StubHolder(
                     KVRequestHandlerGrpc.newFutureStub(channelManager.getOrCreateChannel(leaderAddress))
-                            .withDeadlineAfter(rpcTimeoutSecs, SECONDS),
-                    newEndpoints.getLeaderId());
+                    // .withDeadlineAfter(rpcTimeoutSecs, SECONDS)
+                    , newEndpoints.getLeaderId());
             startLatch.countDown();
         }
     }

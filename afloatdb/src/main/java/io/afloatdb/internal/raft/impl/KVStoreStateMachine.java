@@ -27,6 +27,7 @@ import io.afloatdb.raft.proto.GetResult;
 import io.afloatdb.raft.proto.RemoveOp;
 import io.afloatdb.raft.proto.RemoveResult;
 import io.afloatdb.raft.proto.ReplaceOp;
+import io.afloatdb.raft.proto.StartNewTermOpProto;
 import io.afloatdb.raft.proto.ReplaceResult;
 import io.afloatdb.raft.proto.SizeOp;
 import io.afloatdb.raft.proto.SizeResult;
@@ -42,6 +43,9 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+
+import static java.util.Objects.requireNonNull;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +75,7 @@ public class KVStoreStateMachine implements StateMachine {
 
     @Override
     public Object runOperation(long commitIndex, @Nonnull Object operation) {
+        requireNonNull(operation);
         if (operation instanceof PutOp) {
             return put(commitIndex, (PutOp) operation);
         } else if (operation instanceof GetOp) {
@@ -83,9 +88,12 @@ public class KVStoreStateMachine implements StateMachine {
             return size(commitIndex);
         } else if (operation instanceof ClearOp) {
             return clear(commitIndex);
+        } else if (operation instanceof StartNewTermOpProto) {
+            return null;
         }
 
-        throw new IllegalArgumentException("Invalid operation: " + operation + " at commit index: " + commitIndex);
+        throw new IllegalArgumentException("Invalid operation: " + operation + " of clazz: " + operation.getClass()
+                + " at commit index: " + commitIndex);
     }
 
     private PutResult put(long commitIndex, PutOp op) {

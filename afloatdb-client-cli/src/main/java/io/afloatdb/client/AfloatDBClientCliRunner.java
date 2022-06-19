@@ -26,8 +26,8 @@ public class AfloatDBClientCliRunner implements Runnable {
     @Option(names = { "-id", "--client-id" }, required = false)
     public String clientId;
 
-    @Option(names = { "-ca", "--connect-all" }, required = false)
-    public boolean connectAll;
+    @Option(names = { "-sc", "--single-connection" }, required = false)
+    public boolean singleConnection;
 
     @Option(names = { "-tsec", "--rpc-timeout-secs" }, required = false)
     public Integer rpcTimeoutSecs;
@@ -60,7 +60,7 @@ public class AfloatDBClientCliRunner implements Runnable {
             }
         }
         configBuilder.setServerAddress(serverAddress);
-        configBuilder.setSingleConnection(!connectAll);
+        configBuilder.setSingleConnection(singleConnection);
         if (clientId != null) {
             configBuilder.setClientId(clientId);
         }

@@ -155,8 +155,8 @@ public class RaftRpcServiceImpl implements RaftRpcService {
                     // .directExecutor()
                     .build();
 
-            RaftMessageHandlerStub replicationStub = RaftMessageHandlerGrpc.newStub(channel)
-                    .withDeadline(Deadline.after(rpcTimeoutSecs, SECONDS));
+            RaftMessageHandlerStub replicationStub = RaftMessageHandlerGrpc.newStub(channel);
+            // .withDeadlineAfter(rpcTimeoutSecs, SECONDS);
             RaftRpcContext context = new RaftRpcContext(target, channel);
             context.raftMessageSender = replicationStub.handle(new ResponseStreamObserver(context));
 
