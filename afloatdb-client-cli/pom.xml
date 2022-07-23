@@ -19,8 +19,8 @@
         </afloatdb.client.cli.main.class>
 
         <javax.annotation.api.version>1.2</javax.annotation.api.version>
-        <maven.assembly.plugin.version>3.3.0</maven.assembly.plugin.version>
-        <picocli.version>3.9.6</picocli.version>
+        <maven.assembly.plugin.version>3.4.1</maven.assembly.plugin.version>
+        <picocli.version>4.6.3</picocli.version>
     </properties>
 
     <dependencies>
@@ -71,12 +71,11 @@
                 <executions>
                     <execution>
                         <goals>
-                           <goal>exec</goal>
+                           <goal>java</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
-                    <executable>maven</executable>
                     <mainClass>${afloatdb.client.cli.main.class}</mainClass>
                     <arguments>
                         <argument>--help</argument>
