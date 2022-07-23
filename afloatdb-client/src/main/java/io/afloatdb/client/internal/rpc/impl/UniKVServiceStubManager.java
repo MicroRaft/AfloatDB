@@ -7,7 +7,8 @@ import io.afloatdb.kv.proto.KVRequestHandlerGrpc;
 import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerFutureStub;
 import io.afloatdb.client.internal.rpc.InvocationService;
 import io.grpc.StatusRuntimeException;
-import io.grpc.Status;;
+import io.grpc.Status;
+import javax.annotation.PreDestroy;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -68,6 +69,11 @@ public class UniKVServiceStubManager implements InvocationService {
         } catch (ExecutionException e) {
             future.completeExceptionally(new AfloatDBClientException(getRootCause(e)));
         }
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        executor.shutdown();
     }
 
 }

@@ -96,8 +96,7 @@ public class RpcServerImpl implements RpcServer {
     @Override
     public void awaitTermination() {
         try {
-            // TODO [basri] make this configurable
-            server.awaitTermination(30, TimeUnit.SECONDS);
+            server.awaitTermination();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             processTerminationLogger.logWarn(LOGGER,

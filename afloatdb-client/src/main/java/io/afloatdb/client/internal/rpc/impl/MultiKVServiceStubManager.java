@@ -42,6 +42,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.annotation.PreDestroy;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CompletableFuture;
@@ -109,6 +110,11 @@ public class MultiKVServiceStubManager implements InvocationService {
             Thread.currentThread().interrupt();
             throw new AfloatDBClientException("Could not connect to the leader endpoint because interrupted!");
         }
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        executor.shutdown();
     }
 
     private void tryUpdateClusterEndpoints(AfloatDBClusterEndpoints newEndpoints) {
@@ -258,6 +264,7 @@ public class MultiKVServiceStubManager implements InvocationService {
                 future.completeExceptionally(e);
             } catch (ExecutionException e) {
                 Throwable t = getRootCause(e);
+
                 if (t instanceof StatusRuntimeException && t.getMessage().contains("RAFT_ERROR")) {
                     StatusRuntimeException ex = (StatusRuntimeException) t;
                     if (ex.getStatus().getCode() == Status.Code.FAILED_PRECONDITION
