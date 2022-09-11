@@ -15,7 +15,7 @@ ENV AFLOATDB_GC_LOG_FILE="gc.log"
 # we expect the caller to provide this ENV while starting the container
 ENV AFLOATDB_CONFIG_FILE="missing-config.conf"
 # source jar can be changed at build time
-ARG SOURCE_JAR="target/afloatdb-${AFLOATDB_VERSION}-jar-with-dependencies.jar"
+ARG SOURCE_JAR="target/afloatdb-server-${AFLOATDB_VERSION}-jar-with-dependencies.jar"
 # default logger config file can be changed during build time
 ARG DEFAULT_LOGGER_CONFIG_FILE=src/main/resources/log4j2-default.xml
 

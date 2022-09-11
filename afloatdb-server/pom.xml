@@ -9,8 +9,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>AfloatDB</name>
-    <artifactId>afloatdb</artifactId>
+    <name>AfloatDB Server</name>
+    <artifactId>afloatdb-server</artifactId>
     <packaging>jar</packaging>
 
     <properties>

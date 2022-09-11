@@ -2,46 +2,46 @@
 # AfloatDB
 
 This project demonstrates how a very simple distributed key-value store can
-be built on top of MicroRaft. Please note that this is not production-ready 
+be built on top of MicroRaft. Please note that this is not production-ready
 code.
 
 ## Code pointers
 
-"afloatdb" directory contains the server code and "afloatdb-client" directory
-contains the client code.
+"afloatdb-server" directory contains the server code and "afloatdb-client"
+directory contains the client code.
 
 Each AfloatDB server runs a `RaftNode` and the communication between servers
 and the client-server communication happens through gRPC.
 
-"afloatdb/src/main/proto/AfloatDBRaft.proto" contains the Protobufs definitions
+"afloatdb-server/src/main/proto/AfloatDBRaft.proto" contains the Protobufs definitions
 for MicroRaft's model and network abstractions, and the key-value operations of
 AfloatDB's key-value API. AfloatDB servers talk to each other via
 the `RaftMessageHandler` service defined in this file. This service is
-implemented at "afloatdb/src/main/java/io/afloatdb/internal/rpc/impl/RaftRpcHandler.java".
+implemented at "afloatdb-server/src/main/java/io/afloatdb/internal/rpc/impl/RaftRpcHandler.java".
 
-"afloatdb/src/main/java/io/afloatdb/internal/raft/impl/model" package contains
+"afloatdb-server/src/main/java/io/afloatdb/internal/raft/impl/model" package contains
 implementing MicroRaft's model abstractions using the Protobufs definitions
 defined in the above file.
 
-"afloatdb/src/main/java/io/afloatdb/internal/rpc/RaftRpcService.java" implements
+"afloatdb-server/src/main/java/io/afloatdb/internal/rpc/RaftRpcService.java" implements
 MicroRaft's `Transport` abstraction and makes AfloatDB servers talk to each
 other with gRPC.
 
-"afloatdb/src/main/java/io/afloatdb/internal/raft/impl/KVStoreStateMachine.java"
+"afloatdb-server/src/main/java/io/afloatdb/internal/raft/impl/KVStoreStateMachine.java"
 contains the state machine implementation of AfloatDB's key-value API and it
 implements MicroRaft's `StateMachine` interface.
 
 "afloatdb-commons/src/main/proto/KV.proto" defines the protocol between
 AfloatDB clients and servers. The server side counterpart is at
-"afloatdb/src/main/java/io/afloatdb/internal/rpc/impl/KVRequestHandler.java".
+"afloatdb-server/src/main/java/io/afloatdb/internal/rpc/impl/KVRequestHandler.java".
 It handles requests sent by clients and passes them to `RaftNode`.
 
-"afloatdb/src/main/proto/AfloatDBManagement.proto" contains the Protobufs
-definitions for the management operations on AfloatDB clusters, such as
+"afloatdb-server/src/main/proto/AfloatDBManagement.proto" contains the Protobufs
+definitions for management operations on AfloatDB clusters, such as
 adding / removing servers, querying RaftNode reports. Operators can manage
 AfloatDB clusters by making gRPC calls to the `ManagementRequestHandler`
 service defined in this file. Its server side counter part is at
-"afloatdb/src/main/java/io/afloatdb/internal/rpc/impl/ManagementRequestHandler.java".
+"afloatdb-server/src/main/java/io/afloatdb/internal/rpc/impl/ManagementRequestHandler.java".
 It handles requests sent by clients and passes them to `RaftNode`.
 
 That is enough pointers for curious readers.
@@ -53,20 +53,20 @@ and the crash-recover is not supported. Contributions are welcome.
 
 Configuration is built with the [typesafe config](https://github.com/lightbend/config)
 library. You can also create config programmatically. Please see
-"afloatdb/src/main/java/io/afloatdb/config/AfloatDBConfig.java".
+"afloatdb-server/src/main/java/io/afloatdb/config/AfloatDBConfig.java".
 
 You need to pass a config to start an AfloatDB server. The config should
 provide the Raft endpoint (id and address) and the initial member list of
-the cluster. "afloatdb/src/test/resources" contains example config files to
+the cluster. "afloatdb-server/src/test/resources" contains example config files to
 start a 3 node AfloatDB cluster.
 
 `mvn clean package`
 
-`java -jar  afloatdb/target/afloatdb-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb/src/test/resources/node1.conf &`
+`java -jar  afloatdb-server/target/afloatdb-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb/src/test/resources/node1.conf &`
 
-`java -jar  afloatdb/target/afloatdb-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb/src/test/resources/node2.conf &`
+`java -jar  afloatdb-server/target/afloatdb-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb/src/test/resources/node2.conf &`
 
-`java -jar  afloatdb/target/afloatdb-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb/src/test/resources/node3.conf &`
+`java -jar  afloatdb-server/target/afloatdb-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb/src/test/resources/node3.conf &`
 
 ## Adding a new server to a running cluster
 
@@ -74,7 +74,7 @@ Once you start your AfloatDB cluster, you can add new servers at runtime.
 For this, you need to provide address of one of the running servers via
 the "join-to" config field for the new server.
 
-`java -jar  afloatdb/target/afloatdb-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb/src/test/resources/node4.conf &`
+`java -jar  afloatdb-server/target/afloatdb-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb/src/test/resources/node4.conf &`
 
 ## Key-value API
 

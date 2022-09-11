@@ -11,7 +11,7 @@
 
     <modules>
         <module>afloatdb-commons</module>
-        <module>afloatdb</module>
+        <module>afloatdb-server</module>
         <module>afloatdb-client</module>
         <module>afloatdb-client-benchmark</module>
         <module>afloatdb-client-cli</module>
