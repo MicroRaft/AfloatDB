@@ -62,11 +62,11 @@ start a 3 node AfloatDB cluster.
 
 `mvn clean package`
 
-`java -jar  afloatdb-server/target/afloatdb-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb/src/test/resources/node1.conf &`
+`java -jar  afloatdb-server/target/afloatdb-server-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb-server/src/test/resources/node1.conf &`
 
-`java -jar  afloatdb-server/target/afloatdb-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb/src/test/resources/node2.conf &`
+`java -jar  afloatdb-server/target/afloatdb-server-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb-server/src/test/resources/node2.conf &`
 
-`java -jar  afloatdb-server/target/afloatdb-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb/src/test/resources/node3.conf &`
+`java -jar  afloatdb-server/target/afloatdb-server-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb-server/src/test/resources/node3.conf &`
 
 ## Adding a new server to a running cluster
 
@@ -74,7 +74,7 @@ Once you start your AfloatDB cluster, you can add new servers at runtime.
 For this, you need to provide address of one of the running servers via
 the "join-to" config field for the new server.
 
-`java -jar  afloatdb-server/target/afloatdb-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb/src/test/resources/node4.conf &`
+`java -jar  afloatdb-server/target/afloatdb-server-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb-server/src/test/resources/node4.conf &`
 
 ## Key-value API
 
