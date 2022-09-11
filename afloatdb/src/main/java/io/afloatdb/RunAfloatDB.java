@@ -37,8 +37,14 @@ public class RunAfloatDB {
         String configFileName = getConfigFileName(args);
         LOGGER.info("Reading config from " + configFileName);
 
+        AfloatDB server;
         AfloatDBConfig config = readConfigFile(configFileName);
-        AfloatDB server = AfloatDB.bootstrap(config);
+        if (config.getRaftGroupConfig().getJoinTo() == null) {
+            server = AfloatDB.bootstrap(config);
+        } else {
+            server = AfloatDB.join(config, true /* votingMember */);
+        }
+
         server.awaitTermination();
     }
 

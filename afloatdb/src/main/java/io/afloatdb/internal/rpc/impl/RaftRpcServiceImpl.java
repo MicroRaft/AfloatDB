@@ -18,7 +18,6 @@ package io.afloatdb.internal.rpc.impl;
 
 import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
-import io.afloatdb.internal.rpc.RaftRpc;
 import io.afloatdb.internal.rpc.RaftRpcService;
 import io.afloatdb.raft.proto.RaftMessageHandlerGrpc;
 import io.afloatdb.raft.proto.RaftMessageHandlerGrpc.RaftMessageHandlerStub;
@@ -108,13 +107,8 @@ public class RaftRpcServiceImpl implements RaftRpcService {
     }
 
     @Override
-    public RaftRpc getRpcStub(RaftEndpoint target) {
-        return getOrCreateStub(requireNonNull(target));
-    }
-
-    @Override
     public void send(@Nonnull RaftEndpoint target, @Nonnull RaftMessage message) {
-        RaftRpc stub = getRpcStub(target);
+        RaftRpcContext stub = getOrCreateStub(requireNonNull(target));
         if (stub != null) {
             executor.submit(() -> {
                 stub.send(message);
@@ -191,7 +185,7 @@ public class RaftRpcServiceImpl implements RaftRpcService {
         }
     }
 
-    private class RaftRpcContext implements RaftRpc {
+    private class RaftRpcContext {
         final RaftEndpoint targetEndpoint;
         final ManagedChannel channel;
         StreamObserver<RaftMessageRequest> raftMessageSender;
@@ -206,7 +200,6 @@ public class RaftRpcServiceImpl implements RaftRpcService {
             runSilently(channel::shutdown);
         }
 
-        @Override
         public void send(@Nonnull RaftMessage message) {
             try {
                 raftMessageSender.onNext(wrap(message));

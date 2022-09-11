@@ -28,6 +28,4 @@ public interface RaftRpcService extends Transport {
 
     Map<RaftEndpoint, String> getAddresses();
 
-    RaftRpc getRpcStub(RaftEndpoint endpoint);
-
 }

@@ -13,7 +13,6 @@ public class RpcConfig {
     public static final int DEFAULT_RETRY_LIMIT = 20;
 
     private long rpcTimeoutSecs = DEFAULT_RPC_TIMEOUT_SECONDS;
-    private int retryLimit = DEFAULT_RETRY_LIMIT;
 
     private RpcConfig() {
     }
@@ -25,10 +24,6 @@ public class RpcConfig {
 
             if (config.hasPath("rpc-timeout-secs")) {
                 builder.setRpcTimeoutSecs(config.getInt("rpc-timeout-secs"));
-            }
-
-            if (config.hasPath("retry-limit")) {
-                builder.setRetryLimit(config.getInt("retry-limit"));
             }
 
             return builder.build();
@@ -45,13 +40,9 @@ public class RpcConfig {
         return rpcTimeoutSecs;
     }
 
-    public int getRetryLimit() {
-        return retryLimit;
-    }
-
     @Override
     public String toString() {
-        return "RpcConfig{" + "rpcTimeoutSecs=" + rpcTimeoutSecs + ", retryLimit=" + retryLimit + '}';
+        return "RpcConfig{" + "rpcTimeoutSecs=" + rpcTimeoutSecs + '}';
     }
 
     public static class RpcConfigBuilder {
@@ -68,15 +59,6 @@ public class RpcConfig {
             }
 
             config.rpcTimeoutSecs = rpcTimeoutSecs;
-            return this;
-        }
-
-        public RpcConfigBuilder setRetryLimit(int retryLimit) {
-            if (retryLimit < 0) {
-                throw new IllegalArgumentException("Retry limit: " + retryLimit + " cannot be negative!");
-            }
-
-            config.retryLimit = retryLimit;
             return this;
         }
 

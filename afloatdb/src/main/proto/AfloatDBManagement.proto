@@ -6,6 +6,9 @@ import "RaftEndpoint.proto";
 
 option java_multiple_files = true;
 
+// This file contains the Protobufs definitions for the management operations
+// on AfloatDB clusters, such as adding/removing servers, querying RaftNode 
+// reports.
 
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftGroupMembers.java
 message RaftGroupMembersProto {
@@ -121,33 +124,31 @@ message RemoveRaftEndpointResponse {
 
 service ManagementRequestHandler {
     // Fetches the RaftNodeReport object from the RaftNode object running
-    // inside the contacted AfloatDB instance
+    // inside an AfloatDB server
     rpc getRaftNodeReport (GetRaftNodeReportRequest) returns (GetRaftNodeReportResponse) {
     }
 
-    // Adds the given RaftEndpoint -> address mapping to the contacted AfloatDB
-    // instance. Before adding a new RaftEndpoint to the RaftGroup formed by
-    // the AfloatDB cluster, its address must be added to all AfloatDB
-    // instances via this API.
+    // Adds the given RaftEndpoint -> address mapping to a AfloatDB server.
+    // Before adding a new AfloatDB server is added to an AfloatDB cluster, its
+    // RaftEndpoint's address must be added to all running AfloatDB servers.
     rpc addRaftEndpointAddress (AddRaftEndpointAddressRequest) returns (AddRaftEndpointAddressResponse) {
     }
 
-    // Adds a new AfloatDB instance to the AfloatDB cluster. The new AfloatDB
-    // instance is represented by the RaftEndpoint present in the request.
-    // Once an RPC to this API successfully completes, the given AfloatDB
-    // instance is added to the cluster. If an exception or an uxpected failure
-    // occurs, the caller should get the RaftNodeReport via
-    // #getRaftNodeReport() API and check if the given AfloatDB instance has
-    // been added to the cluster or not, and then initiate a new RPC if needed.
+    // Adds a new server to the AfloatDB cluster. The new AfloatDB
+    // server is represented by the RaftEndpoint present in the request.
+    // Once this API call succeeds, the given AfloatDB server is added to the 
+    // cluster, i.e., it will be contacted by the other servers. 
+    // If an exception or an uxpected failure occurs, the caller should get 
+    // the RaftNodeReport via #getRaftNodeReport() API above and check if the 
+    // given server has been added to the cluster or not, and retry if needed.
     rpc addRaftEndpoint (AddRaftEndpointRequest) returns (AddRaftEndpointResponse) {
     }
 
-    // Removes a AfloatDB instance to the AfloatDB cluster. Once an RPC to this
-    // API successfully completes, the given AfloatDB instance is removed from
-    // the cluster. If an exception or an uxpected failure occurs, the caller
-    // should get the RaftNodeReport via #getRaftNodeReport() API and check if
-    // the given AfloatDB instance has been removed from the cluster or not,
-    // and then initiate a new RPC if needed.
+    // Removes the given server from the AfloatDB cluster. Once this call
+    // succeeds, the server is removed from the cluster. 
+    // If an exception or an uxpected failure occurs, the caller should get the 
+    // RaftNodeReport via #getRaftNodeReport() API above and check if the given
+    // server has been removed from the cluster or not, and retry if needed.
     rpc removeRaftEndpoint (RemoveRaftEndpointRequest) returns (RemoveRaftEndpointResponse) {
     }
 }
