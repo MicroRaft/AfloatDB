@@ -1,8 +1,7 @@
 
 # AfloatDB
 
-This project demonstrates how a very simple distributed key-value store can
-be built on top of [MicroRaft](https://github.com/MicroRaft/MicroRaft). Please note that this is not production-ready
+This project demonstrates how to build very simple distributed key-value store  on top of [MicroRaft](https://github.com/MicroRaft/MicroRaft). Please note that this is not production-ready
 code.
 
 ## Code pointers
