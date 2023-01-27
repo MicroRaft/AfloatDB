@@ -14,45 +14,45 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl.model.message;
+package io.microraft.afloatdb.internal.raft.model.message;
 
-import io.microraft.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.microraft.afloatdb.raft.proto.PreVoteResponseProto;
+import io.microraft.afloatdb.internal.raft.model.AfloatDBEndpoint;
 import io.microraft.afloatdb.raft.proto.RaftRequest;
+import io.microraft.afloatdb.raft.proto.VoteResponseProto;
 import io.microraft.RaftEndpoint;
-import io.microraft.model.message.PreVoteResponse;
-import io.microraft.model.message.PreVoteResponse.PreVoteResponseBuilder;
+import io.microraft.model.message.VoteResponse;
+import io.microraft.model.message.VoteResponse.VoteResponseBuilder;
 import javax.annotation.Nonnull;
 
-public class PreVoteResponseOrBuilder implements PreVoteResponse, PreVoteResponseBuilder, RaftRequestAware {
+public class VoteResponseOrBuilder implements VoteResponse, VoteResponseBuilder, RaftRequestAware {
 
-    private PreVoteResponseProto.Builder builder;
-    private PreVoteResponseProto response;
+    private VoteResponseProto.Builder builder;
+    private VoteResponseProto response;
     private RaftEndpoint sender;
 
-    public PreVoteResponseOrBuilder() {
-        this.builder = PreVoteResponseProto.newBuilder();
+    public VoteResponseOrBuilder() {
+        this.builder = VoteResponseProto.newBuilder();
     }
 
-    public PreVoteResponseOrBuilder(PreVoteResponseProto response) {
+    public VoteResponseOrBuilder(VoteResponseProto response) {
         this.response = response;
         this.sender = AfloatDBEndpoint.wrap(response.getSender());
     }
 
-    public PreVoteResponseProto getResponse() {
+    public VoteResponseProto getResponse() {
         return response;
     }
 
     @Nonnull
     @Override
-    public PreVoteResponseBuilder setGroupId(@Nonnull Object groupId) {
+    public VoteResponseBuilder setGroupId(@Nonnull Object groupId) {
         builder.setGroupId((String) groupId);
         return this;
     }
 
     @Nonnull
     @Override
-    public PreVoteResponseBuilder setSender(@Nonnull RaftEndpoint sender) {
+    public VoteResponseBuilder setSender(@Nonnull RaftEndpoint sender) {
         builder.setSender(AfloatDBEndpoint.unwrap(sender));
         this.sender = sender;
         return this;
@@ -60,21 +60,21 @@ public class PreVoteResponseOrBuilder implements PreVoteResponse, PreVoteRespons
 
     @Nonnull
     @Override
-    public PreVoteResponseBuilder setTerm(int term) {
+    public VoteResponseBuilder setTerm(int term) {
         builder.setTerm(term);
         return this;
     }
 
     @Nonnull
     @Override
-    public PreVoteResponseBuilder setGranted(boolean granted) {
+    public VoteResponseBuilder setGranted(boolean granted) {
         builder.setGranted(granted);
         return this;
     }
 
     @Nonnull
     @Override
-    public PreVoteResponse build() {
+    public VoteResponse build() {
         response = builder.build();
         builder = null;
         return this;
@@ -82,16 +82,16 @@ public class PreVoteResponseOrBuilder implements PreVoteResponse, PreVoteRespons
 
     @Override
     public void populate(RaftRequest.Builder builder) {
-        builder.setPreVoteResponse(response);
+        builder.setVoteResponse(response);
     }
 
     @Override
     public String toString() {
         if (builder != null) {
-            return "PreVoteResponse{builder=" + builder + "}";
+            return "VoteResponse{builder=" + builder + "}";
         }
 
-        return ("PreVoteResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
+        return ("VoteResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
                 + ", granted=" + isGranted() + '}');
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl;
+package io.microraft.afloatdb.internal.raft;
 
 import java.util.function.Supplier;
 import io.microraft.persistence.RaftStore;

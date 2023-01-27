@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl.model.groupop;
+package io.microraft.afloatdb.internal.raft.model.groupop;
 
 import io.microraft.afloatdb.AfloatDBException;
-import io.microraft.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
+import io.microraft.afloatdb.internal.raft.model.AfloatDBEndpoint;
 import io.microraft.afloatdb.raft.proto.UpdateRaftGroupMembersOpProto;
 import io.microraft.afloatdb.raft.proto.UpdateRaftGroupMembersOpProto.MembershipChangeModeProto;
 import io.microraft.MembershipChangeMode;

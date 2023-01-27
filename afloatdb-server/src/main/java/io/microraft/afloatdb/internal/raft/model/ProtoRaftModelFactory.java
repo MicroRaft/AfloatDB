@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl.model;
+package io.microraft.afloatdb.internal.raft.model;
 
-import io.microraft.afloatdb.internal.raft.impl.model.groupop.UpdateRaftGroupMembersOpOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.log.LogEntryOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.log.SnapshotChunkOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.log.SnapshotEntryOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.log.RaftGroupMembersViewOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.message.AppendEntriesFailureResponseOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.message.AppendEntriesRequestOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.message.AppendEntriesSuccessResponseOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.message.InstallSnapshotRequestOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.message.InstallSnapshotResponseOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.message.PreVoteRequestOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.message.PreVoteResponseOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.message.TriggerLeaderElectionRequestOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.message.VoteRequestOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.message.VoteResponseOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.groupop.UpdateRaftGroupMembersOpOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.log.LogEntryOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.log.SnapshotChunkOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.log.SnapshotEntryOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.log.RaftGroupMembersViewOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.message.AppendEntriesFailureResponseOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.message.AppendEntriesRequestOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.message.AppendEntriesSuccessResponseOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.message.InstallSnapshotRequestOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.message.InstallSnapshotResponseOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.message.PreVoteRequestOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.message.PreVoteResponseOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.message.TriggerLeaderElectionRequestOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.message.VoteRequestOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.message.VoteResponseOrBuilder;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMembersOpBuilder;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;

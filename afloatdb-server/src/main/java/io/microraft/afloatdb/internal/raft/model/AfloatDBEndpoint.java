@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl.model;
+package io.microraft.afloatdb.internal.raft.model;
 
 import io.microraft.afloatdb.raft.proto.RaftEndpointProto;
 import io.microraft.RaftEndpoint;

@@ -8,7 +8,7 @@ import io.microraft.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc;
 import io.microraft.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc.AfloatDBClusterServiceStub;
 import io.microraft.afloatdb.config.AfloatDBConfig;
 import io.microraft.afloatdb.config.AfloatDBEndpointConfig;
-import io.microraft.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
+import io.microraft.afloatdb.internal.raft.model.AfloatDBEndpoint;
 import io.microraft.afloatdb.raft.proto.GetOp;
 import io.microraft.afloatdb.raft.proto.GetResult;
 import io.microraft.afloatdb.raft.proto.PutOp;

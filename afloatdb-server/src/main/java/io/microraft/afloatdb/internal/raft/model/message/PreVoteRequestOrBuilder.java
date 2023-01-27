@@ -14,45 +14,45 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl.model.message;
+package io.microraft.afloatdb.internal.raft.model.message;
 
-import io.microraft.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
+import io.microraft.afloatdb.internal.raft.model.AfloatDBEndpoint;
+import io.microraft.afloatdb.raft.proto.PreVoteRequestProto;
 import io.microraft.afloatdb.raft.proto.RaftRequest;
-import io.microraft.afloatdb.raft.proto.VoteRequestProto;
 import io.microraft.RaftEndpoint;
-import io.microraft.model.message.VoteRequest;
-import io.microraft.model.message.VoteRequest.VoteRequestBuilder;
+import io.microraft.model.message.PreVoteRequest;
+import io.microraft.model.message.PreVoteRequest.PreVoteRequestBuilder;
 import javax.annotation.Nonnull;
 
-public class VoteRequestOrBuilder implements VoteRequest, VoteRequestBuilder, RaftRequestAware {
+public class PreVoteRequestOrBuilder implements PreVoteRequest, PreVoteRequestBuilder, RaftRequestAware {
 
-    private VoteRequestProto.Builder builder;
-    private VoteRequestProto request;
+    private PreVoteRequestProto.Builder builder;
+    private PreVoteRequestProto request;
     private RaftEndpoint sender;
 
-    public VoteRequestOrBuilder() {
-        this.builder = VoteRequestProto.newBuilder();
+    public PreVoteRequestOrBuilder() {
+        this.builder = PreVoteRequestProto.newBuilder();
     }
 
-    public VoteRequestOrBuilder(VoteRequestProto request) {
+    public PreVoteRequestOrBuilder(PreVoteRequestProto request) {
         this.request = request;
         this.sender = AfloatDBEndpoint.wrap(request.getSender());
     }
 
-    public VoteRequestProto getRequest() {
+    public PreVoteRequestProto getRequest() {
         return request;
     }
 
     @Nonnull
     @Override
-    public VoteRequestBuilder setGroupId(@Nonnull Object groupId) {
+    public PreVoteRequestBuilder setGroupId(@Nonnull Object groupId) {
         builder.setGroupId((String) groupId);
         return this;
     }
 
     @Nonnull
     @Override
-    public VoteRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
+    public PreVoteRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
         builder.setSender(AfloatDBEndpoint.unwrap(sender));
         this.sender = sender;
         return this;
@@ -60,35 +60,28 @@ public class VoteRequestOrBuilder implements VoteRequest, VoteRequestBuilder, Ra
 
     @Nonnull
     @Override
-    public VoteRequestBuilder setTerm(int term) {
+    public PreVoteRequestBuilder setTerm(int term) {
         builder.setTerm(term);
         return this;
     }
 
     @Nonnull
     @Override
-    public VoteRequestBuilder setLastLogTerm(int lastLogTerm) {
+    public PreVoteRequestBuilder setLastLogTerm(int lastLogTerm) {
         builder.setLastLogTerm(lastLogTerm);
         return this;
     }
 
     @Nonnull
     @Override
-    public VoteRequestBuilder setLastLogIndex(long lastLogIndex) {
+    public PreVoteRequestBuilder setLastLogIndex(long lastLogIndex) {
         builder.setLastLogIndex(lastLogIndex);
         return this;
     }
 
     @Nonnull
     @Override
-    public VoteRequestBuilder setSticky(boolean sticky) {
-        builder.setSticky(sticky);
-        return this;
-    }
-
-    @Nonnull
-    @Override
-    public VoteRequest build() {
+    public PreVoteRequest build() {
         request = builder.build();
         builder = null;
         return this;
@@ -96,18 +89,17 @@ public class VoteRequestOrBuilder implements VoteRequest, VoteRequestBuilder, Ra
 
     @Override
     public void populate(RaftRequest.Builder builder) {
-        builder.setVoteRequest(request);
+        builder.setPreVoteRequest(request);
     }
 
     @Override
     public String toString() {
         if (builder != null) {
-            return "VoteRequest{builder=" + builder + "}";
+            return "PreVoteRequest{builder=" + builder + "}";
         }
 
-        return ("VoteRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
-                + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex() + ", sticky=" + isSticky()
-                + '}');
+        return ("PreVoteRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
+                + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex() + '}');
     }
 
     @Override
@@ -118,11 +110,6 @@ public class VoteRequestOrBuilder implements VoteRequest, VoteRequestBuilder, Ra
     @Override
     public long getLastLogIndex() {
         return request.getLastLogIndex();
-    }
-
-    @Override
-    public boolean isSticky() {
-        return request.getSticky();
     }
 
     @Override

@@ -14,49 +14,45 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl.model.message;
+package io.microraft.afloatdb.internal.raft.model.message;
 
-import io.microraft.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
+import io.microraft.afloatdb.internal.raft.model.AfloatDBEndpoint;
 import io.microraft.afloatdb.raft.proto.RaftRequest;
-import io.microraft.afloatdb.raft.proto.TriggerLeaderElectionRequestProto;
+import io.microraft.afloatdb.raft.proto.VoteRequestProto;
 import io.microraft.RaftEndpoint;
-import io.microraft.model.message.TriggerLeaderElectionRequest;
-import io.microraft.model.message.TriggerLeaderElectionRequest.TriggerLeaderElectionRequestBuilder;
+import io.microraft.model.message.VoteRequest;
+import io.microraft.model.message.VoteRequest.VoteRequestBuilder;
 import javax.annotation.Nonnull;
 
-public class TriggerLeaderElectionRequestOrBuilder
-        implements
-            TriggerLeaderElectionRequest,
-            TriggerLeaderElectionRequestBuilder,
-            RaftRequestAware {
+public class VoteRequestOrBuilder implements VoteRequest, VoteRequestBuilder, RaftRequestAware {
 
-    private TriggerLeaderElectionRequestProto.Builder builder;
-    private TriggerLeaderElectionRequestProto request;
+    private VoteRequestProto.Builder builder;
+    private VoteRequestProto request;
     private RaftEndpoint sender;
 
-    public TriggerLeaderElectionRequestOrBuilder() {
-        this.builder = TriggerLeaderElectionRequestProto.newBuilder();
+    public VoteRequestOrBuilder() {
+        this.builder = VoteRequestProto.newBuilder();
     }
 
-    public TriggerLeaderElectionRequestOrBuilder(TriggerLeaderElectionRequestProto request) {
+    public VoteRequestOrBuilder(VoteRequestProto request) {
         this.request = request;
         this.sender = AfloatDBEndpoint.wrap(request.getSender());
     }
 
-    public TriggerLeaderElectionRequestProto getRequest() {
+    public VoteRequestProto getRequest() {
         return request;
     }
 
     @Nonnull
     @Override
-    public TriggerLeaderElectionRequestBuilder setGroupId(@Nonnull Object groupId) {
+    public VoteRequestBuilder setGroupId(@Nonnull Object groupId) {
         builder.setGroupId((String) groupId);
         return this;
     }
 
     @Nonnull
     @Override
-    public TriggerLeaderElectionRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
+    public VoteRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
         builder.setSender(AfloatDBEndpoint.unwrap(sender));
         this.sender = sender;
         return this;
@@ -64,28 +60,35 @@ public class TriggerLeaderElectionRequestOrBuilder
 
     @Nonnull
     @Override
-    public TriggerLeaderElectionRequestBuilder setTerm(int term) {
+    public VoteRequestBuilder setTerm(int term) {
         builder.setTerm(term);
         return this;
     }
 
     @Nonnull
     @Override
-    public TriggerLeaderElectionRequestBuilder setLastLogTerm(int lastLogTerm) {
+    public VoteRequestBuilder setLastLogTerm(int lastLogTerm) {
         builder.setLastLogTerm(lastLogTerm);
         return this;
     }
 
     @Nonnull
     @Override
-    public TriggerLeaderElectionRequestBuilder setLastLogIndex(long lastLogIndex) {
+    public VoteRequestBuilder setLastLogIndex(long lastLogIndex) {
         builder.setLastLogIndex(lastLogIndex);
         return this;
     }
 
     @Nonnull
     @Override
-    public TriggerLeaderElectionRequest build() {
+    public VoteRequestBuilder setSticky(boolean sticky) {
+        builder.setSticky(sticky);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public VoteRequest build() {
         request = builder.build();
         builder = null;
         return this;
@@ -93,17 +96,17 @@ public class TriggerLeaderElectionRequestOrBuilder
 
     @Override
     public void populate(RaftRequest.Builder builder) {
-        builder.setTriggerLeaderElectionRequest(request);
+        builder.setVoteRequest(request);
     }
 
     @Override
     public String toString() {
         if (builder != null) {
-            return "TriggerLeaderElectionRequest{builder=" + builder + "}";
+            return "VoteRequest{builder=" + builder + "}";
         }
 
-        return ("TriggerLeaderElectionRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
-                + "term=" + getTerm() + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex()
+        return ("VoteRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
+                + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex() + ", sticky=" + isSticky()
                 + '}');
     }
 
@@ -115,6 +118,11 @@ public class TriggerLeaderElectionRequestOrBuilder
     @Override
     public long getLastLogIndex() {
         return request.getLastLogIndex();
+    }
+
+    @Override
+    public boolean isSticky() {
+        return request.getSticky();
     }
 
     @Override

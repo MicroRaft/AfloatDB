@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl;
+package io.microraft.afloatdb.internal.raft;
 
 import io.microraft.afloatdb.kv.proto.Val;
 import io.microraft.afloatdb.raft.proto.KVEntry;

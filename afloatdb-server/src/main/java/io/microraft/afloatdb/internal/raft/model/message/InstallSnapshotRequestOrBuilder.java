@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl.model.message;
+package io.microraft.afloatdb.internal.raft.model.message;
 
 import static java.util.stream.Collectors.toList;
 
-import io.microraft.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.microraft.afloatdb.internal.raft.impl.model.log.RaftGroupMembersViewOrBuilder;
-import io.microraft.afloatdb.internal.raft.impl.model.log.SnapshotChunkOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.AfloatDBEndpoint;
+import io.microraft.afloatdb.internal.raft.model.log.RaftGroupMembersViewOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.log.SnapshotChunkOrBuilder;
 import io.microraft.afloatdb.raft.proto.InstallSnapshotRequestProto;
 import io.microraft.afloatdb.raft.proto.KVSnapshotChunk;
 import io.microraft.afloatdb.raft.proto.RaftRequest;

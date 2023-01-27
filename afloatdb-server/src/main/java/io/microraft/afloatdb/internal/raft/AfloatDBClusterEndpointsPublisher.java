@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl;
+package io.microraft.afloatdb.internal.raft;
 
 import io.microraft.afloatdb.cluster.proto.AfloatDBClusterEndpoints;
 import io.microraft.afloatdb.cluster.proto.AfloatDBClusterEndpointsRequest;
 import io.microraft.afloatdb.cluster.proto.AfloatDBClusterEndpointsResponse;
 import io.microraft.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc.AfloatDBClusterServiceImplBase;
 import io.microraft.afloatdb.config.AfloatDBConfig;
-import io.microraft.afloatdb.internal.raft.RaftNodeReportSupplier;
 import io.microraft.afloatdb.internal.rpc.RaftRpcService;
 import io.grpc.stub.StreamObserver;
 import io.microraft.RaftEndpoint;

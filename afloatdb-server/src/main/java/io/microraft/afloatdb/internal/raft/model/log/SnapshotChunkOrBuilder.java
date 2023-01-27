@@ -1,4 +1,4 @@
-package io.microraft.afloatdb.internal.raft.impl.model.log;
+package io.microraft.afloatdb.internal.raft.model.log;
 
 import io.microraft.afloatdb.raft.proto.KVSnapshotChunk;
 import io.microraft.afloatdb.raft.proto.KVSnapshotChunkData;

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl.model.message;
+package io.microraft.afloatdb.internal.raft.model.message;
 
-import io.microraft.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
+import io.microraft.afloatdb.internal.raft.model.AfloatDBEndpoint;
 import io.microraft.afloatdb.raft.proto.AppendEntriesSuccessResponseProto;
 import io.microraft.afloatdb.raft.proto.RaftRequest;
 import io.microraft.RaftEndpoint;

@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl;
+package io.microraft.afloatdb.internal.raft;
 
 import io.microraft.afloatdb.AfloatDBException;
 import io.microraft.afloatdb.config.AfloatDBConfig;
 import io.microraft.afloatdb.internal.lifecycle.ProcessTerminationLogger;
-import io.microraft.afloatdb.internal.raft.RaftNodeReportSupplier;
 import io.microraft.afloatdb.internal.rpc.RaftRpcService;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;

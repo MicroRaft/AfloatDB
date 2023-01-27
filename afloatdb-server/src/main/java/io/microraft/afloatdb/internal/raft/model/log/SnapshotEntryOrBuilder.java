@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl.model.log;
+package io.microraft.afloatdb.internal.raft.model.log;
 
 import static java.util.stream.Collectors.toList;
 
-import io.microraft.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
+import io.microraft.afloatdb.internal.raft.model.AfloatDBEndpoint;
 import io.microraft.afloatdb.raft.proto.SnapshotEntryProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.RaftGroupMembersView;

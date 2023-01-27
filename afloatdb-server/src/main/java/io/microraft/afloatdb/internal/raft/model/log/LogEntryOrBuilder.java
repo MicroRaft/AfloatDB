@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package io.microraft.afloatdb.internal.raft.impl.model.log;
+package io.microraft.afloatdb.internal.raft.model.log;
 
-import io.microraft.afloatdb.internal.raft.impl.model.groupop.UpdateRaftGroupMembersOpOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.groupop.UpdateRaftGroupMembersOpOrBuilder;
 import io.microraft.afloatdb.raft.proto.LogEntryProto;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;

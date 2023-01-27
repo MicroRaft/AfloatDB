@@ -29,7 +29,7 @@ import io.microraft.afloatdb.config.AfloatDBEndpointConfig;
 import io.microraft.afloatdb.internal.di.AfloatDBModule;
 import io.microraft.afloatdb.internal.lifecycle.TerminationAware;
 import io.microraft.afloatdb.internal.raft.RaftNodeReportSupplier;
-import io.microraft.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
+import io.microraft.afloatdb.internal.raft.model.AfloatDBEndpoint;
 import io.microraft.afloatdb.admin.proto.AddRaftEndpointAddressRequest;
 import io.microraft.afloatdb.admin.proto.AddRaftEndpointRequest;
 import io.microraft.afloatdb.admin.proto.GetRaftNodeReportRequest;
