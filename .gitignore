@@ -131,6 +131,6 @@ buildNumber.properties
 .flattened-pom.xml
 
 .DS_Store
-.sqlite
+*.sqlite
 
 # End of https://www.gitignore.io/api/java,maven,intellij+all

@@ -1,6 +1,9 @@
 syntax = "proto3";
 
-package io.afloatdb.kv.proto;
+// protoc --go_out=. --go-grpc_out=. KV.proto
+option go_package = "io.microraft/afloatdb/kv";
+
+package io.microraft.afloatdb.kv.proto;
 
 option java_multiple_files = true;
 
@@ -108,7 +111,7 @@ message KVResponse {
     };
 }
 
-service KVRequestHandler {
+service KVService {
     rpc put (PutRequest) returns (KVResponse);
     rpc set (SetRequest) returns (KVResponse);
     rpc get (GetRequest) returns (KVResponse);
