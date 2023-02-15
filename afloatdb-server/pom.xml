@@ -20,6 +20,8 @@
 
         <protobuf.version>3.21.12</protobuf.version>
         <io.grpc.version>1.52.1</io.grpc.version> 
+
+        <io.microraft.version>0.5</io.microraft.version>
         
         <maven.resources.plugin.version>3.2.0</maven.resources.plugin.version>
         <maven.assembly.plugin.version>3.4.1</maven.assembly.plugin.version>
@@ -41,19 +43,19 @@
         <dependency>
            <groupId>io.microraft</groupId>
            <artifactId>microraft</artifactId>
-           <version>0.4</version>
+           <version>${io.microraft.version}</version>
         </dependency>
 
         <dependency>
            <groupId>io.microraft</groupId>
            <artifactId>microraft-hocon</artifactId>
-           <version>0.4</version>
+           <version>${io.microraft.version}</version>
         </dependency>
 
         <dependency>
            <groupId>io.microraft</groupId>
            <artifactId>microraft-store-sqlite</artifactId>
-           <version>0.4</version>
+           <version>${io.microraft.version}</version>
         </dependency>
 
         <dependency>
@@ -103,7 +105,7 @@
         <dependency>
             <groupId>io.microraft</groupId>
             <artifactId>microraft</artifactId>
-            <version>0.4</version>
+            <version>${io.microraft.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

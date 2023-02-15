@@ -16,6 +16,8 @@
     <properties>
         <root.dir>${project.parent.basedir}</root.dir>
 
+        <io.microraft.version>0.5</io.microraft.version>
+
         <maven.assembly.plugin.version>3.4.1</maven.assembly.plugin.version>
         <jmh.core.version>1.34</jmh.core.version>
     </properties>
@@ -44,7 +46,7 @@
         <dependency>
             <groupId>io.microraft</groupId>
             <artifactId>microraft</artifactId>
-            <version>0.4</version>
+            <version>${io.microraft.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

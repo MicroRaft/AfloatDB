@@ -43,10 +43,6 @@ public class AppendEntriesFailureResponseOrBuilder
         this.sender = AfloatDBEndpoint.wrap(response.getSender());
     }
 
-    public AppendEntriesFailureResponseProto getResponse() {
-        return response;
-    }
-
     @Override
     public void populate(RaftRequest.Builder builder) {
         builder.setAppendEntriesFailureResponse(response);

@@ -39,10 +39,6 @@ public class VoteResponseOrBuilder implements VoteResponse, VoteResponseBuilder,
         this.sender = AfloatDBEndpoint.wrap(response.getSender());
     }
 
-    public VoteResponseProto getResponse() {
-        return response;
-    }
-
     @Nonnull
     @Override
     public VoteResponseBuilder setGroupId(@Nonnull Object groupId) {

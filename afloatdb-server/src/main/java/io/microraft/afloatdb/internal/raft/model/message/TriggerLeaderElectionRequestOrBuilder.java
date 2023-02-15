@@ -43,10 +43,6 @@ public class TriggerLeaderElectionRequestOrBuilder
         this.sender = AfloatDBEndpoint.wrap(request.getSender());
     }
 
-    public TriggerLeaderElectionRequestProto getRequest() {
-        return request;
-    }
-
     @Nonnull
     @Override
     public TriggerLeaderElectionRequestBuilder setGroupId(@Nonnull Object groupId) {

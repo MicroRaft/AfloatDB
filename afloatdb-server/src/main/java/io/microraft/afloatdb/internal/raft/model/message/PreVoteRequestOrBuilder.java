@@ -39,10 +39,6 @@ public class PreVoteRequestOrBuilder implements PreVoteRequest, PreVoteRequestBu
         this.sender = AfloatDBEndpoint.wrap(request.getSender());
     }
 
-    public PreVoteRequestProto getRequest() {
-        return request;
-    }
-
     @Nonnull
     @Override
     public PreVoteRequestBuilder setGroupId(@Nonnull Object groupId) {

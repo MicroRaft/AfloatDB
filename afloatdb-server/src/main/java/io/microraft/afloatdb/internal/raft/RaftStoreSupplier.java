@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 import io.microraft.persistence.RaftStore;
 import io.microraft.afloatdb.config.AfloatDBConfig;
 import io.microraft.model.RaftModelFactory;
-import io.microraft.store.sqlite.StoreModelSerializer;
+import io.microraft.persistence.RaftStoreSerializer;
 import io.microraft.store.sqlite.RaftSqliteStore;
 
 import javax.inject.Inject;
@@ -37,9 +37,9 @@ public class RaftStoreSupplier implements Supplier<RaftStore> {
 
     @Inject
     public RaftStoreSupplier(@Named(CONFIG_KEY) AfloatDBConfig config, RaftModelFactory modelFactory,
-            StoreModelSerializer storeModelSerializer) {
+            RaftStoreSerializer storeSerializer) {
         File sqliteFile = new File(config.getPersistenceConfig().getSqliteFilePath());
-        this.sqliteStore = RaftSqliteStore.create(sqliteFile, modelFactory, storeModelSerializer);
+        this.sqliteStore = RaftSqliteStore.create(sqliteFile, modelFactory, storeSerializer);
     }
 
     @Override

@@ -61,8 +61,8 @@ public class LeaderServerChangeTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
-    public void when_leaderFails_then_kvCallsSucceedAfterNewLeaderElected() {
+    @Test
+    (timeout=300_000)public void when_leaderFails_then_kvCallsSucceedAfterNewLeaderElected() {
         AfloatDB leader = waitUntilLeaderElected(servers);
         leader.shutdown();
 
@@ -76,8 +76,8 @@ public class LeaderServerChangeTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
-    public void when_clusterMovesToNewTermAndLeader_then_kvCallsSucceed() {
+    @Test
+    (timeout=300_000)public void when_clusterMovesToNewTermAndLeader_then_kvCallsSucceed() {
         AfloatDB leader = waitUntilLeaderElected(servers);
         RaftNode leaderRaftNode = getRaftNode(leader);
         AfloatDB follower = getAnyFollower(servers);

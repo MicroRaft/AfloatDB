@@ -39,10 +39,6 @@ public class VoteRequestOrBuilder implements VoteRequest, VoteRequestBuilder, Ra
         this.sender = AfloatDBEndpoint.wrap(request.getSender());
     }
 
-    public VoteRequestProto getRequest() {
-        return request;
-    }
-
     @Nonnull
     @Override
     public VoteRequestBuilder setGroupId(@Nonnull Object groupId) {

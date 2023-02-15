@@ -42,10 +42,6 @@ public class AppendEntriesSuccessResponseOrBuilder
         this.sender = AfloatDBEndpoint.wrap(response.getSender());
     }
 
-    public AppendEntriesSuccessResponseProto getResponse() {
-        return response;
-    }
-
     @Nonnull
     @Override
     public AppendEntriesSuccessResponseBuilder setGroupId(@Nonnull Object groupId) {

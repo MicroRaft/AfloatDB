@@ -72,9 +72,9 @@ public class RaftNodeSupplier implements Supplier<RaftNode> {
             RestoredRaftState restoredRaftState = restoredRaftStateOpt.get();
             LOGGER.info(
                     "{} restored local endpoint: {}, voting: {}, initial group members: {}, term: {}, voted for: {}",
-                    localEndpoint.getId(), restoredRaftState.isLocalEndpointVoting(),
-                    restoredRaftState.getInitialGroupMembers(), restoredRaftState.getTerm(),
-                    restoredRaftState.getVotedMember());
+                    localEndpoint.getId(), restoredRaftState.getLocalEndpointPersistentState().isVoting(),
+                    restoredRaftState.getInitialGroupMembers(), restoredRaftState.getTermPersistentState().getTerm(),
+                    restoredRaftState.getTermPersistentState().getVotedFor());
             builder.setRestoredState(restoredRaftState);
         } else {
             builder.setLocalEndpoint(localEndpoint).setInitialGroupMembers(initialGroupMembers);

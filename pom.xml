@@ -173,6 +173,26 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>${maven.formatter.plugin.version}</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <compilerSource>${jdk.version}</compilerSource>
+                    <compilerTargetPlatform>${jdk.version}</compilerTargetPlatform>
+                    <configFile>${maven.multiModuleProjectDirectory}/tools/formatter.xml</configFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>format</goal>
+                            <!-- <goal>validate</goal> -->
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

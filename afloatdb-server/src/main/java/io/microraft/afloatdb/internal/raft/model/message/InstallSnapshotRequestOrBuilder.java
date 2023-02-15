@@ -60,10 +60,6 @@ public class InstallSnapshotRequestOrBuilder
         this.groupMembersView = new RaftGroupMembersViewOrBuilder(request.getGroupMembersView());
     }
 
-    public InstallSnapshotRequestProto getRequest() {
-        return request;
-    }
-
     @Nonnull
     @Override
     public InstallSnapshotRequestBuilder setGroupId(@Nonnull Object groupId) {

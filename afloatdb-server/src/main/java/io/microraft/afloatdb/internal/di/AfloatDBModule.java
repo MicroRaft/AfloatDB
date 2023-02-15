@@ -46,7 +46,7 @@ import io.microraft.impl.state.RaftState;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.persistence.RaftStore;
 import io.microraft.statemachine.StateMachine;
-import io.microraft.store.sqlite.StoreModelSerializer;
+import io.microraft.persistence.RaftStoreSerializer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +97,7 @@ public class AfloatDBModule extends AbstractModule {
         bind(RaftRpcService.class).to(RaftRpcServiceImpl.class);
         bind(KVServiceImplBase.class).to(KVService.class);
         bind(AdminServiceImplBase.class).to(AdminService.class);
-        bind(StoreModelSerializer.class).to(ProtoStateStoreSerializer.class);
+        bind(RaftStoreSerializer.class).to(ProtoStateStoreSerializer.class);
         bind(new TypeLiteral<Supplier<RaftStore>>() {
         }).to(RaftStoreSupplier.class);
         bind(new TypeLiteral<Supplier<RaftNode>>() {

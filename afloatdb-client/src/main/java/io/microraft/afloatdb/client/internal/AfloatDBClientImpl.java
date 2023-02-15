@@ -126,7 +126,8 @@ public class AfloatDBClientImpl implements AfloatDBClient {
         terminationCompleted = true;
     }
 
-    private enum Status {
+    private enum Status
+    {
         LATENT, RUNNING, SHUTTING_DOWN, SHUT_DOWN
     }
 

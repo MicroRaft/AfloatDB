@@ -53,10 +53,6 @@ public class AppendEntriesRequestOrBuilder
         }
     }
 
-    public AppendEntriesRequestProto getRequest() {
-        return request;
-    }
-
     @Override
     public void populate(RaftRequest.Builder builder) {
         builder.setAppendEntriesRequest(request);

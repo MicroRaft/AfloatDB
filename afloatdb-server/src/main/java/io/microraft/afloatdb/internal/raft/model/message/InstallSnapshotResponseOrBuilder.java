@@ -27,10 +27,6 @@ public class InstallSnapshotResponseOrBuilder
         this.sender = AfloatDBEndpoint.wrap(response.getSender());
     }
 
-    public InstallSnapshotResponseProto getResponse() {
-        return response;
-    }
-
     @Nonnull
     @Override
     public InstallSnapshotResponseBuilder setGroupId(@Nonnull Object groupId) {

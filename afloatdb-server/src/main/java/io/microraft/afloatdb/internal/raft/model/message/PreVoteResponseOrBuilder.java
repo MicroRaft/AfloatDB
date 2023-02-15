@@ -39,10 +39,6 @@ public class PreVoteResponseOrBuilder implements PreVoteResponse, PreVoteRespons
         this.sender = AfloatDBEndpoint.wrap(response.getSender());
     }
 
-    public PreVoteResponseProto getResponse() {
-        return response;
-    }
-
     @Nonnull
     @Override
     public PreVoteResponseBuilder setGroupId(@Nonnull Object groupId) {

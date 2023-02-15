@@ -16,32 +16,33 @@
 
 package io.microraft.afloatdb.internal.raft.model;
 
-import static io.microraft.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
-import static java.util.Objects.requireNonNull;
-
-import com.google.protobuf.InvalidProtocolBufferException;
-import io.microraft.afloatdb.internal.raft.model.log.LogEntryOrBuilder;
-import io.microraft.afloatdb.internal.raft.model.log.RaftGroupMembersViewOrBuilder;
-import io.microraft.afloatdb.internal.raft.model.log.SnapshotChunkOrBuilder;
-import io.microraft.afloatdb.raft.proto.LogEntryProto;
-import io.microraft.afloatdb.raft.proto.RaftEndpointProto;
-import io.microraft.afloatdb.raft.proto.RaftGroupMembersViewProto;
-import io.microraft.afloatdb.raft.proto.KVSnapshotChunk;
-import io.microraft.RaftEndpoint;
-import io.microraft.model.log.LogEntry;
-import io.microraft.model.log.RaftGroupMembersView;
-import io.microraft.model.log.SnapshotChunk;
-import io.microraft.store.sqlite.StoreModelSerializer;
-import io.microraft.store.sqlite.StoreModelSerializer.Serializer;
-import io.microraft.afloatdb.internal.raft.model.AfloatDBEndpoint;
 import javax.annotation.Nonnull;
-import javax.inject.Inject;
 import javax.inject.Singleton;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+
+import io.microraft.RaftEndpoint;
+import io.microraft.afloatdb.internal.raft.model.log.LogEntryOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.log.RaftGroupMembersViewOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.log.SnapshotChunkOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.persistence.RaftEndpointPersistentStateOrBuilder;
+import io.microraft.afloatdb.internal.raft.model.persistence.RaftTermPersistentStateOrBuilder;
+import io.microraft.afloatdb.raft.proto.KVSnapshotChunk;
+import io.microraft.afloatdb.raft.proto.LogEntryProto;
+import io.microraft.afloatdb.raft.proto.RaftEndpointProto;
+import io.microraft.afloatdb.raft.proto.RaftGroupMembersViewProto;
+import io.microraft.model.log.LogEntry;
+import io.microraft.model.log.RaftGroupMembersView;
+import io.microraft.model.log.SnapshotChunk;
+import io.microraft.model.persistence.RaftEndpointPersistentState;
+import io.microraft.model.persistence.RaftTermPersistentState;
+import io.microraft.persistence.RaftStoreSerializer;
+
 @Singleton
-public class ProtoStateStoreSerializer implements StoreModelSerializer {
+public class ProtoStateStoreSerializer implements RaftStoreSerializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProtoStateStoreSerializer.class);
 
@@ -143,6 +144,44 @@ public class ProtoStateStoreSerializer implements StoreModelSerializer {
                     throw new IllegalArgumentException("Cannot deserialize byte array to KVSnapshotChunk: " + e);
                 }
             }
+        };
+    }
+
+    @Override
+    public Serializer<RaftEndpointPersistentState> raftEndpointPersistentStateSerializer() {
+        return new Serializer<RaftEndpointPersistentState>() {
+
+            @Override
+            public RaftEndpointPersistentState deserialize(byte[] arg0) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public byte[] serialize(RaftEndpointPersistentState arg0) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+        };
+    }
+
+    @Override
+    public Serializer<RaftTermPersistentState> raftTermPersistentState() {
+        return new Serializer<RaftTermPersistentState>() {
+
+            @Override
+            public RaftTermPersistentState deserialize(byte[] arg0) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
+            @Override
+            public byte[] serialize(RaftTermPersistentState arg0) {
+                // TODO Auto-generated method stub
+                return null;
+            }
+
         };
     }
 }

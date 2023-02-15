@@ -240,6 +240,16 @@ message TriggerLeaderElectionRequestProto {
     int64 lastLogIndex = 5;
 }
 
+message RaftEndpointPersistentStateProto {
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto localEndpoint = 1;
+    bool voting = 2;
+}
+
+message RaftTermPersistentStateProto {
+    int32 term = 1;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto votedFor = 2;
+}
+
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/RaftMessage.java
 message RaftRequest {
     oneof message {

@@ -174,7 +174,8 @@ public class AfloatDBImpl implements AfloatDB {
         return injector;
     }
 
-    private enum Status {
+    private enum Status
+    {
         LATENT, RUNNING, SHUTTING_DOWN, SHUT_DOWN
     }
 
